@@ -1,13 +1,57 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using VitoriaAirlinesWeb.Data;
+using VitoriaAirlinesWeb.Data.Entities;
+using VitoriaAirlinesWeb.Data.Helpers;
+
 namespace VitoriaAirlinesWeb
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+
+            builder.Services.AddDbContext<DataContext>(o =>
+            {
+                o.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+
+            });
+
+            builder.Services.AddIdentity<User, IdentityRole>(options =>
+            {
+                // Password settings
+                options.Password.RequireDigit = false; // TODO change to true in production
+                options.Password.RequiredLength = 8;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireUppercase = false;
+
+                // User settings
+                options.User.RequireUniqueEmail = true;
+
+                // SignIn settings
+                options.SignIn.RequireConfirmedEmail = true;
+
+                // Token settings
+                options.Tokens.AuthenticatorTokenProvider = TokenOptions.DefaultAuthenticatorProvider;
+            })
+                .AddDefaultTokenProviders()
+                .AddEntityFrameworkStores<DataContext>();
+
+            builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
+
+            // Repositories
+
+
+            // Helpers
+            builder.Services.AddScoped<IUserHelper, UserHelper>();
+            builder.Services.AddScoped<IMailHelper, MailHelper>();
+            builder.Services.AddTransient<SeedDb>();
+
 
             var app = builder.Build();
 
@@ -24,13 +68,25 @@ namespace VitoriaAirlinesWeb
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
 
+            // Seed the database
+            await RunSeeding(app);
+
             app.Run();
+        }
+
+        private static async Task RunSeeding(WebApplication app)
+        {
+            using var scope = app.Services.CreateScope();
+            var services = scope.ServiceProvider;
+            var seedDb = services.GetRequiredService<SeedDb>();
+            await seedDb.SeedAsync();
         }
     }
 }

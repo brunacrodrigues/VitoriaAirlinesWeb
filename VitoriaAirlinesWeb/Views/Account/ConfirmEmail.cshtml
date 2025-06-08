@@ -1,0 +1,15 @@
+﻿@{
+    ViewData["Title"] = "Email Confirmation";
+}
+
+<div class="email-confirmation-container">
+    <div class="email-confirmation-card">
+        <div class="email-confirmation-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="white" class="bi bi-check" viewBox="0 0 16 16">
+                <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-4.992 5.998a.75.75 0 0 1-1.08.02L4.324 9.384a.75.75 0 0 1 1.06-1.06l1.094 1.094 4.492-5.448z" />
+            </svg>
+        </div>
+        <h3>Email Confirmed!</h3>
+        <a asp-action="Login" class="btn-confirmation">Go to Login</a>
+    </div>
+</div>

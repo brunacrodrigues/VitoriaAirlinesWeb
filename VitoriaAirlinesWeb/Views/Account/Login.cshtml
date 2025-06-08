@@ -1,0 +1,51 @@
+﻿@model VitoriaAirlinesWeb.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="login-background">
+    <div class="login-card">
+        <h3 class="text-center text-light mb-4">Login</h3>
+
+        <form asp-action="Login" method="post">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="login-error-message">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <div>@error.ErrorMessage</div>
+                    }
+                </div>
+            }
+
+            <div class="mb-3">
+                <label asp-for="Username" class="form-label text-light">Email</label>
+                <input asp-for="Username" class="form-control bg-dark text-light border-secondary" />
+                <span asp-validation-for="Username" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label text-light">Password</label>
+                <input asp-for="Password" class="form-control bg-dark text-light border-secondary" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <div class="form-check mb-3">
+                <input asp-for="RememberMe" class="form-check-input" />
+                <label asp-for="RememberMe" class="form-check-label text-light">Remember me</label>
+            </div>
+
+            <button type="submit" class="btn w-100 mb-3 login-button">Login</button>
+
+            <div class="text-center">
+                <a asp-action="Register" class="login-register-link">Don't have an account? Register</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
