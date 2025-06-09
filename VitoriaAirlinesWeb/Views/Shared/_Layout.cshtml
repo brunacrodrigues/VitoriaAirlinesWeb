@@ -4,64 +4,103 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Vitoria Airlines</title>
+
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/VitoriaAirlinesWeb.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.syncfusion.com/ej2/29.1.33/fluent.css" />
+    <script src="https://cdn.syncfusion.com/ej2/29.1.33/dist/ej2.min.js"></script>
+    @RenderSection("Styles", required: false)
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">VitoriaAirlinesWeb</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                    <ul class="nav navbar-nav navbar-right">
-                        @if (User.Identity?.IsAuthenticated == true)
+    @{
+        var showSidebar = ViewData["ShowAdminSidebar"] as bool? ?? false;
+    }
+
+    <div class="app-container">
+        @if (showSidebar)
+        {
+           
+            <ejs-sidebar id="adminSidebar" width="220px" isOpen="true">
+                <e-content-template>
+                    <div class="sidebar-internal-container">
+                        <div class="sidebar-header"><div class="sidebar-title">VITORIA AIRLINES</div></div>
+                        <ul class="sidebar-menu">
+                            <li><i class="e-icons e-home"></i><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+                            <li><i class="e-icons e-user"></i><a asp-controller="Employees" asp-action="Index">Manage Employees</a></li>
+                            <li><i class="e-icons e-location"></i><a asp-controller="City" asp-action="Index">Manage Cities</a></li>
+                            <li><i class="e-icons e-airplane"></i><a asp-controller="Airplane" asp-action="Index">Manage Airplanes</a></li>
+                            <li><i class="e-icons e-people"></i><a asp-controller="Client" asp-action="Index">Manage Clients</a></li>
+                        </ul>
+                    </div>
+                </e-content-template>
+            </ejs-sidebar>
+        }
+
+        <div class="page-container">
+            <header>
+                <nav class="navbar navbar-expand-sm navbar-light border-bottom box-shadow">
+                    <div class="container-fluid">
+                        @if (showSidebar)
                         {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="ChangeUser">@this.User.Identity.Name</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Logout">Logout</a>
-                            </li>
+                            <button id="hamburger" class="hamburger-button">
+                                <span class="e-icons e-menu"></span>
+                            </button>
                         }
-                        else
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Login">Login</a>
-                            </li>
-                        }
-                    </ul>
+                        <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">VitoriaAirlinesWeb</a>
+                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"><span class="navbar-toggler-icon"></span></button>
+                        <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                            <ul class="navbar-nav flex-grow-1">
+                                <li class="nav-item"><a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+                                <li class="nav-item"><a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a></li>
+                            </ul>
+                            <ul class="navbar-nav">
+                                @if (User.Identity?.IsAuthenticated == true)
+                                {
+                                    <li class="nav-item"><a class="nav-link text-dark" asp-controller="Dashboard" asp-action="Index">My Area</a></li>
+                                    <li class="nav-item"><a class="nav-link text-dark" asp-controller="Account" asp-action="ChangeUser">@User.Identity.Name</a></li>
+                                    <li class="nav-item"><a class="nav-link text-dark" asp-controller="Account" asp-action="Logout">Logout</a></li>
+                                }
+                                else
+                                {
+                                    <li class="nav-item"><a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Login</a></li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                </nav>
+            </header>
+
+            <main role="main" class="container-fluid py-3">
+                @RenderBody()
+            </main>
+
+            <footer class="border-top footer text-muted">
+                <div class="container-fluid">
+                    © 2025 - VitoriaAirlinesWeb - <a asp-controller="Home" asp-action="Privacy">Privacy</a>
                 </div>
-            </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+            </footer>
+        </div>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - VitoriaAirlinesWeb - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+    <ejs-scripts></ejs-scripts>
+
+    @if (showSidebar)
+    {
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                var sidebar = document.getElementById('adminSidebar').ej2_instances[0];
+                var hamburger = document.getElementById('hamburger');
+                hamburger.onclick = function () {
+                    sidebar.toggle();
+                };
+            });
+        </script>
+    }
+    @RenderSection("Scripts", required: false)
 </body>
 </html>

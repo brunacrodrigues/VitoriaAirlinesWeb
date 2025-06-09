@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Syncfusion.Licensing;
 using VitoriaAirlinesWeb.Data;
 using VitoriaAirlinesWeb.Data.Entities;
-using VitoriaAirlinesWeb.Data.Helpers;
+using VitoriaAirlinesWeb.Helpers;
 
 namespace VitoriaAirlinesWeb
 {
@@ -12,10 +13,13 @@ namespace VitoriaAirlinesWeb
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            SyncfusionLicenseProvider.RegisterLicense(builder.Configuration["Syncfusion:LicenseKey"]);
+
             // Add services to the container.
             builder.Services.AddControllersWithViews();
 
             builder.Services.AddDbContext<DataContext>(o =>
+
             {
                 o.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 
@@ -73,7 +77,9 @@ namespace VitoriaAirlinesWeb
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+                //pattern: "{controller=Home}/{action=Index}/{id?}");
+                pattern: "{controller=Dashboard}/{action=Index}/{id?}");
+
 
             // Seed the database
             await RunSeeding(app);

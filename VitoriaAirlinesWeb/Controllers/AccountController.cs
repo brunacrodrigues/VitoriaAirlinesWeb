@@ -1,8 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using VitoriaAirlinesWeb.Data.Entities;
-using VitoriaAirlinesWeb.Data.Helpers;
+using VitoriaAirlinesWeb.Helpers;
 using VitoriaAirlinesWeb.Models;
 using VitoriaAirlinesWeb.Responses;
 
@@ -14,7 +13,8 @@ namespace VitoriaAirlinesWeb.Controllers
         private readonly IMailHelper _mailHelper;
 
         public AccountController(
-            IUserHelper userHelper, IMailHelper mailHelper
+            IUserHelper userHelper,
+            IMailHelper mailHelper
             )
         {
             _userHelper = userHelper;
@@ -23,10 +23,10 @@ namespace VitoriaAirlinesWeb.Controllers
 
         public IActionResult Login()
         {
-            if (User.Identity?.IsAuthenticated == true)
-            {
-                return RedirectToAction("Index", "Home");
-            }
+            //if (User.Identity?.IsAuthenticated == true)
+            //{
+            //    return RedirectToAction("Index", "Home");
+            //}
 
             return View();
         }
@@ -40,13 +40,24 @@ namespace VitoriaAirlinesWeb.Controllers
                 var result = await _userHelper.LoginAsync(model);
                 if (result.Succeeded)
                 {
+                    var user = await _userHelper.GetUserByEmailAsync(model.Username);
+                    if (user == null)
+                    {
+                        await _userHelper.LogoutAsync();
+                        ModelState.AddModelError(string.Empty, "User not found.");
+                        return View(model);
+                    }
+
+                    var roles = await _userHelper.GetUserRolesAsync(user);
+
                     var returnUrl = Request.Query["ReturnUrl"].FirstOrDefault();
                     if (!string.IsNullOrWhiteSpace(returnUrl))
                     {
                         return Redirect(returnUrl);
                     }
 
-                    return RedirectToAction("Index", "Home");
+
+                    return RedirectToAction("Index", "Dashboard");
                 }
 
                 ModelState.AddModelError(string.Empty, "Failed to login");
@@ -55,7 +66,7 @@ namespace VitoriaAirlinesWeb.Controllers
 
         }
 
-       
+
         public async Task<IActionResult> Logout()
         {
             await _userHelper.LogoutAsync();
@@ -88,16 +99,15 @@ namespace VitoriaAirlinesWeb.Controllers
                     var result = await _userHelper.AddUserAsync(user, model.Password);
                     if (result != IdentityResult.Success)
                     {
-                        ModelState.AddModelError(string.Empty, "The user cound't be created.");
+                        ModelState.AddModelError(string.Empty, "The user couldn't be created.");
                         return View(model);
                     }
 
 
                     await _userHelper.CheckRoleAsync(UserRoles.Customer);
-                    // adicionar user a role Customer
                     await _userHelper.AddUserToRoleAsync(user, UserRoles.Customer);
 
-                    // Gerar token confirmação email
+
                     string myToken = await _userHelper.GenerateEmailConfirmationTokenAsync(user);
                     var scheme = Request?.Scheme ?? "https";
                     var tokenLink = Url.Action("ConfirmEmail", "Account", new
@@ -116,7 +126,7 @@ namespace VitoriaAirlinesWeb.Controllers
                         return View(model);
                     }
 
-                    ModelState.AddModelError(string.Empty, "The user cound't be logged.");
+                    ModelState.AddModelError(string.Empty, "The user couldn't be logged.");
 
                 }
             }
@@ -145,6 +155,43 @@ namespace VitoriaAirlinesWeb.Controllers
             }
 
             return View();
+        }
+
+        public IActionResult ResetPassword(string token, string email)
+        {
+            if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(email))
+            {
+                return RedirectToAction("Error", "Home");
+            }
+
+            var model = new ResetPasswordViewModel
+            {
+                Token = token,
+                Username = email
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            var user = await _userHelper.GetUserByEmailAsync(model.Username);
+            if (user != null)
+            {
+                var result = await _userHelper.ResetPasswordAsync(user, model.Token, model.Password);
+                if (result.Succeeded)
+                {
+                    ViewBag.Message = "Password reset successful.";
+                    return View();
+                }
+
+                ViewBag.Message = "Error while resetting the password.";
+                return View(model);
+            }
+
+            ViewBag.Message = "User not found.";
+            return View(model);
         }
     }
 }

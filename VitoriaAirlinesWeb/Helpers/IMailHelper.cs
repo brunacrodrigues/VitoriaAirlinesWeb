@@ -1,6 +1,6 @@
 ﻿using VitoriaAirlinesWeb.Responses;
 
-namespace VitoriaAirlinesWeb.Data.Helpers
+namespace VitoriaAirlinesWeb.Helpers
 {
     public interface IMailHelper
     {

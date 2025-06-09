@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using VitoriaAirlinesWeb.Data.Entities;
-using VitoriaAirlinesWeb.Data.Helpers;
+using VitoriaAirlinesWeb.Helpers;
 
 namespace VitoriaAirlinesWeb.Data
 {

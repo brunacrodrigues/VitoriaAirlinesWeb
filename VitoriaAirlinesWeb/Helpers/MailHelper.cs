@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 using MimeKit;
 using VitoriaAirlinesWeb.Responses;
 
-namespace VitoriaAirlinesWeb.Data.Helpers
+namespace VitoriaAirlinesWeb.Helpers
 {
     public class MailHelper : IMailHelper
     {

@@ -11,5 +11,7 @@ namespace VitoriaAirlinesWeb.Data.Entities
 
         [MaxLength(100, ErrorMessage = "The field {0} only can contain {1} characters long.")]
         public string LastName { get; set; } = null!;
+
+        public string FullName => $"{FirstName} {LastName}";
     }
 }

@@ -1,0 +1,30 @@
+﻿@model IEnumerable<VitoriaAirlinesWeb.Data.Entities.User>
+
+@{
+    ViewData["Title"] = "Manage Employees";
+    ViewData["ShowAdminSidebar"] = true;
+}
+
+<div class="main-content">
+    <h2>Registered Employees</h2>
+
+    <a asp-action="Register" class="btn btn-gold mb-3">Register New Employee</a>
+
+    <table class="table table-striped table-custom">
+        <thead>
+            <tr>
+                <th>Full Name</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var employee in Model)
+            {
+                <tr>
+                    <td>@employee.FullName</td>
+                    <td>@employee.Email</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

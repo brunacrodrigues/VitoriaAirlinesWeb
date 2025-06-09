@@ -2,7 +2,7 @@
 using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Models;
 
-namespace VitoriaAirlinesWeb.Data.Helpers
+namespace VitoriaAirlinesWeb.Helpers
 {
     public interface IUserHelper
     {
@@ -22,6 +22,8 @@ namespace VitoriaAirlinesWeb.Data.Helpers
 
         Task AddUserToRoleAsync(User user, string roleName);
 
+        Task<IList<string>> GetUserRolesAsync(User user);
+
         Task<bool> IsUserInRoleAsync(User user, string roleName);
 
         Task<SignInResult> ValidatePasswordAsync(User user, string password);
@@ -35,5 +37,8 @@ namespace VitoriaAirlinesWeb.Data.Helpers
         Task<string> GeneratePasswordResetTokenAsync(User user);
 
         Task<IdentityResult> ResetPasswordAsync(User user, string token, string password);
+
+        Task<List<User>> GetUsersInRoleAsync(string roleName);
+
     }
 }

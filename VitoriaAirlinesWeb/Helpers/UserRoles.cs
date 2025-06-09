@@ -1,4 +1,4 @@
-﻿namespace VitoriaAirlinesWeb.Data.Helpers
+﻿namespace VitoriaAirlinesWeb.Helpers
 {
     public static class UserRoles
     {

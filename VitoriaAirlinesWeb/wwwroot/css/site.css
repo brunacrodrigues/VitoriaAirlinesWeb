@@ -8,108 +8,268 @@ html {
   }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus 
+{
   box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
-html {
-  position: relative;
-  min-height: 100%;
-}
-
 body {
-    margin-bottom: 60px;
     font-family: 'Outfit', sans-serif;
     background-color: #0e0e0e;
     color: #ffffff;
-    margin: 0;
+    overflow-y: hidden; 
 }
 
+/* LOGIN AND REGISTRATION */
 .login-background {
-    min-height: 100vh;
-    background-color: #0e0e0e;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    min-height: 100vh; 
+    background-color: #0e0e0e; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
 }
 
 .login-card {
-    width: 100%;
-    max-width: 400px;
-    background-color: #1a1a1a;
-    border: none;
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    width: 100%; 
+    max-width: 400px; 
+    background-color: #1a1a1a; 
+    border: none; 
+    border-radius: 12px; 
+    padding: 1.5rem; 
+    box-shadow: 0 0 10px rgba(0,0,0,0.3); 
 }
 
 .login-button {
-    background-color: #4B0012;
-    color: white;
+    background-color: #4B0012; 
+    color: white; 
 }
 
 .login-register-link {
-    color: #f0b400;
-    text-decoration: none;
+    color: #f0b400; 
+    text-decoration: none; 
 }
 
-
 .login-error-message {
-    background-color: #850d1c;
-    color: #f8f8f8;
-    padding: 0.75rem;
-    border-radius: 6px;
+    background-color: #850d1c; 
+    color: #f8f8f8; padding: 0.75rem; 
+    border-radius: 6px; 
     margin-bottom: 1rem;
 }
 
 .email-confirmation-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 90vh;
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    min-height: 90vh; 
     background-color: #0e0e0e;
 }
 
 .email-confirmation-card {
-    background-color: #1a1a1a;
-    border: 1px;
-    border-radius: 8px;
-    padding: 2rem;
-    text-align: center;
-    max-width: 400px;
-    width: 100%;
-    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    background-color: #1a1a1a; 
+    border-radius: 8px; 
+    padding: 2rem; 
+    text-align: center; 
+    max-width: 400px; 
+    width: 100%; 
+    box-shadow: 0 0 20px rgba(0,0,0,0.1); 
 }
 
 .email-confirmation-icon {
-    width: 60px;
-    height: 60px;
-    margin: 0 auto 1rem auto;
-    border-radius: 50%;
-    background-color: #4B0012;
-    display: flex;
-    justify-content: center;
+    width: 60px; 
+    height: 60px; 
+    margin: 0 auto 1rem auto; 
+    border-radius: 50%; 
+    background-color: #4B0012; 
+    display: flex; 
+    justify-content: center; 
     align-items: center;
 }
 
 .email-confirmation-card h3 {
-    color: white;
-    margin-bottom: 1.5rem;
+    color: white; 
+    margin-bottom: 1.5rem; 
 }
 
 .btn-confirmation {
-    display: inline-block;
-    padding: 0.6rem 1.2rem;
-    background-color: #4B0012;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    text-decoration: none;
-    font-weight: 500;
-    transition: background-color 0.3s ease;
+    display: inline-block; 
+    padding: 0.6rem 1.2rem; 
+    background-color: #4B0012; 
+    color: white; 
+    border-radius: 4px; 
+    text-decoration: none; 
+    font-weight: 500; 
+    transition: background-color 0.3s ease; 
 }
 
-    .btn-confirmation:hover {
-        background-color: #D32F2F;
-    }
+.btn-confirmation:hover {
+    background-color: #D32F2F; 
+}
+
+
+.app-container {
+    display: flex;
+    height: 100vh;
+}
+
+.page-container {
+    flex-grow: 1; 
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto; 
+    background-color: #0d0d0d;
+}
+
+main {
+    flex-grow: 1; 
+}
+
+/* Sidebar  */
+#adminSidebar.e-sidebar {
+    background-color: #4B0012 !important; 
+    color: white;
+    border: none;
+    flex-shrink: 0; 
+    transition: width 0.35s ease;
+    font-family: 'Outfit', sans-serif;
+}
+
+.sidebar-internal-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.sidebar-header {
+    padding: 1rem;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.sidebar-title { 
+    font-size: 1.2rem; 
+    font-weight: bold;
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 0 1rem;
+    margin-top: 1rem;
+    flex-grow: 1;
+    overflow-y: auto;
+    min-height: 0; 
+}
+
+.sidebar-menu li {
+    margin: 0.5rem 0;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    transition: background-color 0.3s;
+    display: flex;
+    align-items: center;
+}
+
+.sidebar-menu a {
+    color: white;
+    text-decoration: none;
+    flex-grow: 1;
+}
+
+.sidebar-menu li:hover {
+    background-color: #A67C26;
+    cursor: pointer;
+}
+
+.sidebar-menu li i {
+    margin-right: 0.75rem;
+}
+
+
+.e-sidebar.e-dock .sidebar-title,
+.e-sidebar.e-dock .sidebar-menu a {
+    display: none;
+}
+
+.e-sidebar.e-dock .sidebar-menu {
+    padding: 0;
+}
+
+.e-sidebar.e-dock .sidebar-menu li {
+    justify-content: center;
+    padding: 0.75rem 0;
+}
+
+.e-sidebar.e-dock .sidebar-menu li i {
+    margin-right: 0;
+    font-size: 1.2em;
+}
+
+
+/* Header and footer */
+header .navbar {
+    background-color: #1a1a1a !important; 
+    border-bottom: 1px solid #333 !important;
+}
+
+header .navbar-brand, header .nav-link {
+    color: #ffffff !important;
+}
+
+header .nav-link:hover {
+    color: #f0b400 !important;
+}
+
+.footer {
+    background-color: #1a1a1a;
+    border-top: 1px solid #333 !important;
+    color: #888;
+}
+
+.footer a {
+    color: #f0b400;
+}
+
+.hamburger-button {
+    border: none;
+    background-color: transparent;
+    color: #ffffff;
+    font-size: 20px;
+    cursor: pointer;
+    margin-right: 15px;
+    padding: 5px;
+}
+
+.hamburger-button:hover {
+    color: #f0b400;
+}
+
+.hamburger-button .e-icons.e-menu {
+    vertical-align: middle;
+}
+
+/* Register Employee */
+.btn-gold {
+    background-color: #D4A437;
+    color: black;
+    font-weight: bold;
+}
+
+
+.btn-gold:hover {
+    background-color: #A67C26;
+    color: white;
+}
+
+.table-custom th,
+.table-custom td {
+    color: white;
+}
+
+.table-custom thead {
+    color: white;
+    background-color: #4B0012;
+}
+
+.table-custom tbody tr {
+    background-color: transparent;
+}
 

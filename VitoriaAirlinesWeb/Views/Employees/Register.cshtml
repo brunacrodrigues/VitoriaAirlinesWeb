@@ -1,14 +1,14 @@
-﻿@model VitoriaAirlinesWeb.Models.RegisterNewUserViewModel
+﻿@model VitoriaAirlinesWeb.Models.RegisterEmployeeViewModel
 @{
-    ViewData["Title"] = "Register";
+    ViewData["Title"] = "Register Employee";
 }
 
 <div class="login-background">
     <div class="login-card">
-        <h3 class="text-center text-light mb-4">Register</h3>
+        <h3 class="text-center text-light mb-4">Register Employee</h3>
 
         <form method="post">
-            
+
             @if (!ViewData.ModelState.IsValid)
             {
                 <div class="login-error-message">
@@ -17,7 +17,7 @@
                         <div>@error.ErrorMessage</div>
                     }
                 </div>
-            } 
+            }
 
             <div class="mb-3">
                 <label asp-for="FirstName" class="form-label text-light">First Name</label>
@@ -37,18 +37,6 @@
                 <span asp-validation-for="Username" class="text-danger"></span>
             </div>
 
-            <div class="mb-3">
-                <label asp-for="Password" class="form-label text-light">Password</label>
-                <input asp-for="Password" class="form-control bg-dark text-light border-secondary" />
-                <span asp-validation-for="Password" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="ConfirmPassword" class="form-label text-light">Confirm Password</label>
-                <input asp-for="ConfirmPassword" class="form-control bg-dark text-light border-secondary" />
-                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-            </div>
-
             <button type="submit" class="btn w-100 mb-3 login-button">Register</button>
 
             <div class="text-success">
@@ -59,8 +47,8 @@
 
         </form>
     </div>
-    
-    </div>
+
+</div>
 
 
 
@@ -69,3 +57,5 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 }
+
+

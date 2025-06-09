@@ -2,7 +2,7 @@
 using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Models;
 
-namespace VitoriaAirlinesWeb.Data.Helpers
+namespace VitoriaAirlinesWeb.Helpers
 {
     public class UserHelper : IUserHelper
     {
@@ -64,6 +64,11 @@ namespace VitoriaAirlinesWeb.Data.Helpers
             return await _userManager.GeneratePasswordResetTokenAsync(user);
         }
 
+        public async Task<IList<string>> GetUserRolesAsync(User user)
+        {
+            return await _userManager.GetRolesAsync(user);
+        }
+
         public async Task<User?> GetUserByEmailAsync(string email)
         {
             return await _userManager.FindByEmailAsync(email);
@@ -106,6 +111,23 @@ namespace VitoriaAirlinesWeb.Data.Helpers
         public async Task<SignInResult> ValidatePasswordAsync(User user, string password)
         {
             return await _signInManager.CheckPasswordSignInAsync(user, password, false);
+        }
+
+        public async Task<List<User>> GetUsersInRoleAsync(string roleName)
+        {
+            var usersInRole = new List<User>();
+            var users = _userManager.Users.ToList();
+
+            foreach (var user in users)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+                if (roles.Contains(roleName))
+                {
+                    usersInRole.Add(user);
+                }
+            }
+
+            return usersInRole;
         }
     }
 }
