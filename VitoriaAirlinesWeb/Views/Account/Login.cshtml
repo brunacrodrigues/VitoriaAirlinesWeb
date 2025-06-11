@@ -1,6 +1,14 @@
-﻿@model VitoriaAirlinesWeb.Models.LoginViewModel
+﻿@using VitoriaAirlinesWeb.Models.Account
+@model LoginViewModel
 @{
     ViewData["Title"] = "Login";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success fade-out-alert">
+        @TempData["SuccessMessage"]
+    </div>
 }
 
 <div class="login-background">
@@ -19,13 +27,19 @@
             }
 
             <div class="mb-3">
-                <label asp-for="Username" class="form-label text-light">Email</label>
+                <div class="d-flex justify-content-between">
+                    <label asp-for="Username" class="form-label text-light">Email</label>
+                    <a asp-action="Register" class="login-register-link">Need an account?</a>
+                </div>
                 <input asp-for="Username" class="form-control bg-dark text-light border-secondary" />
                 <span asp-validation-for="Username" class="text-danger"></span>
             </div>
 
             <div class="mb-3">
-                <label asp-for="Password" class="form-label text-light">Password</label>
+                <div class="d-flex justify-content-between">
+                    <label asp-for="Password" class="form-label text-light">Password</label>
+                    <a asp-action="RecoverPassword" class="login-register-link">Forgot Password?</a>
+                </div>
                 <input asp-for="Password" class="form-control bg-dark text-light border-secondary" />
                 <span asp-validation-for="Password" class="text-danger"></span>
             </div>
@@ -36,16 +50,23 @@
             </div>
 
             <button type="submit" class="btn w-100 mb-3 login-button">Login</button>
-
-            <div class="text-center">
-                <a asp-action="Register" class="login-register-link">Don't have an account? Register</a>
-            </div>
         </form>
     </div>
 </div>
 
 @section Scripts {
     @{
+        <script>
+            setTimeout(function () {
+                const alerts = document.querySelectorAll('.fade-out-alert');
+                alerts.forEach(alert => {
+                    alert.style.transition = "opacity 0.5s ease-out";
+                    alert.style.opacity = '0';
+                    setTimeout(() => alert.remove(), 500);
+                });
+            }, 4000);
+        </script>
+
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 }

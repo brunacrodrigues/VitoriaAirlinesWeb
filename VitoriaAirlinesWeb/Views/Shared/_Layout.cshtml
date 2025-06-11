@@ -1,4 +1,11 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var role = ViewData["Role"] as string;
+}
+@using Microsoft.AspNetCore.Identity
+@using VitoriaAirlinesWeb.Data.Entities 
+@inject UserManager<User> UserManager
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -14,35 +21,25 @@
     @RenderSection("Styles", required: false)
 </head>
 <body>
-    @{
-        var showSidebar = ViewData["ShowAdminSidebar"] as bool? ?? false;
-    }
-
     <div class="app-container">
-        @if (showSidebar)
+        @if (role == "Admin")
         {
-           
-            <ejs-sidebar id="adminSidebar" width="220px" isOpen="true">
-                <e-content-template>
-                    <div class="sidebar-internal-container">
-                        <div class="sidebar-header"><div class="sidebar-title">VITORIA AIRLINES</div></div>
-                        <ul class="sidebar-menu">
-                            <li><i class="e-icons e-home"></i><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
-                            <li><i class="e-icons e-user"></i><a asp-controller="Employees" asp-action="Index">Manage Employees</a></li>
-                            <li><i class="e-icons e-location"></i><a asp-controller="City" asp-action="Index">Manage Cities</a></li>
-                            <li><i class="e-icons e-airplane"></i><a asp-controller="Airplane" asp-action="Index">Manage Airplanes</a></li>
-                            <li><i class="e-icons e-people"></i><a asp-controller="Client" asp-action="Index">Manage Clients</a></li>
-                        </ul>
-                    </div>
-                </e-content-template>
-            </ejs-sidebar>
+            <partial name="_AdminSidebar" />
+        }
+        else if (role == "Employee")
+        {
+            <partial name="_EmployeeSidebar" />
+        }
+        else if (role == "Customer")
+        {
+            <partial name="_CustomerSidebar" />
         }
 
         <div class="page-container">
             <header>
                 <nav class="navbar navbar-expand-sm navbar-light border-bottom box-shadow">
                     <div class="container-fluid">
-                        @if (showSidebar)
+                        @if (!string.IsNullOrEmpty(role))
                         {
                             <button id="hamburger" class="hamburger-button">
                                 <span class="e-icons e-menu"></span>
@@ -58,9 +55,27 @@
                             <ul class="navbar-nav">
                                 @if (User.Identity?.IsAuthenticated == true)
                                 {
-                                    <li class="nav-item"><a class="nav-link text-dark" asp-controller="Dashboard" asp-action="Index">My Area</a></li>
-                                    <li class="nav-item"><a class="nav-link text-dark" asp-controller="Account" asp-action="ChangeUser">@User.Identity.Name</a></li>
-                                    <li class="nav-item"><a class="nav-link text-dark" asp-controller="Account" asp-action="Logout">Logout</a></li>
+                                    var user = await UserManager.GetUserAsync(User);
+                                    var imagePath = user?.ImageFullPath ?? "https://brunablob.blob.core.windows.net/images/profilepic.png";
+
+
+                                    <li class="nav-item dropdown">
+                                        <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <div class="d-flex flex-column align-items-center">
+
+                                                <img src="@imagePath" class="rounded-circle mb-1" style="width: 35px; height: 35px; object-fit: cover;" alt="User Picture"/>
+                                                <span>@user?.FullName</span>
+
+                                            </div>
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                            <li><a class="dropdown-item" asp-controller="Dashboard" asp-action="Index">My Dashboard</a></li>
+                                            <li><a class="dropdown-item" asp-controller="Account" asp-action="EditProfile">Edit Profile</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item" asp-controller="Account" asp-action="Logout">Logout</a></li>
+                                        </ul>
+                                    </li>
+
                                 }
                                 else
                                 {
@@ -89,18 +104,32 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     <ejs-scripts></ejs-scripts>
 
-    @if (showSidebar)
+    @if (!string.IsNullOrEmpty(role))
     {
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                var sidebar = document.getElementById('adminSidebar').ej2_instances[0];
+                var sidebar = document.querySelector('[id$="Sidebar"]')?.ej2_instances?.[0];
                 var hamburger = document.getElementById('hamburger');
-                hamburger.onclick = function () {
-                    sidebar.toggle();
-                };
+                if (sidebar && hamburger) {
+                    hamburger.onclick = function () {
+                        sidebar.toggle();
+                    };
+                }
             });
         </script>
     }
+   @*  <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var avatarElement = document.querySelector('ejs-avatar');
+            if (avatarElement && !avatarElement.ej2_instances) {
+                ej.base.enableRipple(true);
+                new ej.notifications.Avatar({
+                    cssClass: 'e-avatar e-avatar-circle e-avatar-small',
+                    imageUrl: '/images/users/profilepic.jpg'
+                }, avatarElement);
+            }
+        });
+    </script> *@
     @RenderSection("Scripts", required: false)
 </body>
 </html>

@@ -1,0 +1,85 @@
+﻿@model VitoriaAirlinesWeb.Models.Account.EditUserProfileViewModel
+@{
+    ViewData["Title"] = "Edit Profile";
+}
+
+<div class="login-background">
+
+
+    <div class="login-card" style="max-width: 500px;">
+
+        <h3 class="text-center text-light mb-4">Edit Profile</h3>
+
+        <form method="post" enctype="multipart/form-data">
+            @if (TempData["UserMessage"] != null)
+            {
+                <div class="alert alert-success text-center">
+                    @TempData["UserMessage"]
+                </div>
+            }
+
+            <div asp-validation-summary="ModelOnly" class="login-error-message"></div>
+
+
+            <div class="text-center mb-4">
+                <label asp-for="ImageFile" class="form-label text-light">Profile Picture</label>
+                <div>
+                   
+                    <img src="@Model.CurrentProfileImagePath"
+                         alt="Current Profile Picture"
+                         id="profilePicturePreview"
+                         class="rounded-circle"
+                         style="width: 150px; height: 150px; object-fit: cover; border: 3px solid #444;" />
+                </div>
+                <div class="mt-3">
+                    <input asp-for="ImageFile" type="file" class="form-control bg-dark text-light border-secondary" accept=".jpg,.jpeg,.png" />
+                    <span asp-validation-for="ImageFile" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="FirstName" class="form-label text-light"></label>
+                <input asp-for="FirstName" class="form-control bg-dark text-light border-secondary" />
+                <span asp-validation-for="FirstName" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="LastName" class="form-label text-light"></label>
+                <input asp-for="LastName" class="form-control bg-dark text-light border-secondary" />
+                <span asp-validation-for="LastName" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn w-100 mb-3 login-button">Save Changes</button>
+
+            <div class="text-center">
+                <a asp-action="ChangePassword" asp-controller="Account" class="text-secondary">Change my password</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const imageFileInput = document.getElementById("ImageFile");
+            const profilePicturePreview = document.getElementById("profilePicturePreview");
+
+            if (imageFileInput && profilePicturePreview) {
+                imageFileInput.addEventListener("change", function () {
+                    const file = this.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            profilePicturePreview.src = e.target.result;
+                        }
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+        });
+    </script>
+}

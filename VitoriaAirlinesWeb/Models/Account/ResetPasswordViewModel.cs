@@ -1,24 +1,24 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace VitoriaAirlinesWeb.Models
+namespace VitoriaAirlinesWeb.Models.Account
 {
     public class ResetPasswordViewModel
     {
         [Required]
-        public string Username { get; set; }
+        public string Username { get; set; } = null!;
 
         [Required]
         [DataType(DataType.Password)]
-        public string Password { get; set; }
+        public string Password { get; set; } = null!;
 
 
         [Required]
         [DataType(DataType.Password)]
         [Compare("Password")]
-        public string ConfirmPassword { get; set; }
+        public string ConfirmPassword { get; set; } = null!;
 
 
         [Required]
-        public string Token { get; set; }
+        public string Token { get; set; } = null!;
     }
 }

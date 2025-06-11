@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Helpers;
-using VitoriaAirlinesWeb.Models;
+using VitoriaAirlinesWeb.Models.Account;
 using VitoriaAirlinesWeb.Responses;
 
 namespace VitoriaAirlinesWeb.Controllers
@@ -11,22 +13,21 @@ namespace VitoriaAirlinesWeb.Controllers
     {
         private readonly IUserHelper _userHelper;
         private readonly IMailHelper _mailHelper;
+        private readonly IBlobHelper _blobHelper;
 
         public AccountController(
             IUserHelper userHelper,
-            IMailHelper mailHelper
+            IMailHelper mailHelper,
+            IBlobHelper blobHelper
             )
         {
             _userHelper = userHelper;
             _mailHelper = mailHelper;
+            _blobHelper = blobHelper;
         }
 
         public IActionResult Login()
         {
-            //if (User.Identity?.IsAuthenticated == true)
-            //{
-            //    return RedirectToAction("Index", "Home");
-            //}
 
             return View();
         }
@@ -182,15 +183,164 @@ namespace VitoriaAirlinesWeb.Controllers
                 var result = await _userHelper.ResetPasswordAsync(user, model.Token, model.Password);
                 if (result.Succeeded)
                 {
-                    ViewBag.Message = "Password reset successful.";
-                    return View();
+                    TempData["SuccessMessage"] = "Password reset successful. You can now login to your account.";
+                    return RedirectToAction("Login", "Account");
                 }
 
-                ViewBag.Message = "Error while resetting the password.";
+                TempData["FailedMessage"] = "Error while resetting the password.";
                 return View(model);
             }
 
-            ViewBag.Message = "User not found.";
+            TempData["NotFoundMessage"] = "User not found.";
+            return View(model);
+        }
+
+
+        public IActionResult RecoverPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RecoverPassword(RecoverPasswordViewModel model)
+        {
+            if (this.ModelState.IsValid)
+            {
+                var user = await _userHelper.GetUserByEmailAsync(model.Email);
+                if (user == null)
+                {
+                    ModelState.AddModelError(string.Empty, "The email doesn't correspond to a registered user.");
+                    return View(model);
+                }
+
+                var myToken = await _userHelper.GeneratePasswordResetTokenAsync(user);
+
+                var link = this.Url.Action(
+                    "ResetPassword",
+                    "Account",
+                    new { token = myToken, email = user.Email }, protocol: HttpContext.Request.Scheme);
+
+                Response response = await _mailHelper.SendEmailAsync(model.Email, "Password Reset", $"<h1>Password Reset</h1>" +
+                $"To reset the password click in this link:<br/><br>" +
+                $"<a href = \"{link}\">Reset Password</a>");
+
+                if (response.IsSuccess)
+                {
+                    ViewBag.Message = "The instructions to recover your password has been sent to email.";
+                }
+
+                return View();
+            }
+
+            return View(model);
+        }
+
+        [Authorize]
+        public async Task<IActionResult> ChangePassword()
+        {
+            var user = await _userHelper.GetUserByEmailAsync(User.Identity.Name);
+            if (user == null) return NotFound();
+
+            var roles = await _userHelper.GetRolesAsync(user);
+            ViewData["Role"] = roles.FirstOrDefault();
+
+            return View();
+        }
+
+        
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userHelper.GetUserByEmailAsync(User.Identity.Name);
+                if (user != null)
+                {
+                    var roles = await _userHelper.GetRolesAsync(user);
+                    ViewData["Role"] = roles.FirstOrDefault();
+
+                    var result = await _userHelper.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
+                    if (result.Succeeded)
+                    {
+                        return RedirectToAction("EditProfile");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, result.Errors.FirstOrDefault().Description);
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "User not found.");
+                }
+            }
+            return View(model);
+        }
+
+
+        [Authorize]
+        public async Task<IActionResult> EditProfile()
+        {
+            var user = await _userHelper.GetUserByEmailAsync(User.Identity.Name);
+            if (user == null) return NotFound();
+
+            var roles = await _userHelper.GetRolesAsync(user);
+            ViewData["Role"] = roles.FirstOrDefault();
+
+            var model = new EditUserProfileViewModel();
+
+            model.FirstName = user.FirstName;
+            model.LastName = user.LastName;
+            model.CurrentProfileImagePath = user.ImageFullPath;
+
+            return View(model);
+        }
+
+        
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> EditProfile(EditUserProfileViewModel model)
+        {
+            var user = await _userHelper.GetUserByEmailAsync(User.Identity.Name);
+            if (user == null) return NotFound();
+
+
+            var roles = await _userHelper.GetRolesAsync(user);
+            ViewData["Role"] = roles.FirstOrDefault();
+
+            if (!ModelState.IsValid)
+            {
+                model.CurrentProfileImagePath = user.ImageFullPath;
+                return View(model);
+            }
+
+            user.FirstName = model.FirstName;
+            user.LastName = model.LastName;
+
+            if (model.ImageFile != null && model.ImageFile.Length > 0)
+            {
+                
+                if (model.ImageFile != null && model.ImageFile.Length > 0)
+                {
+                    var imageId = await _blobHelper.UploadBlobAsync(model.ImageFile, "images");
+                    user.ProfileImageId = imageId;
+                }
+            }
+
+            var response = await _userHelper.UpdateUserAsync(user);
+
+            if (response.Succeeded)
+            {
+                TempData["UserMessage"] = "Profile updated successfully!";
+                return RedirectToAction(nameof(EditProfile));
+            }
+            else
+            {
+                ModelState.AddModelError(string.Empty, response.Errors.FirstOrDefault()?.Description ?? "An error occurred.");
+            }
+
+            model.CurrentProfileImagePath = user.ImageFullPath;
             return View(model);
         }
     }

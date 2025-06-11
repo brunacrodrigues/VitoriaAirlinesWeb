@@ -54,6 +54,7 @@ namespace VitoriaAirlinesWeb
             // Helpers
             builder.Services.AddScoped<IUserHelper, UserHelper>();
             builder.Services.AddScoped<IMailHelper, MailHelper>();
+            builder.Services.AddScoped<IBlobHelper, BlobHelper>();
             builder.Services.AddTransient<SeedDb>();
 
 

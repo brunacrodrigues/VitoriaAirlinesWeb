@@ -1,0 +1,14 @@
+﻿<ejs-sidebar id="mainSidebar" width="220px" isOpen="true">
+    <e-content-template>
+        <div class="sidebar-internal-container">
+            <div class="sidebar-header"><div class="sidebar-title">Welcome, @User.Identity.Name</div></div>
+            <ul class="sidebar-menu">
+                <li><i class="e-icons e-home"></i><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+                <li><i class="e-icons e-user"></i><a asp-controller="Employees" asp-action="Index">Manage Employees</a></li>
+                <li><i class="e-icons e-location"></i><a asp-controller="City" asp-action="Index">Manage Cities</a></li>
+                <li><i class="e-icons e-airplane"></i><a asp-controller="Airplane" asp-action="Index">Manage Airplanes</a></li>
+                <li><i class="e-icons e-people"></i><a asp-controller="Client" asp-action="Index">Manage Clients</a></li>
+            </ul>
+        </div>
+    </e-content-template>
+</ejs-sidebar>

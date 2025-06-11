@@ -26,13 +26,13 @@ namespace VitoriaAirlinesWeb.Controllers
         {
             var employees = await _userHelper.GetUsersInRoleAsync(UserRoles.Employee);
 
-            ViewData["ShowAdminSidebar"] = true;
+            ViewData["Role"] = "Admin";
             return View(employees);
         }
 
         public IActionResult Register()
         {
-            ViewData["ShowAdminSidebar"] = true;
+            ViewData["Role"] = "Admin";
             return View();
         }
 

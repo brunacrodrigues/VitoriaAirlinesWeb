@@ -4,8 +4,7 @@ using VitoriaAirlinesWeb.Helpers;
 
 namespace VitoriaAirlinesWeb.Controllers
 {
-    // TODO - add employee and customer roles later
-    [Authorize(Roles = UserRoles.Admin)]
+    [Authorize]
     public class DashboardController : Controller
     {
         private readonly IUserHelper _userHelper;
@@ -28,7 +27,20 @@ namespace VitoriaAirlinesWeb.Controllers
                 return NotFound();
             }
 
-            ViewData["ShowAdminSidebar"] = true;
+            if (User.IsInRole(UserRoles.Admin))
+            {
+                ViewData["Role"] = "Admin";
+            }
+            else if (User.IsInRole(UserRoles.Employee))
+            {
+                ViewData["Role"] = "Employee";
+            }
+            else if (User.IsInRole(UserRoles.Customer))
+            {
+                ViewData["Role"] = "Customer";
+            }
+
+            ViewData["Title"] = "Dashboard";
             return View();
         }
     }

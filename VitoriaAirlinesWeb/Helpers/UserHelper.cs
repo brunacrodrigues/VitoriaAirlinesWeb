@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using VitoriaAirlinesWeb.Data.Entities;
-using VitoriaAirlinesWeb.Models;
+using VitoriaAirlinesWeb.Models.Account;
 
 namespace VitoriaAirlinesWeb.Helpers
 {
@@ -115,19 +115,13 @@ namespace VitoriaAirlinesWeb.Helpers
 
         public async Task<List<User>> GetUsersInRoleAsync(string roleName)
         {
-            var usersInRole = new List<User>();
-            var users = _userManager.Users.ToList();
+            var users = await _userManager.GetUsersInRoleAsync(roleName);
+            return users.ToList();
+        }
 
-            foreach (var user in users)
-            {
-                var roles = await _userManager.GetRolesAsync(user);
-                if (roles.Contains(roleName))
-                {
-                    usersInRole.Add(user);
-                }
-            }
-
-            return usersInRole;
+        public async Task<IList<string>> GetRolesAsync(User user)
+        {
+            return await _userManager.GetRolesAsync(user);
         }
     }
 }

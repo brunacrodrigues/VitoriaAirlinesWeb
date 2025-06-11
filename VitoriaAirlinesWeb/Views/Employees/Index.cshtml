@@ -2,8 +2,16 @@
 
 @{
     ViewData["Title"] = "Manage Employees";
-    ViewData["ShowAdminSidebar"] = true;
+    ViewData["Role"] = "Admin";
 }
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success fade-out-alert">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
 
 <div class="main-content">
     <h2>Registered Employees</h2>
@@ -28,3 +36,19 @@
         </tbody>
     </table>
 </div>
+
+@section Scripts {
+    @{
+        <script>
+            setTimeout(function () {
+                const alerts = document.querySelectorAll('.fade-out-alert');
+                alerts.forEach(alert => {
+                    alert.style.transition = "opacity 0.5s ease-out";
+                    alert.style.opacity = '0';
+                    setTimeout(() => alert.remove(), 500);
+                });
+            }, 4000);
+        </script>
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

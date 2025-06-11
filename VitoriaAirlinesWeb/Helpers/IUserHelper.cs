@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using VitoriaAirlinesWeb.Data.Entities;
-using VitoriaAirlinesWeb.Models;
+using VitoriaAirlinesWeb.Models.Account;
 
 namespace VitoriaAirlinesWeb.Helpers
 {
@@ -39,6 +39,8 @@ namespace VitoriaAirlinesWeb.Helpers
         Task<IdentityResult> ResetPasswordAsync(User user, string token, string password);
 
         Task<List<User>> GetUsersInRoleAsync(string roleName);
+
+        Task<IList<string>> GetRolesAsync(User user);
 
     }
 }
