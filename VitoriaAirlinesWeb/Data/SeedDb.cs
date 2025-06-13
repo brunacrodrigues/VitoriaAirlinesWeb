@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Helpers;
 
@@ -19,6 +20,8 @@ namespace VitoriaAirlinesWeb.Data
         public async Task SeedAsync()
         {
             await _context.Database.MigrateAsync();
+
+            await CheckCountriesAsync();
 
             await _userHelper.CheckRoleAsync(UserRoles.Admin);
             await _userHelper.CheckRoleAsync(UserRoles.Customer);
@@ -51,6 +54,50 @@ namespace VitoriaAirlinesWeb.Data
             {
                 await _userHelper.AddUserToRoleAsync(user, UserRoles.Admin);
             }
+
+            await AddCustomerProfilesAsync();
+        }
+
+        private async Task CheckCountriesAsync()
+        {
+            if (!_context.Countries.Any())
+            {
+                var countriesJson = await File.ReadAllTextAsync("Data/countries.json");
+
+                var countries = JsonSerializer.Deserialize<List<Country>>(countriesJson, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (countries != null)
+                {
+                    await _context.Countries.AddRangeAsync(countries);
+                    await _context.SaveChangesAsync();
+                }
+            }
+        }
+
+        private async Task AddCustomerProfilesAsync()
+        {
+            var customers = await _userHelper.GetUsersInRoleAsync(UserRoles.Customer);
+
+            foreach (var customer in customers)
+            {
+                var exists = await _context.CustomerProfiles
+                    .AnyAsync(cp => cp.UserId == customer.Id);
+
+                if (!exists)
+                {
+                    var profile = new CustomerProfile
+                    {
+                        UserId = customer.Id
+                    };
+
+                    await _context.CustomerProfiles.AddAsync(profile);
+                }
+            }
+
+            await _context.SaveChangesAsync();
         }
     }
 }

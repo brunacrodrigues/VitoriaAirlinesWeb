@@ -1,7 +1,17 @@
-﻿<ejs-sidebar id="mainSidebar" width="220px" isOpen="true">
+﻿@using Microsoft.AspNetCore.Identity
+@using VitoriaAirlinesWeb.Data.Entities
+@inject UserManager<User> UserManager
+
+@{
+    var user = await UserManager.GetUserAsync(User);
+    var firstName = user?.FullName?.Split(' ')?.FirstOrDefault() ?? "Employee";
+}
+
+
+<ejs-sidebar id="mainSidebar" width="220px" isOpen="true">
     <e-content-template>
         <div class="sidebar-internal-container">
-            <div class="sidebar-header"><div class="sidebar-title">Welcome, @User.Identity.Name</div></div>
+            <div class="sidebar-header"><div class="sidebar-title">Welcome, @firstName</div></div>
             <ul class="sidebar-menu">
                 <li><i class="e-icons e-home"></i><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
                 <li><i class="e-icons e-home"></i><a asp-controller="Flights" asp-action="Index">Manage Flights</a></li>

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Syncfusion.Licensing;
 using VitoriaAirlinesWeb.Data;
 using VitoriaAirlinesWeb.Data.Entities;
+using VitoriaAirlinesWeb.Data.Repositories;
 using VitoriaAirlinesWeb.Helpers;
 
 namespace VitoriaAirlinesWeb
@@ -49,12 +50,14 @@ namespace VitoriaAirlinesWeb
             builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
 
             // Repositories
-
+            builder.Services.AddScoped<ICustomerProfileRepository, CustomerProfileRepository>();
+            builder.Services.AddScoped<ICountryRepository, CountryRepository>();
 
             // Helpers
             builder.Services.AddScoped<IUserHelper, UserHelper>();
             builder.Services.AddScoped<IMailHelper, MailHelper>();
             builder.Services.AddScoped<IBlobHelper, BlobHelper>();
+            builder.Services.AddScoped<IConverterHelper, ConverterHelper>();
             builder.Services.AddTransient<SeedDb>();
 
 

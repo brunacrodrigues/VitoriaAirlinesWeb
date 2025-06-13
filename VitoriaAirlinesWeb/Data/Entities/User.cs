@@ -22,5 +22,10 @@ namespace VitoriaAirlinesWeb.Data.Entities
 
         public string FullName => $"{FirstName} {LastName}";
 
+
+        public CustomerProfile? CustomerProfile {  get; set; }
+
+
+
     }
 }

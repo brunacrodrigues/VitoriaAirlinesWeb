@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VitoriaAirlinesWeb.Data;
 
@@ -11,9 +12,11 @@ using VitoriaAirlinesWeb.Data;
 namespace VitoriaAirlinesWeb.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250613173035_AddCountries")]
+    partial class AddCountries
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -189,8 +192,9 @@ namespace VitoriaAirlinesWeb.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("CountryId")
-                        .HasColumnType("int");
+                    b.Property<string>("Nationality")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("PassportNumber")
                         .HasMaxLength(20)
@@ -201,8 +205,6 @@ namespace VitoriaAirlinesWeb.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CountryId");
 
                     b.HasIndex("PassportNumber")
                         .IsUnique()
@@ -345,17 +347,11 @@ namespace VitoriaAirlinesWeb.Migrations
 
             modelBuilder.Entity("VitoriaAirlinesWeb.Data.Entities.CustomerProfile", b =>
                 {
-                    b.HasOne("VitoriaAirlinesWeb.Data.Entities.Country", "Country")
-                        .WithMany()
-                        .HasForeignKey("CountryId");
-
                     b.HasOne("VitoriaAirlinesWeb.Data.Entities.User", "User")
                         .WithOne("CustomerProfile")
                         .HasForeignKey("VitoriaAirlinesWeb.Data.Entities.CustomerProfile", "UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("Country");
 
                     b.Navigation("User");
                 });

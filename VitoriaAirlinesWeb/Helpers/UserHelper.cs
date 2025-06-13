@@ -123,5 +123,15 @@ namespace VitoriaAirlinesWeb.Helpers
         {
             return await _userManager.GetRolesAsync(user);
         }
+
+        public async Task DeactivateUserAsync(User user)
+        {
+            await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MaxValue);
+        }
+
+        public async Task RemoveUserFromRole(User user, string roleName)
+        {
+            await _userManager.RemoveFromRoleAsync(user, roleName);
+        }
     }
 }

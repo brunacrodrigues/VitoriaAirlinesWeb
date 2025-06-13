@@ -1,0 +1,36 @@
+﻿@model VitoriaAirlinesWeb.Models.Customer.CustomerProfileViewModel
+
+@{
+    ViewData["Title"] = "Edit Traveller Profile";
+    ViewData["Role"] = "Customer";
+}
+
+<div class="main-content">
+    <h2 class="text-light mb-4">Edit Your Profile</h2>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    <form asp-action="EditTravellerProfile" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="mb-3">
+            <label asp-for="CountryId" class="form-label text-light">Nationality</label>
+            <select asp-for="CountryId" asp-items="Model.Countries" class="form-select bg-dark text-light border-secondary"></select>
+            <span asp-validation-for="CountryId" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="PassportNumber" class="form-label text-light">Passport Number</label>
+            <input asp-for="PassportNumber" class="form-control bg-dark text-light border-secondary" />
+            <span asp-validation-for="PassportNumber" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>

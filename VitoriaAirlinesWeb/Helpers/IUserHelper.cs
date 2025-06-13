@@ -42,5 +42,9 @@ namespace VitoriaAirlinesWeb.Helpers
 
         Task<IList<string>> GetRolesAsync(User user);
 
+        Task DeactivateUserAsync(User user);
+
+        Task RemoveUserFromRole(User user, string roleName);
+
     }
 }

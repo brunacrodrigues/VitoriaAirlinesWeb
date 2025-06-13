@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using VitoriaAirlinesWeb.Data.Entities;
+using VitoriaAirlinesWeb.Data.Repositories;
 using VitoriaAirlinesWeb.Helpers;
 using VitoriaAirlinesWeb.Models.Account;
 using VitoriaAirlinesWeb.Responses;
@@ -14,16 +15,19 @@ namespace VitoriaAirlinesWeb.Controllers
         private readonly IUserHelper _userHelper;
         private readonly IMailHelper _mailHelper;
         private readonly IBlobHelper _blobHelper;
+        private readonly ICustomerProfileRepository _customerRepository;
 
         public AccountController(
             IUserHelper userHelper,
             IMailHelper mailHelper,
-            IBlobHelper blobHelper
+            IBlobHelper blobHelper,
+            ICustomerProfileRepository customerRepository
             )
         {
             _userHelper = userHelper;
             _mailHelper = mailHelper;
             _blobHelper = blobHelper;
+            _customerRepository = customerRepository;
         }
 
         public IActionResult Login()
@@ -108,6 +112,10 @@ namespace VitoriaAirlinesWeb.Controllers
                     await _userHelper.CheckRoleAsync(UserRoles.Customer);
                     await _userHelper.AddUserToRoleAsync(user, UserRoles.Customer);
 
+                    await _customerRepository.CreateAsync(new CustomerProfile
+                    {
+                        UserId = user.Id
+                    });
 
                     string myToken = await _userHelper.GenerateEmailConfirmationTokenAsync(user);
                     var scheme = Request?.Scheme ?? "https";
