@@ -1,0 +1,31 @@
+﻿@model VitoriaAirlinesWeb.Data.Entities.Airplane
+
+@{
+    ViewData["Title"] = "Delete Airplane Model";
+    ViewData["Role"] = "Admin";
+}
+
+<div class="main-content">
+    <h2 class="text-danger">Delete Confirmation</h2>
+
+    <div class="card p-4 bg-dark text-light">
+        <h4>Are you sure you want to deactivate this customer profile?</h4>
+        <dl class="row">
+            <dt class="col-sm-3">Model</dt>
+            <dd class="col-sm-9">@Model.Model</dd>
+
+            <dt class="col-sm-3">Executive Seats</dt>
+            <dd class="col-sm-9">@Model.TotalExecutiveSeats</dd>
+
+            <dt class="col-sm-3">Economy Seats</dt>
+            <dd class="col-sm-9">@Model.TotalEconomySeats</dd>
+        </dl>
+
+        <form asp-action="Delete" method="post">
+            <input type="hidden" asp-for="Id" />
+            <button type="submit" class="btn btn-danger">Delete</button>
+            <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+

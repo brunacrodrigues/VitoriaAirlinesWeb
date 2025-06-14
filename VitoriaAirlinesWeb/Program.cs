@@ -52,12 +52,14 @@ namespace VitoriaAirlinesWeb
             // Repositories
             builder.Services.AddScoped<ICustomerProfileRepository, CustomerProfileRepository>();
             builder.Services.AddScoped<ICountryRepository, CountryRepository>();
+            builder.Services.AddScoped<IAirplaneRepository, AirplaneRepository>();
 
             // Helpers
             builder.Services.AddScoped<IUserHelper, UserHelper>();
             builder.Services.AddScoped<IMailHelper, MailHelper>();
             builder.Services.AddScoped<IBlobHelper, BlobHelper>();
             builder.Services.AddScoped<IConverterHelper, ConverterHelper>();
+            builder.Services.AddScoped<ISeatGeneratorHelper, SeatGeneratorHelper>();
             builder.Services.AddTransient<SeedDb>();
 
 

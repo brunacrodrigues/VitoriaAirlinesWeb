@@ -4,7 +4,7 @@
 
 @{
     var user = await UserManager.GetUserAsync(User);
-    var firstName = user?.FullName?.Split(' ')?.FirstOrDefault() ?? "Customer";
+    var firstName = user?.FirstName ?? "Customer";
 }
 
 <ejs-sidebar id="mainSidebar" width="220px" isOpen="true">

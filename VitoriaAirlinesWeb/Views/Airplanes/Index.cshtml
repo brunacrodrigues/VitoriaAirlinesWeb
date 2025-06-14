@@ -1,0 +1,63 @@
+﻿@model IEnumerable<VitoriaAirlinesWeb.Data.Entities.Airplane>
+
+@{
+    ViewData["Title"] = "Manage Airplane Models";
+    ViewData["Role"] = "Admin";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success fade-out-alert">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<div class="main-content">
+    <h2>Registered Models</h2>
+
+    <a asp-action="Create" class="btn btn-gold mb-3">Register New Airplane</a>
+
+    <table class="table table-striped table-custom">
+        <thead>
+            <tr>
+                <th>Model</th>
+                <th>Executive Seats</th>
+                <th>Economic Seats</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var airplane in Model)
+            {
+                <tr>
+                    <td>
+                        <img src="@airplane.ImageFullPath" alt="@airplane.Model" width="80" class="me-2" />
+                        @airplane.Model
+                    </td>
+                    <td>@airplane.TotalExecutiveSeats</td>
+                    <td>@airplane.TotalEconomySeats</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@airplane.Id" class="btn btn-sm btn-outline-info">Details</a>
+                        <a asp-action="Edit" asp-route-id="@airplane.Id" class="btn btn-sm btn-outline-warning">Edit</a>
+                        <a asp-action="Delete" asp-route-id="@airplane.Id" class="btn btn-sm btn-outline-danger">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        setTimeout(function () {
+            const alerts = document.querySelectorAll('.fade-out-alert');
+            alerts.forEach(alert => {
+                alert.style.transition = "opacity 0.5s ease-out";
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 500);
+            });
+        }, 4000);
+    </script>
+
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

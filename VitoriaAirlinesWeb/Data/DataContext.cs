@@ -10,6 +10,10 @@ namespace VitoriaAirlinesWeb.Data
 
         public DbSet<Country> Countries { get; set; }
 
+        public DbSet<Airplane> Airplanes { get; set; }
+
+        public DbSet<Seat> Seats { get; set; }
+
 
         public DataContext(DbContextOptions<DataContext> options) : base(options)
         {
@@ -25,6 +29,13 @@ namespace VitoriaAirlinesWeb.Data
                 .HasForeignKey<CustomerProfile>(cp => cp.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Seat>()
+                .HasOne(seat => seat.Airplane)
+                .WithMany(airplane => airplane.Seats)
+                .HasForeignKey(seat => seat.AirplaneId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+
             modelBuilder.Entity<CustomerProfile>()
                 .HasIndex(cp => cp.PassportNumber)
                 .IsUnique();
@@ -33,6 +44,13 @@ namespace VitoriaAirlinesWeb.Data
                 .HasIndex(c => c.CountryCode)
                 .IsUnique();
 
+            modelBuilder.Entity<Seat>()
+                .HasIndex(seat => new { seat.AirplaneId, seat.Row, seat.Letter })
+                .IsUnique();
+
+            modelBuilder.Entity<Seat>()
+                .Property(s => s.Class)
+                .HasConversion<string>();
 
         }
 

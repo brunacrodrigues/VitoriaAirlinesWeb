@@ -1,11 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Data.Repositories;
 using VitoriaAirlinesWeb.Helpers;
-using VitoriaAirlinesWeb.Migrations;
 using VitoriaAirlinesWeb.Models.Customer;
 
 namespace VitoriaAirlinesWeb.Controllers
@@ -17,26 +14,23 @@ namespace VitoriaAirlinesWeb.Controllers
         private readonly ICustomerProfileRepository _customerRepository;
         private readonly IConverterHelper _converterHelper;
         private readonly ICountryRepository _countryRepository;
-        private readonly UserManager<User> _userManager;
 
         public CustomersController(
             IUserHelper userHelper,
             ICustomerProfileRepository customerRepository,
             IConverterHelper converterHelper,
-            ICountryRepository countryRepository,
-            UserManager<User> userManager)
+            ICountryRepository countryRepository)
         {
             _userHelper = userHelper;
             _customerRepository = customerRepository;
             _converterHelper = converterHelper;
             _countryRepository = countryRepository;
-            _userManager = userManager;
         }
 
 
         // GET: CustomersController
         [Authorize(Roles = UserRoles.Admin)]
-        public ActionResult Index()
+        public IActionResult Index()
         {
             return View(_customerRepository.GetAll()
                 .Include(c => c.User)
@@ -47,7 +41,7 @@ namespace VitoriaAirlinesWeb.Controllers
 
         // GET: CustomersController/Details/5
         [Authorize(Roles = UserRoles.Admin)]
-        public async Task<ActionResult> Details(int id)
+        public async Task<IActionResult> Details(int id)
         {
 
             var customer = await _customerRepository.GetByIdWithUserAsync(id);
@@ -187,7 +181,7 @@ namespace VitoriaAirlinesWeb.Controllers
                         $"Once all dependencies are removed, you may try deactivating the account again.";
 
                 }
-               
+
                 return View("Error");
             }
         }

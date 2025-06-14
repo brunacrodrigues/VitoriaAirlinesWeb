@@ -1,4 +1,5 @@
 ﻿using VitoriaAirlinesWeb.Data.Entities;
+using VitoriaAirlinesWeb.Models.Airplane;
 using VitoriaAirlinesWeb.Models.Customer;
 
 namespace VitoriaAirlinesWeb.Helpers
@@ -35,6 +36,30 @@ namespace VitoriaAirlinesWeb.Helpers
             {
                 CountryId = entity.CountryId,
                 PassportNumber = entity.PassportNumber
+            };
+        }
+
+        public Airplane ToAirplane(AirplaneViewModel model, Guid imageId, bool isNew)
+        {
+            return new Airplane
+            {
+                Id = isNew ? 0 : model.Id,
+                Model = model.Model,
+                TotalExecutiveSeats = model.TotalExecutiveSeats,
+                TotalEconomySeats = model.TotalEconomySeats,
+                ImageId = imageId
+            };
+        }
+
+        public AirplaneViewModel ToAirplaneViewModel(Airplane entity)
+        {
+            return new AirplaneViewModel
+            {
+                Id = entity.Id,
+                Model = entity.Model,
+                TotalExecutiveSeats = entity.TotalExecutiveSeats,
+                TotalEconomySeats = entity.TotalEconomySeats,
+                ImageId = entity.ImageId,
             };
         }
     }
