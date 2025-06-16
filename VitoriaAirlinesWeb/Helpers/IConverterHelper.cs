@@ -1,5 +1,6 @@
 ﻿using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Models.Airplane;
+using VitoriaAirlinesWeb.Models.Airport;
 using VitoriaAirlinesWeb.Models.Customer;
 
 namespace VitoriaAirlinesWeb.Helpers
@@ -17,5 +18,9 @@ namespace VitoriaAirlinesWeb.Helpers
         Airplane ToAirplane(AirplaneViewModel model, Guid imageId, bool isNew);
 
         AirplaneViewModel ToAirplaneViewModel(Airplane entity);
+
+        Airport ToAirport(AirportViewModel model, bool isNew);
+
+        AirportViewModel ToAirportViewModel(Airport entity);
     }
 }

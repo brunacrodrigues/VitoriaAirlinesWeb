@@ -1,0 +1,44 @@
+﻿@model VitoriaAirlinesWeb.Data.Entities.Airport
+
+@{
+    ViewData["Title"] = "Airport Details";
+    ViewData["Role"] = "Admin";
+}
+
+<div class="main-content">
+    <h2>Airport Details</h2>
+
+    <div class="card p-4 bg-dark text-light">
+        <dl class="row">
+            <dt class="col-sm-3">IATA</dt>
+            <dd class="col-sm-9">@Model.IATA</dd>
+
+            <dt class="col-sm-3">Name</dt>
+            <dd class="col-sm-9">@Model.Name</dd>
+
+            <dt class="col-sm-3">City</dt>
+            <dd class="col-sm-9">@Model.City</dd>
+
+            <dt class="col-sm-3">Country</dt>
+            <dd class="col-sm-9">
+                @if (Model.Country != null)
+                {
+                    <img src="@Model.Country.FlagImageUrl" alt="@Model.Country.CountryCode" width="30" class="me-2" />
+                    @Model.Country.Name
+                }
+                else
+                {
+                    <span>—</span>
+                }
+            </dd>
+
+        </dl>
+
+        <div class="mt-3">
+            <a asp-action="Index" class="btn btn-outline-light">Back to List</a>
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
+            <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Delete</a>
+        </div>
+    </div>
+</div>
+

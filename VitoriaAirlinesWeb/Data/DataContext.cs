@@ -14,6 +14,8 @@ namespace VitoriaAirlinesWeb.Data
 
         public DbSet<Seat> Seats { get; set; }
 
+        public DbSet<Airport> Airports { get; set; }
+
 
         public DataContext(DbContextOptions<DataContext> options) : base(options)
         {
@@ -42,6 +44,10 @@ namespace VitoriaAirlinesWeb.Data
 
             modelBuilder.Entity<Country>()
                 .HasIndex(c => c.CountryCode)
+                .IsUnique();
+
+            modelBuilder.Entity<Airport>()
+                .HasIndex(a => a.IATA)
                 .IsUnique();
 
             modelBuilder.Entity<Seat>()

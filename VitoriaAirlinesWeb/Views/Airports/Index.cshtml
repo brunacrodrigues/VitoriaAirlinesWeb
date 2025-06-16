@@ -1,0 +1,74 @@
+﻿@model IEnumerable<VitoriaAirlinesWeb.Data.Entities.Airport>
+
+@{
+    ViewData["Title"] = "Manage Airports";
+    ViewData["Role"] = "Admin";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success fade-out-alert">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<div class="main-content">
+    <h2>Registered Airports</h2>
+
+    <a asp-action="Create" class="btn btn-gold mb-3">Register New Airport</a>
+
+    <table class="table table-striped table-custom">
+        <thead>
+            <tr>
+                <th>IATA</th>
+                <th>Name</th>
+                <th>City</th>
+                <th>Country</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var airport in Model)
+            {
+                <tr>
+                    <td>@airport.IATA</td>
+                    <td>@airport.Name</td>
+                    <td>@airport.City</td>
+                    <td>
+                        @if (airport.Country != null)
+                        {
+                            <img src="@airport.Country.FlagImageUrl" alt="@airport.Country.CountryCode" width="30" class="me-2" />
+                            @airport.Country.Name
+                        }
+                        else
+                        {
+                            <span>—</span>
+                        }
+                    </td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@airport.Id" class="btn btn-sm btn-outline-info">Details</a>
+                        <a asp-action="Edit" asp-route-id="@airport.Id" class="btn btn-sm btn-outline-warning">Edit</a>
+                        <a asp-action="Delete" asp-route-id="@airport.Id" class="btn btn-sm btn-outline-danger">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        setTimeout(function () {
+            const alerts = document.querySelectorAll('.fade-out-alert');
+            alerts.forEach(alert => {
+                alert.style.transition = "opacity 0.5s ease-out";
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 500);
+            });
+        }, 4000);
+    </script>
+
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
+
+

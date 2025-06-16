@@ -1,5 +1,7 @@
-﻿using VitoriaAirlinesWeb.Data.Entities;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Models.Airplane;
+using VitoriaAirlinesWeb.Models.Airport;
 using VitoriaAirlinesWeb.Models.Customer;
 
 namespace VitoriaAirlinesWeb.Helpers
@@ -62,5 +64,30 @@ namespace VitoriaAirlinesWeb.Helpers
                 ImageId = entity.ImageId,
             };
         }
+
+        public Airport ToAirport(AirportViewModel model, bool isNew)
+        {
+            return new Airport
+            {
+                Id = isNew ? 0 : model.Id,
+                IATA = model.IATA.ToUpper(),
+                Name = model.Name,
+                City = model.City,
+                CountryId = model.CountryId
+            };
+        }
+
+        public AirportViewModel ToAirportViewModel(Airport airport)
+        {
+            return new AirportViewModel
+            {
+                Id = airport.Id,
+                IATA = airport.IATA,
+                Name = airport.Name,
+                City = airport.City,
+                CountryId = airport.CountryId
+            };
+        }
+
     }
 }
