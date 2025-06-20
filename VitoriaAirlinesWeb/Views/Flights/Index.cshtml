@@ -1,0 +1,116 @@
+﻿@model IEnumerable<VitoriaAirlinesWeb.Data.Entities.Flight>
+
+@{
+    ViewData["Title"] = "Manage Flights";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success fade-out-alert">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<div class="main-content">
+    <h2>All Flights</h2>
+
+    <a asp-action="Create" class="btn btn-gold mb-3">Register New Flight</a>
+
+    <table class="table table-striped table-custom">
+        <thead>
+            <tr>
+                <th>Flight Number</th>
+                <th>Airplane Model</th>
+                <th>Origin Airport</th>
+                <th>Destination Airport</th>
+                <th>Departure Date</th>
+                <th>Arrival Date</th>
+                <th>Duration</th>
+                <th>Executive Price</th>
+                <th>Economy Price</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var flight in Model)
+            {
+                <tr>
+                    <td>@flight.FlightNumber</td>
+                    <td>@flight.Airplane.Model</td>
+
+                    <td>
+                        <img src="@flight.OriginAirport.Country?.FlagImageUrl"
+                             alt="@flight.OriginAirport.Country?.CountryCode"
+                             width="30"
+                             class="me-2" />
+                        @flight.OriginAirport.FullName
+                    </td>
+
+                    <td>
+                        <img src="@flight.DestinationAirport.Country?.FlagImageUrl"
+                             alt="@flight.DestinationAirport.Country?.CountryCode"
+                             width="30"
+                             class="me-2" />
+                        @flight.DestinationAirport.FullName
+                    </td>
+
+                    <td>
+                        @TimeZoneInfo.ConvertTimeFromUtc(flight.DepartureUtc, TimeZoneInfo.FindSystemTimeZoneById("Europe/Lisbon")).ToString("yyyy-MM-dd HH:mm")
+                    </td>
+                    <td>
+                        @TimeZoneInfo.ConvertTimeFromUtc(flight.ArrivalUtc, TimeZoneInfo.FindSystemTimeZoneById("Europe/Lisbon")).ToString("yyyy-MM-dd HH:mm")
+                    </td>
+                    <td>@flight.Duration.ToString(@"hh\:mm")</td>
+                    <td>@($"{flight.ExecutiveClassPrice:0.00} €")</td>
+                    <td>@($"{flight.EconomyClassPrice:0.00} €")</td>
+
+                   
+                    <td>
+                        @switch (flight.Status)
+                        {
+                            case VitoriaAirlinesWeb.Data.Enums.FlightStatus.Scheduled:
+                                <span class="badge bg-primary">Scheduled</span>
+                                break;
+                            case VitoriaAirlinesWeb.Data.Enums.FlightStatus.Canceled:
+                                <span class="badge bg-danger">Canceled</span>
+                                break;
+                            case VitoriaAirlinesWeb.Data.Enums.FlightStatus.Completed:
+                                <span class="badge bg-success">Completed</span>
+                                break;
+                        }
+                    </td>
+
+                    <td>
+                        <a asp-action="Details" asp-route-id="@flight.Id" class="btn btn-sm btn-outline-info">Details</a>
+
+                        @if (flight.Status == VitoriaAirlinesWeb.Data.Enums.FlightStatus.Scheduled)
+                        {
+                            <a asp-action="Edit" asp-route-id="@flight.Id" class="btn btn-sm btn-outline-warning">Edit</a>
+                            <a asp-action="Cancel" asp-route-id="@flight.Id" class="btn btn-sm btn-outline-danger">Cancel</a>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+
+
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        setTimeout(function () {
+            const alerts = document.querySelectorAll('.fade-out-alert');
+            alerts.forEach(alert => {
+                alert.style.transition = "opacity 0.5s ease-out";
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 500);
+            });
+        }, 4000);
+    </script>
+
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
+
+

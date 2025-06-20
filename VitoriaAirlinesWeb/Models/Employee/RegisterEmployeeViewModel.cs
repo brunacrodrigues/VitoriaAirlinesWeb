@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace VitoriaAirlinesWeb.Models
+namespace VitoriaAirlinesWeb.Models.Employee
 {
     public class RegisterEmployeeViewModel
     {

@@ -1,0 +1,210 @@
+﻿@model VitoriaAirlinesWeb.Models.Flight.FlightViewModel
+@using Syncfusion.EJ2.DropDowns
+
+@{
+    ViewData["Title"] = "Schedule New Flight";
+
+    var airportItemTemplate = "<div><span class='flag-icon flag-icon-${Icon} me-2'></span><span>${Text}</span></div>";
+    var airportValueTemplate = "<div><span class='flag-icon flag-icon-${Icon} me-2'></span><span>${Text}</span></div>";
+
+    var airplaneItemTemplate = @"
+        <div class='d-flex justify-content-between'>
+            <div><strong>${Model}</strong></div>
+            <div class='text-muted small'>
+                Economy: ${EconomySeats} | Executive: ${ExecutiveSeats}
+            </div>
+        </div>";
+
+    var airplaneValueTemplate = @"
+        <div><strong>${Model}</strong></div>";
+}
+
+<div class="container mt-5">
+    <div class="card bg-dark text-light shadow-lg p-4 rounded">
+        <h2 class="text-white bg-maroon px-3 py-2 rounded-top scheduler-title">
+            <i class="fas fa-plane-departure me-2"></i>@ViewData["Title"]
+        </h2>
+
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="row">
+                <div class="col-md-7">
+                    
+                    <div class="form-group row align-items-center mb-3">
+                        <label asp-for="AirplaneId" class="col-sm-3 form-label custom-label"></label>
+                        <div class="col-sm-9">
+                            <ejs-combobox id="AirplaneId"
+                                          name="AirplaneId"
+                                          dataSource="@Model.Airplanes"
+                                          placeholder="Select airplane model..."
+                                          itemTemplate="@airplaneItemTemplate"
+                                          valueTemplate="@airplaneValueTemplate"
+                                          popupHeight="300px"
+                                          value="@(Model.AirplaneId > 0 ? Model.AirplaneId.ToString() : null)"
+                                          allowCustom="false">
+                                <e-combobox-fields text="Model" value="Id"></e-combobox-fields>
+                            </ejs-combobox>
+                            <span asp-validation-for="AirplaneId" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group row align-items-center mb-3">
+                        <label asp-for="OriginAirportId" class="col-sm-3 form-label custom-label">Origin</label>
+                        <div class="col-sm-9">
+                            <ejs-dropdownlist id="OriginAirportId"
+                                              name="OriginAirportId"
+                                              dataSource="@Model.OriginAirports"
+                                              placeholder="Select origin..."
+                                              popupHeight="250px"
+                                              itemTemplate="@airportItemTemplate"
+                                              valueTemplate="@airportValueTemplate"
+                                              value="@(Model.OriginAirportId != null && Model.OriginAirports?.Any(a => a.Value == Model.OriginAirportId.ToString()) == true
+                                                  ? Model.OriginAirportId.ToString()
+                                                  : null)">
+                                <e-dropdownlist-fields text="Text" value="Value"></e-dropdownlist-fields>
+                            </ejs-dropdownlist>
+                            <span asp-validation-for="OriginAirportId" class="text-danger"></span>
+                        </div>
+                    </div>
+
+
+                    <div class="form-group row align-items-center mb-3">
+                        <label asp-for="DestinationAirportId" class="col-sm-3 form-label custom-label">Destination</label>
+                        <div class="col-sm-9">
+                            <ejs-dropdownlist id="DestinationAirportId"
+                                              name="DestinationAirportId"
+                                              dataSource="@Model.DestinationAirports"
+                                              placeholder="Select destination..."
+                                              popupHeight="250px"
+                                              itemTemplate="@airportItemTemplate"
+                                              valueTemplate="@airportValueTemplate"
+                                              value="@(Model.DestinationAirportId != null && Model.DestinationAirports?.Any(a => a.Value == Model.DestinationAirportId.ToString()) == true
+                                                                                                ? Model.DestinationAirportId.ToString()
+                                                  : null)">
+                                <e-dropdownlist-fields text="Text" value="Value"></e-dropdownlist-fields>
+                            </ejs-dropdownlist>
+                            <span asp-validation-for="DestinationAirportId" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-5">
+                    <div class="p-3 bg-maroon-subtle rounded">
+                        <h4 class="text-white mb-3">
+                            <i class="fas fa-euro-sign me-2"></i>Set Prices
+                        </h4>
+
+                        <div class="form-group row align-items-center mb-3">
+                            <label asp-for="ExecutiveClassPrice" class="col-sm-4 form-label custom-label">Executive</label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input asp-for="ExecutiveClassPrice" type="number" step="0.01" class="form-control custom-input" />
+                                    <span class="input-group-text">€</span>
+                                </div>
+                                <span asp-validation-for="ExecutiveClassPrice" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-group row align-items-center mb-3">
+                            <label asp-for="EconomyClassPrice" class="col-sm-4 form-label custom-label">Economic</label>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input asp-for="EconomyClassPrice" type="number" step="0.01" class="form-control custom-input" />
+                                    <span class="input-group-text">€</span>
+                                </div>
+                                <span asp-validation-for="EconomyClassPrice" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <label asp-for="DepartureDate" class="form-label custom-label"></label>
+                    <input asp-for="DepartureDate" class="form-control custom-input" type="date" />
+                    <span asp-validation-for="DepartureDate" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="DepartureTime" class="form-label custom-label"></label>
+                    <input asp-for="DepartureTime" class="form-control custom-input" type="time" />
+                    <span asp-validation-for="DepartureTime" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Duration" class="form-label custom-label"></label>
+                    <input asp-for="Duration" class="form-control custom-input" type="time" />
+                    <span asp-validation-for="Duration" class="text-danger"></span>
+                </div>
+            </div>
+
+
+            <div class="text-center mt-5">
+                <button type="submit" class="btn btn-schedule-flight px-5 py-2 rounded-pill">
+                    <i class="fas fa-check-circle me-2"></i>Schedule Flight
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css" />
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var originDropdown = document.getElementById('OriginAirportId')?.ej2_instances[0];
+            var destinationDropdown = document.getElementById('DestinationAirportId')?.ej2_instances[0];
+
+            if (!originDropdown || !destinationDropdown) {
+                return;
+            }
+
+            function onOriginChange() {
+                var selectedOriginValue = originDropdown.value;
+
+                if (destinationDropdown.value === selectedOriginValue) {
+                    destinationDropdown.value = null;
+                }
+
+                var query = new ej.data.Query();
+                if (selectedOriginValue) {
+                    query = new ej.data.Query().where('Value', 'notequal', selectedOriginValue);
+                }
+
+                destinationDropdown.query = query;
+                destinationDropdown.dataBind();
+            }
+
+            function onDestinationChange() {
+                var selectedDestinationValue = destinationDropdown.value;
+
+                if (originDropdown.value === selectedDestinationValue) {
+                    originDropdown.value = null;
+                }
+
+                var query = new ej.data.Query();
+                if (selectedDestinationValue) {
+                    query = new ej.data.Query().where('Value', 'notequal', selectedDestinationValue);
+                }
+
+                originDropdown.query = query;
+                originDropdown.dataBind();
+            }
+
+            originDropdown.addEventListener('change', onOriginChange);
+            destinationDropdown.addEventListener('change', onDestinationChange);
+
+
+            if (originDropdown.value) {
+                onOriginChange();
+            }
+            if (destinationDropdown.value) {
+                onDestinationChange();
+            }
+        });
+    </script>
+}

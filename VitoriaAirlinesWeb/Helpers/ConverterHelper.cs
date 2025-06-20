@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
-using VitoriaAirlinesWeb.Data.Entities;
+﻿using VitoriaAirlinesWeb.Data.Entities;
+using VitoriaAirlinesWeb.Data.Enums;
 using VitoriaAirlinesWeb.Models.Airplane;
 using VitoriaAirlinesWeb.Models.Airport;
 using VitoriaAirlinesWeb.Models.Customer;
+using VitoriaAirlinesWeb.Models.Flight;
 
 namespace VitoriaAirlinesWeb.Helpers
 {
@@ -86,6 +87,41 @@ namespace VitoriaAirlinesWeb.Helpers
                 Name = airport.Name,
                 City = airport.City,
                 CountryId = airport.CountryId
+            };
+        }
+
+        public Flight ToFlight(FlightViewModel model, bool isNew)
+        {
+            return new Flight
+            {
+                Id = isNew ? 0 : model.Id,
+                FlightNumber = model.FlightNumber!,
+                OriginAirportId = model.OriginAirportId.Value,
+                DestinationAirportId = model.DestinationAirportId.Value,
+                AirplaneId = model.AirplaneId,
+                EconomyClassPrice = model.EconomyClassPrice,
+                ExecutiveClassPrice = model.ExecutiveClassPrice,
+                DepartureUtc = model.DepartureDate.Value.ToDateTime(model.DepartureTime.Value).ToUniversalTime(),
+                Duration = model.Duration.Value,
+                Status = isNew ? FlightStatus.Scheduled : model.Status
+            };
+        }
+
+        public FlightViewModel ToFlightViewModel(Flight flight)
+        {
+            return new FlightViewModel
+            {
+                Id = flight.Id,
+                FlightNumber = flight.FlightNumber,
+                OriginAirportId = flight.OriginAirportId,
+                DestinationAirportId = flight.DestinationAirportId,
+                AirplaneId = flight.AirplaneId,
+                EconomyClassPrice = flight.EconomyClassPrice,
+                ExecutiveClassPrice = flight.ExecutiveClassPrice,
+                DepartureDate = DateOnly.FromDateTime(flight.DepartureUtc.ToLocalTime()),
+                DepartureTime = TimeOnly.FromDateTime(flight.DepartureUtc.ToLocalTime()),
+                Duration = flight.Duration,
+                Status = flight.Status
             };
         }
 

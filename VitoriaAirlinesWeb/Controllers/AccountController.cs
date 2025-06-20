@@ -249,7 +249,7 @@ namespace VitoriaAirlinesWeb.Controllers
             var user = await _userHelper.GetUserByEmailAsync(User.Identity.Name);
             if (user == null) return NotFound();
 
-            var roles = await _userHelper.GetRolesAsync(user);
+            var roles = await _userHelper.GetUserRolesAsync(user);
             ViewData["Role"] = roles.FirstOrDefault();
 
             return View();
@@ -265,7 +265,7 @@ namespace VitoriaAirlinesWeb.Controllers
                 var user = await _userHelper.GetUserByEmailAsync(User.Identity.Name);
                 if (user != null)
                 {
-                    var roles = await _userHelper.GetRolesAsync(user);
+                    var roles = await _userHelper.GetUserRolesAsync(user);
                     ViewData["Role"] = roles.FirstOrDefault();
 
                     var result = await _userHelper.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
@@ -293,7 +293,7 @@ namespace VitoriaAirlinesWeb.Controllers
             var user = await _userHelper.GetUserByEmailAsync(User.Identity.Name);
             if (user == null) return NotFound();
 
-            var roles = await _userHelper.GetRolesAsync(user);
+            var roles = await _userHelper.GetUserRolesAsync(user);
             ViewData["Role"] = roles.FirstOrDefault();
 
             var model = new EditUserProfileViewModel();
@@ -314,7 +314,7 @@ namespace VitoriaAirlinesWeb.Controllers
             if (user == null) return NotFound();
 
 
-            var roles = await _userHelper.GetRolesAsync(user);
+            var roles = await _userHelper.GetUserRolesAsync(user);
             ViewData["Role"] = roles.FirstOrDefault();
 
             if (!ModelState.IsValid)

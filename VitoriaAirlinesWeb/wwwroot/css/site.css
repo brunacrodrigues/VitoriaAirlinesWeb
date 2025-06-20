@@ -356,3 +356,47 @@ header .nav-link:hover {
 .seat-gap {
     width: 20px;
 }
+
+.bg-maroon {
+    background-color: #660000 !important;
+}
+
+.bg-maroon-subtle {
+    background-color: #4d0000 !important;
+}
+
+.btn-schedule-flight {
+    background-color: #d89c00;
+    color: black;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+    .btn-schedule-flight:hover {
+        background-color: #bf8500;
+        color: white;
+    }
+
+.custom-label {
+    font-weight: 600;
+    color: white;
+}
+
+.scheduler-title {
+    font-size: 1.6rem;
+}
+
+.custom-select,
+.custom-input {
+    background-color: #f8f9fa;
+    color: black;
+}
+
+.available-seats-text {
+    font-size: 0.9rem;
+    color: #ccc;
+}
+
+.bg-maroon-subtle .text-danger {
+    color: white !important;
+}

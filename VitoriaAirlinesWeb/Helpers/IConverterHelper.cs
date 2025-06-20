@@ -2,6 +2,7 @@
 using VitoriaAirlinesWeb.Models.Airplane;
 using VitoriaAirlinesWeb.Models.Airport;
 using VitoriaAirlinesWeb.Models.Customer;
+using VitoriaAirlinesWeb.Models.Flight;
 
 namespace VitoriaAirlinesWeb.Helpers
 {
@@ -22,5 +23,9 @@ namespace VitoriaAirlinesWeb.Helpers
         Airport ToAirport(AirportViewModel model, bool isNew);
 
         AirportViewModel ToAirportViewModel(Airport entity);
+
+        Flight ToFlight(FlightViewModel model, bool isNew);
+
+        FlightViewModel ToFlightViewModel(Flight entity);
     }
 }

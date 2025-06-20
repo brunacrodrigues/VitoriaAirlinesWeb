@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using VitoriaAirlinesWeb.Data.Entities;
+using VitoriaAirlinesWeb.Models.Airplane;
 
 namespace VitoriaAirlinesWeb.Data.Repositories
 {
@@ -54,7 +55,21 @@ namespace VitoriaAirlinesWeb.Data.Repositories
             }
         }
 
+        public async Task<IEnumerable<AirplaneComboViewModel>> GetComboAirplanesAsync()
+        {
+            var list = await _context.Airplanes
+                   .OrderBy(a => a.Model)
+       .Select(a => new AirplaneComboViewModel
+       {
+           Id = a.Id,
+           Model = a.Model,
+           EconomySeats = a.TotalEconomySeats,
+           ExecutiveSeats = a.TotalExecutiveSeats
+       })
+       .ToListAsync();
 
-      
+            return list;
+        }
+
     }
 }

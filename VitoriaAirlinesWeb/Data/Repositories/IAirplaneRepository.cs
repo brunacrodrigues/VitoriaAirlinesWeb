@@ -1,4 +1,6 @@
-﻿using VitoriaAirlinesWeb.Data.Entities;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using VitoriaAirlinesWeb.Data.Entities;
+using VitoriaAirlinesWeb.Models.Airplane;
 
 namespace VitoriaAirlinesWeb.Data.Repositories
 {
@@ -9,5 +11,7 @@ namespace VitoriaAirlinesWeb.Data.Repositories
         Task AddSeatsAsync(List<Seat> seats);
 
         Task ReplaceSeatsAsync(int airplaneId, List<Seat> seats);
+
+        Task <IEnumerable<AirplaneComboViewModel>> GetComboAirplanesAsync();
     }
 }

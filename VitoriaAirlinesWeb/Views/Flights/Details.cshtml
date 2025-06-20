@@ -1,0 +1,81 @@
+﻿@model VitoriaAirlinesWeb.Data.Entities.Flight
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "Flight Details";
+}
+
+<div class="main-content">
+    <h2 class="mb-4 text-light text-center">Flight: @Model.FlightNumber - @Model.OriginAirport.IATA -> @Model.DestinationAirport.IATA</h2>
+
+    <div class="card p-4 bg-dark text-light">
+        <dl class="row">
+            <dt class="col-sm-3">Flight Number </dt>
+            <dd class="col-sm-9">@Model.FlightNumber</dd>
+
+            <dt class="col-sm-3">Airplane Model</dt>
+            <dd class="col-sm-9">@Model.Airplane.Model</dd>
+
+            <dt class="col-sm-3">Origin Airport</dt>
+            <dd class="col-sm-9">
+                <img src="@Model.OriginAirport.Country.FlagImageUrl" alt="@Model.OriginAirport.Country.CountryCode" width="30" class="me-2" />
+                @Model.OriginAirport.FullName
+            </dd>
+
+            <dt class="col-sm-3">Destination Airport</dt>
+            <dd class="col-sm-9">
+                <img src="@Model.DestinationAirport.Country.FlagImageUrl" alt="@Model.DestinationAirport.Country.CountryCode" width="30" class="me-2" />
+                @Model.DestinationAirport.FullName
+            </dd>
+
+            <dt class="col-sm-3">Departure Date</dt>
+            <dd class="col-sm-9">@TimeZoneInfo.ConvertTimeFromUtc(Model.DepartureUtc, TimeZoneInfo.FindSystemTimeZoneById("Europe/Lisbon"))</dd>
+
+
+            <dt class="col-sm-3">Arrival Date</dt>
+            <dd class="col-sm-9">@TimeZoneInfo.ConvertTimeFromUtc(Model.ArrivalUtc, TimeZoneInfo.FindSystemTimeZoneById("Europe/Lisbon"))</dd>
+
+
+            <dt class="col-sm-3">Flight Duration</dt>
+            <dd class="col-sm-9">@Model.Duration</dd>
+
+            <dt class="col-sm-3">Executive Price</dt>
+            <dd class="col-sm-9">@Model.ExecutiveClassPrice.ToString("C", CultureInfo.CreateSpecificCulture("pt-PT"))</dd>
+
+            <dt class="col-sm-3">Economy Price</dt>
+            <dd class="col-sm-9">@Model.EconomyClassPrice.ToString("C", CultureInfo.CreateSpecificCulture("pt-PT"))</dd>
+
+            <dt class="col-sm-3">Status</dt>
+            <dd class="col-sm-9">
+                @switch (Model.Status)
+                {
+                    case VitoriaAirlinesWeb.Data.Enums.FlightStatus.Scheduled:
+                        <span class="badge bg-primary">Scheduled</span>
+                        break;
+                    case VitoriaAirlinesWeb.Data.Enums.FlightStatus.Canceled:
+                        <span class="badge bg-danger">Canceled</span>
+                        break;
+                    case VitoriaAirlinesWeb.Data.Enums.FlightStatus.Completed:
+                        <span class="badge bg-success">Completed</span>
+                        break;
+                }
+            </dd>
+
+
+        </dl>
+
+        <div class="mt-3">
+            <a asp-action="Index" class="btn btn-outline-light">Back to List</a>
+
+            @if (Model.Status == VitoriaAirlinesWeb.Data.Enums.FlightStatus.Scheduled)
+            {
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
+                <a asp-action="Cancel" asp-route-id="@Model.Id" class="btn btn-danger">Cancel</a>
+            }
+            
+        </div>
+    </div>
+</div>
+
+
+

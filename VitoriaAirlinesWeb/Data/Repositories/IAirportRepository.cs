@@ -1,4 +1,5 @@
 ﻿using VitoriaAirlinesWeb.Data.Entities;
+using VitoriaAirlinesWeb.Models.Airport;
 
 namespace VitoriaAirlinesWeb.Data.Repositories
 {
@@ -7,5 +8,7 @@ namespace VitoriaAirlinesWeb.Data.Repositories
         IQueryable<Airport> GetAllWithCountries();
 
         Task<Airport?> GetByIdWithCountryAsync(int id);
+
+        Task<IEnumerable<AirportDropdownViewModel>> GetComboAirportsWithFlagsAsync();
     }
 }

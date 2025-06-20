@@ -24,5 +24,8 @@ namespace VitoriaAirlinesWeb.Data.Entities
         public Country Country { get; set; } = null!;
 
 
+        public string FullName => $"{IATA} - {Name}";
+
+
     }
 }

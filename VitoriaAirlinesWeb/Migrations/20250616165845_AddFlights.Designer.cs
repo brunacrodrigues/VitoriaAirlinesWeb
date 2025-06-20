@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VitoriaAirlinesWeb.Data;
 
@@ -11,9 +12,11 @@ using VitoriaAirlinesWeb.Data;
 namespace VitoriaAirlinesWeb.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250616165845_AddFlights")]
+    partial class AddFlights
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -310,12 +313,8 @@ namespace VitoriaAirlinesWeb.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
-                    b.Property<int>("OriginAirportId")
+                    b.Property<int>("OriginId")
                         .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -326,7 +325,7 @@ namespace VitoriaAirlinesWeb.Migrations
                     b.HasIndex("FlightNumber")
                         .IsUnique();
 
-                    b.HasIndex("OriginAirportId");
+                    b.HasIndex("OriginId");
 
                     b.ToTable("Flights");
                 });
@@ -534,7 +533,7 @@ namespace VitoriaAirlinesWeb.Migrations
 
                     b.HasOne("VitoriaAirlinesWeb.Data.Entities.Airport", "OriginAirport")
                         .WithMany()
-                        .HasForeignKey("OriginAirportId")
+                        .HasForeignKey("OriginId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 

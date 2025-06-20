@@ -119,10 +119,6 @@ namespace VitoriaAirlinesWeb.Helpers
             return users.ToList();
         }
 
-        public async Task<IList<string>> GetRolesAsync(User user)
-        {
-            return await _userManager.GetRolesAsync(user);
-        }
 
         public async Task DeactivateUserAsync(User user)
         {

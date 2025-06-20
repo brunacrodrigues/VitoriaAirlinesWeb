@@ -12,7 +12,7 @@ namespace VitoriaAirlinesWeb.Helpers
             char[] letters = { 'A', 'B', 'C', 'D', 'E', 'F' };
             int currentRow = 1;
 
-            // Executive seats
+           
             for (int i = 0; i < totalExecutiveSeats; i++)
             {
                 seats.Add(new Seat
@@ -30,7 +30,7 @@ namespace VitoriaAirlinesWeb.Helpers
             if (totalExecutiveSeats > 0 && totalExecutiveSeats % seatsPerRow != 0)
                 currentRow++;
 
-            // Economy seats
+        
             for (int i = 0; i < totalEconomySeats; i++)
             {
                 seats.Add(new Seat

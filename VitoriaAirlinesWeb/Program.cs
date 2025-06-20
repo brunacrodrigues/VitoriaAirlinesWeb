@@ -1,3 +1,4 @@
+using Hangfire;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Syncfusion.Licensing;
@@ -5,6 +6,7 @@ using VitoriaAirlinesWeb.Data;
 using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Data.Repositories;
 using VitoriaAirlinesWeb.Helpers;
+using VitoriaAirlinesWeb.Services;
 
 namespace VitoriaAirlinesWeb
 {
@@ -49,11 +51,14 @@ namespace VitoriaAirlinesWeb
 
             builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
 
+
+
             // Repositories
             builder.Services.AddScoped<ICustomerProfileRepository, CustomerProfileRepository>();
             builder.Services.AddScoped<ICountryRepository, CountryRepository>();
             builder.Services.AddScoped<IAirplaneRepository, AirplaneRepository>();
             builder.Services.AddScoped<IAirportRepository, AirportRepository>();
+            builder.Services.AddScoped<IFlightRepository, FlightRepository>();
 
             // Helpers
             builder.Services.AddScoped<IUserHelper, UserHelper>();
@@ -61,7 +66,16 @@ namespace VitoriaAirlinesWeb
             builder.Services.AddScoped<IBlobHelper, BlobHelper>();
             builder.Services.AddScoped<IConverterHelper, ConverterHelper>();
             builder.Services.AddScoped<ISeatGeneratorHelper, SeatGeneratorHelper>();
+            builder.Services.AddScoped<IFlightHelper, FlightHelper>();
             builder.Services.AddTransient<SeedDb>();
+
+            // Hangfire config
+            builder.Services.AddHangfire(config =>
+                config.UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.Services.AddHangfireServer();
+
+            // FlightService
+            builder.Services.AddScoped<IFlightService, FlightService>();
 
 
             var app = builder.Build();
@@ -81,6 +95,16 @@ namespace VitoriaAirlinesWeb
 
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.UseHangfireDashboard(); // localhost/hangfire
+
+           
+            RecurringJob.AddOrUpdate<IFlightService>(
+                "update-completed-flights",
+                service => service.UpdateCompletedFlightsAsync(),
+                Cron.Minutely); // TODO change to hourly 
+
+
 
             app.MapControllerRoute(
                 name: "default",
