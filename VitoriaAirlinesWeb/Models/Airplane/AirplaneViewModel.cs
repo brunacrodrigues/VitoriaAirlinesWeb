@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using VitoriaAirlinesWeb.Data.Enums;
 
 namespace VitoriaAirlinesWeb.Models.Airplane
 {
@@ -24,6 +25,9 @@ namespace VitoriaAirlinesWeb.Models.Airplane
         public int TotalEconomySeats { get; set; }
 
         public Guid ImageId { get; set; }
+
+        public AirplaneStatus Status { get; set; }
+
 
 
         [Display(Name = "Image")]

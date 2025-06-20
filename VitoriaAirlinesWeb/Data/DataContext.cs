@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using VitoriaAirlinesWeb.Data.Entities;
+using VitoriaAirlinesWeb.Data.Enums;
 
 namespace VitoriaAirlinesWeb.Data
 {
@@ -82,6 +83,9 @@ namespace VitoriaAirlinesWeb.Data
                 .HasIndex(seat => new { seat.AirplaneId, seat.Row, seat.Letter })
                 .IsUnique();
 
+            modelBuilder.Entity<Airplane>()
+               .Property(f => f.Status)
+               .HasConversion<string>();
 
             modelBuilder.Entity<Seat>()
                 .Property(s => s.Class)

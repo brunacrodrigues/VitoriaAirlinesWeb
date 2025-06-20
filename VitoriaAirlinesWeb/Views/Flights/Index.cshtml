@@ -65,18 +65,20 @@
                     <td>@($"{flight.ExecutiveClassPrice:0.00} €")</td>
                     <td>@($"{flight.EconomyClassPrice:0.00} €")</td>
 
-                   
                     <td>
                         @switch (flight.Status)
                         {
                             case VitoriaAirlinesWeb.Data.Enums.FlightStatus.Scheduled:
                                 <span class="badge bg-primary">Scheduled</span>
                                 break;
-                            case VitoriaAirlinesWeb.Data.Enums.FlightStatus.Canceled:
-                                <span class="badge bg-danger">Canceled</span>
+                            case VitoriaAirlinesWeb.Data.Enums.FlightStatus.Departed:
+                                <span class="badge bg-warning text-dark">Departed</span>
                                 break;
                             case VitoriaAirlinesWeb.Data.Enums.FlightStatus.Completed:
                                 <span class="badge bg-success">Completed</span>
+                                break;
+                            case VitoriaAirlinesWeb.Data.Enums.FlightStatus.Canceled:
+                                <span class="badge bg-danger">Canceled</span>
                                 break;
                         }
                     </td>
@@ -93,8 +95,6 @@
                 </tr>
             }
         </tbody>
-
-
     </table>
 </div>
 
@@ -112,5 +112,3 @@
 
     @await Html.PartialAsync("_ValidationScriptsPartial")
 }
-
-

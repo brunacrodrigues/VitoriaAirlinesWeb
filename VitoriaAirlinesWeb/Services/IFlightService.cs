@@ -2,6 +2,6 @@
 {
     public interface IFlightService
     {
-        Task UpdateCompletedFlightsAsync();
+        Task UpdateFlightStatusAsync();
     }
 }

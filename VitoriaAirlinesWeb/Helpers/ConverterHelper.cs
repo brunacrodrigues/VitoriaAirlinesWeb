@@ -50,7 +50,8 @@ namespace VitoriaAirlinesWeb.Helpers
                 Model = model.Model,
                 TotalExecutiveSeats = model.TotalExecutiveSeats,
                 TotalEconomySeats = model.TotalEconomySeats,
-                ImageId = imageId
+                ImageId = imageId,
+                Status = isNew ? AirplaneStatus.Active : model.Status
             };
         }
 
@@ -63,6 +64,7 @@ namespace VitoriaAirlinesWeb.Helpers
                 TotalExecutiveSeats = entity.TotalExecutiveSeats,
                 TotalEconomySeats = entity.TotalEconomySeats,
                 ImageId = entity.ImageId,
+                Status = entity.Status
             };
         }
 
@@ -78,15 +80,15 @@ namespace VitoriaAirlinesWeb.Helpers
             };
         }
 
-        public AirportViewModel ToAirportViewModel(Airport airport)
+        public AirportViewModel ToAirportViewModel(Airport entity)
         {
             return new AirportViewModel
             {
-                Id = airport.Id,
-                IATA = airport.IATA,
-                Name = airport.Name,
-                City = airport.City,
-                CountryId = airport.CountryId
+                Id = entity.Id,
+                IATA = entity.IATA,
+                Name = entity.Name,
+                City = entity.City,
+                CountryId = entity.CountryId
             };
         }
 
@@ -107,21 +109,21 @@ namespace VitoriaAirlinesWeb.Helpers
             };
         }
 
-        public FlightViewModel ToFlightViewModel(Flight flight)
+        public FlightViewModel ToFlightViewModel(Flight entity)
         {
             return new FlightViewModel
             {
-                Id = flight.Id,
-                FlightNumber = flight.FlightNumber,
-                OriginAirportId = flight.OriginAirportId,
-                DestinationAirportId = flight.DestinationAirportId,
-                AirplaneId = flight.AirplaneId,
-                EconomyClassPrice = flight.EconomyClassPrice,
-                ExecutiveClassPrice = flight.ExecutiveClassPrice,
-                DepartureDate = DateOnly.FromDateTime(flight.DepartureUtc.ToLocalTime()),
-                DepartureTime = TimeOnly.FromDateTime(flight.DepartureUtc.ToLocalTime()),
-                Duration = flight.Duration,
-                Status = flight.Status
+                Id = entity.Id,
+                FlightNumber = entity.FlightNumber,
+                OriginAirportId = entity.OriginAirportId,
+                DestinationAirportId = entity.DestinationAirportId,
+                AirplaneId = entity.AirplaneId,
+                EconomyClassPrice = entity.EconomyClassPrice,
+                ExecutiveClassPrice = entity.ExecutiveClassPrice,
+                DepartureDate = DateOnly.FromDateTime(entity.DepartureUtc.ToLocalTime()),
+                DepartureTime = TimeOnly.FromDateTime(entity.DepartureUtc.ToLocalTime()),
+                Duration = entity.Duration,
+                Status = entity.Status
             };
         }
 

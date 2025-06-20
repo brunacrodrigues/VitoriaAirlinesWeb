@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using VitoriaAirlinesWeb.Data.Enums;
 
 namespace VitoriaAirlinesWeb.Data.Entities
 {
@@ -28,8 +29,15 @@ namespace VitoriaAirlinesWeb.Data.Entities
 
         public ICollection<Seat> Seats { get; set; }
 
+
+        [Required]
+        public AirplaneStatus Status { get; set; }
+
+
         public string ImageFullPath => ImageId == Guid.Empty
         ? $"https://brunablob.blob.core.windows.net/images/noimage.png"
         : $"https://brunablob.blob.core.windows.net/images/{ImageId}";
+
+       
     }
 }

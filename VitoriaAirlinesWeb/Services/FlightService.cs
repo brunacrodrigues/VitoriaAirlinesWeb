@@ -14,22 +14,35 @@ namespace VitoriaAirlinesWeb.Services
             _context = context;
         }
 
-        public async Task UpdateCompletedFlightsAsync()
+        public async Task UpdateFlightStatusAsync()
         {
+            var now = DateTime.UtcNow;
+
             var flights = await _context.Flights
-                .Where(f => f.Status == FlightStatus.Scheduled && f.ArrivalUtc <= DateTime.UtcNow)
+                .Where(f => f.Status != FlightStatus.Canceled)
                 .ToListAsync();
 
+            bool hasChanges = false;
 
             foreach (var flight in flights)
             {
-                flight.Status = FlightStatus.Completed;
+                if (flight.Status == FlightStatus.Scheduled && flight.DepartureUtc <= now && now < flight.ArrivalUtc)
+                {
+                    flight.Status = FlightStatus.Departed;
+                    hasChanges = true;
+                }
+                else if (now >= flight.ArrivalUtc && flight.Status != FlightStatus.Completed)
+                {
+                    flight.Status = FlightStatus.Completed;
+                    hasChanges = true;
+                }
             }
 
-            if (flights.Any())
+            if (hasChanges)
             {
                 await _context.SaveChangesAsync();
             }
         }
+
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using VitoriaAirlinesWeb.Data.Enums;
 using VitoriaAirlinesWeb.Data.Repositories;
 using VitoriaAirlinesWeb.Helpers;
 using VitoriaAirlinesWeb.Models.Airplane;
@@ -103,6 +104,11 @@ namespace VitoriaAirlinesWeb.Controllers
                 return NotFound();
 
             var model = _converterHelper.ToAirplaneViewModel(airplane);
+
+            var hasFlights = _airplaneRepository.HasAnyNonCanceledFlights(id);
+            ViewBag.LockCapacity = hasFlights;
+            ViewBag.LockStatus = _airplaneRepository.HasFutureScheduledFlights(id);
+
             return View(model);
         }
 
@@ -131,6 +137,25 @@ namespace VitoriaAirlinesWeb.Controllers
                 imageId = await _blobHelper.UploadBlobAsync(viewModel.ImageFile, "images");
             }
 
+            // TODO para quando houver bilhetes vendidos 
+
+            var hasFlights = _airplaneRepository.HasAnyNonCanceledFlights(viewModel.Id);
+            var hasFutureFlights = _airplaneRepository.HasFutureScheduledFlights(viewModel.Id);
+
+            if (hasFlights &&
+                (viewModel.TotalExecutiveSeats != airplane.TotalExecutiveSeats ||
+                 viewModel.TotalEconomySeats != airplane.TotalEconomySeats))
+            {
+                ModelState.AddModelError("", "Cannot change seat capacity. This airplane has been used in flights.");
+                return View(viewModel);
+            }
+
+            if (hasFutureFlights && viewModel.Status != airplane.Status)
+            {
+                ModelState.AddModelError("", "Cannot change status. This airplane is assigned to future flights.");
+                return View(viewModel);
+            }
+
             airplane = _converterHelper.ToAirplane(viewModel, imageId, isNew: false);
             await _airplaneRepository.UpdateAsync(airplane);
 
@@ -139,7 +164,6 @@ namespace VitoriaAirlinesWeb.Controllers
                 airplane.TotalExecutiveSeats,
                 airplane.TotalEconomySeats
             );
-
             await _airplaneRepository.ReplaceSeatsAsync(airplane.Id, newSeats);
 
             TempData["SuccessMessage"] = "Airplane updated successfully.";
@@ -150,9 +174,17 @@ namespace VitoriaAirlinesWeb.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var airplane = await _airplaneRepository.GetByIdAsync(id);
-            if (airplane == null)
+            if (airplane == null) return NotFound();
+
+            if (!_airplaneRepository.CanBeDeleted(id))
             {
-                return NotFound();
+                TempData["ErrorMessage"] = "This airplane has future scheduled flights and cannot be deleted.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (_airplaneRepository.HasAnyNonCanceledFlights(id))
+            {
+                ViewBag.CanOnlyInactivate = true;
             }
 
             return View(airplane);
@@ -169,9 +201,25 @@ namespace VitoriaAirlinesWeb.Controllers
                 return NotFound();
             }
 
-            await _airplaneRepository.DeleteAsync(airplane);
+            if (!_airplaneRepository.CanBeDeleted(id))
+            {
+                TempData["ErrorMessage"] = "This airplane has future scheduled flights and cannot be deleted or deactivated.";
+                return RedirectToAction(nameof(Index));
+            }
 
-            TempData["SuccessMessage"] = "Airplane deleted successfully.";
+            if (_airplaneRepository.HasAnyNonCanceledFlights(id))
+            {
+                airplane.Status = AirplaneStatus.Inactive;
+                await _airplaneRepository.UpdateAsync(airplane);
+                TempData["InfoMessage"] = "Airplane marked as Inactive.";
+            }
+            else
+            {
+                await _airplaneRepository.DeleteAsync(airplane);
+                TempData["SuccessMessage"] = "Airplane deleted successfully.";
+            }
+
+
             return RedirectToAction(nameof(Index));
         }
     }

@@ -20,6 +20,23 @@
 
                 <dt class="col-sm-6">Economy Seats</dt>
                 <dd class="col-sm-6">@Model.TotalEconomySeats</dd>
+
+                <dt class="col-sm-6">Status</dt>
+                <dd class="col-sm-6">
+                    @switch (Model.Status)
+                    {
+                        case AirplaneStatus.Active:
+                            <span class="badge bg-success">Active</span>
+                            break;
+                        case AirplaneStatus.Inactive:
+                            <span class="badge bg-secondary">Inactive</span>
+                            break;
+                        case AirplaneStatus.Maintenance:
+                            <span class="badge bg-warning text-dark">Maintenance</span>
+                            break;
+                    }
+                </dd>
+
             </dl>
 
             <div class="mt-3">

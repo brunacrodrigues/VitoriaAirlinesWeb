@@ -101,7 +101,7 @@ namespace VitoriaAirlinesWeb
            
             RecurringJob.AddOrUpdate<IFlightService>(
                 "update-completed-flights",
-                service => service.UpdateCompletedFlightsAsync(),
+                service => service.UpdateFlightStatusAsync(),
                 Cron.Minutely); // TODO change to hourly 
 
 

@@ -1,5 +1,7 @@
 ﻿@model IEnumerable<VitoriaAirlinesWeb.Data.Entities.Airplane>
 
+@using VitoriaAirlinesWeb.Data.Enums
+
 @{
     ViewData["Title"] = "Manage Airplane Models";
 }
@@ -8,6 +10,20 @@
 {
     <div class="alert alert-success fade-out-alert">
         @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger fade-out-alert">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+@if (TempData["InfoMessage"] != null)
+{
+    <div class="alert alert-info fade-out-alert">
+        @TempData["InfoMessage"]
     </div>
 }
 
@@ -22,6 +38,7 @@
                 <th>Model</th>
                 <th>Executive Seats</th>
                 <th>Economic Seats</th>
+                <th>Status</th>
                 <th></th>
             </tr>
         </thead>
@@ -35,6 +52,20 @@
                     </td>
                     <td>@airplane.TotalExecutiveSeats</td>
                     <td>@airplane.TotalEconomySeats</td>
+                    <td>
+                        @switch (airplane.Status)
+                        {
+                            case AirplaneStatus.Active:
+                                <span class="badge bg-success">Active</span>
+                                break;
+                            case AirplaneStatus.Inactive:
+                                <span class="badge bg-secondary">Inactive</span>
+                                break;
+                            case AirplaneStatus.Maintenance:
+                                <span class="badge bg-warning text-dark">Maintenance</span>
+                                break;
+                        }
+                    </td>
                     <td>
                         <a asp-action="Details" asp-route-id="@airplane.Id" class="btn btn-sm btn-outline-info">Details</a>
                         <a asp-action="Edit" asp-route-id="@airplane.Id" class="btn btn-sm btn-outline-warning">Edit</a>

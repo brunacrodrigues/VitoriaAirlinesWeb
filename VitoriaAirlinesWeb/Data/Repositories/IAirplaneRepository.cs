@@ -13,5 +13,13 @@ namespace VitoriaAirlinesWeb.Data.Repositories
         Task ReplaceSeatsAsync(int airplaneId, List<Seat> seats);
 
         Task <IEnumerable<AirplaneComboViewModel>> GetComboAirplanesAsync();
+
+        bool CanBeDeleted(int id);
+
+        bool HasAnyFlights(int id);
+
+        bool HasAnyNonCanceledFlights(int id);
+
+        bool HasFutureScheduledFlights(int id);
     }
 }

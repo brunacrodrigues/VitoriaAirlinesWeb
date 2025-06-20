@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using VitoriaAirlinesWeb.Data.Entities;
+using VitoriaAirlinesWeb.Data.Enums;
 using VitoriaAirlinesWeb.Models.Airplane;
 
 namespace VitoriaAirlinesWeb.Data.Repositories
@@ -59,17 +60,47 @@ namespace VitoriaAirlinesWeb.Data.Repositories
         {
             var list = await _context.Airplanes
                    .OrderBy(a => a.Model)
-       .Select(a => new AirplaneComboViewModel
-       {
-           Id = a.Id,
-           Model = a.Model,
-           EconomySeats = a.TotalEconomySeats,
-           ExecutiveSeats = a.TotalExecutiveSeats
-       })
-       .ToListAsync();
+                   .Where(a => a.Status == AirplaneStatus.Active)
+                   .Select(a => new AirplaneComboViewModel
+                    {
+                        Id = a.Id,
+                        Model = a.Model,
+                        EconomySeats = a.TotalEconomySeats,
+                        ExecutiveSeats = a.TotalExecutiveSeats
+                    })
+                    .ToListAsync();
 
             return list;
         }
+
+        public bool CanBeDeleted(int id)
+        {
+            return !_context.Flights
+                .Any(f => f.AirplaneId == id
+                        && f.Status == FlightStatus.Scheduled
+                        && f.DepartureUtc > DateTime.UtcNow);
+        }
+
+        public bool HasAnyFlights(int id)
+        {
+            return _context.Flights.Any(f => f.AirplaneId == id);
+        }
+
+        public bool HasAnyNonCanceledFlights(int id)
+        {
+            return _context.Flights
+                .Any(f => f.AirplaneId == id && f.Status != FlightStatus.Canceled);
+        }
+
+        public bool HasFutureScheduledFlights(int id)
+        {
+            return _context.Flights
+                .Any(f => f.AirplaneId == id &&
+                          f.Status == FlightStatus.Scheduled &&
+                          f.DepartureUtc > DateTime.UtcNow);
+        }
+
+        // TODO: Validar voos futuros com bilhetes vendidos para este avião via FlightRepository
 
     }
 }

@@ -1,4 +1,5 @@
 ﻿@model VitoriaAirlinesWeb.Models.Airplane.AirplaneViewModel
+@using VitoriaAirlinesWeb.Data.Enums
 
 @{
     ViewData["Title"] = "Edit Airplane";
@@ -7,6 +8,39 @@
 <div class="login-background">
     <div class="login-card" style="max-width: 500px;">
         <h3 class="text-center text-light mb-4">Edit Airplane</h3>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success fade-out-alert">
+                @TempData["SuccessMessage"]
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger fade-out-alert">
+                @TempData["ErrorMessage"]
+            </div>
+        }
+        @if (TempData["InfoMessage"] != null)
+        {
+            <div class="alert alert-info fade-out-alert">
+                @TempData["InfoMessage"]
+            </div>
+        }
+
+        @if (ViewBag.LockCapacity == true)
+        {
+            <div class="alert alert-warning mb-3">
+                Some fields are read-only because this airplane has flights associated.
+            </div>
+        }
+
+        @if (ViewBag.LockStatus == true)
+        {
+            <div class="alert alert-warning mb-3">
+                The status field is disabled because this airplane has future flights scheduled.
+            </div>
+        }
 
         <form asp-action="Edit" method="post" enctype="multipart/form-data">
             <input type="hidden" asp-for="Id" />
@@ -38,15 +72,26 @@
             <div class="mb-3">
                 <label asp-for="TotalExecutiveSeats" class="form-label text-light"></label>
                 <input asp-for="TotalExecutiveSeats" type="number" min="0"
-                       class="form-control bg-dark text-light border-secondary" />
+                       class="form-control bg-dark text-light border-secondary"
+                       readonly="@(ViewBag.LockCapacity as bool? == true ? "readonly" : null)" />
                 <span asp-validation-for="TotalExecutiveSeats" class="text-danger"></span>
             </div>
 
             <div class="mb-4">
                 <label asp-for="TotalEconomySeats" class="form-label text-light"></label>
                 <input asp-for="TotalEconomySeats" type="number" min="1"
-                       class="form-control bg-dark text-light border-secondary" />
+                       class="form-control bg-dark text-light border-secondary"
+                       readonly="@(ViewBag.LockCapacity as bool? == true ? "readonly" : null)" />
                 <span asp-validation-for="TotalEconomySeats" class="text-danger"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Status" class="form-label text-light"></label>
+                <select asp-for="Status" asp-items="Html.GetEnumSelectList<AirplaneStatus>()"
+                        class="form-select bg-dark text-light border-secondary"
+                        disabled="@(ViewBag.LockStatus as bool? == true ? "disabled" : null)">
+                </select>
+                <span asp-validation-for="Status" class="text-danger"></span>
             </div>
 
             <button type="submit" class="btn w-100 login-button">Save Changes</button>
@@ -77,7 +122,15 @@
                     }
                 });
             }
+
+             setTimeout(function () {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(alert => {
+                    alert.style.transition = "opacity 0.5s ease-out";
+                    alert.style.opacity = '0';
+                    setTimeout(() => alert.remove(), 500);
+                });
+            }, 8000);
         });
     </script>
 }
-
