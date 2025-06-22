@@ -3,6 +3,9 @@
 
 @{
     ViewData["Title"] = "Schedule New Flight";
+    var returnUrl = Context.Request.Query["returnUrl"].ToString();
+    var safeReturnUrl = string.IsNullOrEmpty(returnUrl) ? Url.Action("Index", "Flights") : returnUrl;
+
 
     var airportItemTemplate = "<div><span class='flag-icon flag-icon-${Icon} me-2'></span><span>${Text}</span></div>";
     var airportValueTemplate = "<div><span class='flag-icon flag-icon-${Icon} me-2'></span><span>${Text}</span></div>";
@@ -26,6 +29,7 @@
         </h2>
 
         <form asp-action="Create" method="post">
+            <input type="hidden" name="returnUrl" value="@safeReturnUrl" />
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
             <div class="row">

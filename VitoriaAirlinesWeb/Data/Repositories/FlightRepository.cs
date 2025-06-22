@@ -37,6 +37,7 @@ namespace VitoriaAirlinesWeb.Data.Repositories
                 .FirstOrDefaultAsync(f => f.Id == id);
         }
 
+
         public async Task<IEnumerable<Flight>> GetScheduledFlightsAsync()
         {
             return await _context.Flights
@@ -75,6 +76,21 @@ namespace VitoriaAirlinesWeb.Data.Repositories
 
             return await query.OrderBy(f => f.DepartureUtc).ToListAsync();
 
+        }
+
+
+        public async Task<IEnumerable<Flight>> GetFlightsHistoryAsync()
+        {
+            return await _context.Flights
+                 .Include(f => f.Airplane)
+                 .Include(f => f.OriginAirport).ThenInclude(a => a.Country)
+                 .Include(f => f.DestinationAirport).ThenInclude(a => a.Country)
+                 .Where(f =>
+                     f.Status == FlightStatus.Departed ||
+                     f.Status == FlightStatus.Completed ||
+                     f.Status == FlightStatus.Canceled)
+                 .OrderByDescending(f => f.DepartureUtc)
+                 .ToListAsync();
         }
     }
 }

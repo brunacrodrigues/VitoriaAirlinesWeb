@@ -3,6 +3,8 @@
 
 @{
     ViewData["Title"] = "Edit Flight";
+    var returnUrl = Context.Request.Query["returnUrl"].ToString();
+    var safeReturnUrl = string.IsNullOrEmpty(returnUrl) ? Url.Action("Index", "Flights") : returnUrl;
 
     var airportItemTemplate = "<div><span class='flag-icon flag-icon-${Icon} me-2'></span><span>${Text}</span></div>";
     var airportValueTemplate = "<div><span class='flag-icon flag-icon-${Icon} me-2'></span><span>${Text}</span></div>";
@@ -28,6 +30,7 @@
         <form asp-action="Edit" method="post">
             <input type="hidden" asp-for="Id" />
             <input type="hidden" asp-for="FlightNumber" />
+            <input type="hidden" name="returnUrl" value="@safeReturnUrl" />
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
             <div class="row">
@@ -43,7 +46,7 @@
                                           itemTemplate="@airplaneItemTemplate"
                                           valueTemplate="@airplaneValueTemplate"
                                           popupHeight="300px"
-                                          value="@(Model.AirplaneId.ToString())"
+                                          value="@Model.AirplaneId"
                                           allowCustom="false">
                                 <e-combobox-fields text="Model" value="Id"></e-combobox-fields>
                             </ejs-combobox>
@@ -139,7 +142,7 @@
                 <button type="submit" class="btn btn-schedule-flight px-5 py-2 rounded-pill">
                     <i class="fas fa-save me-2"></i>Save Changes
                 </button>
-                <a asp-action="Index" class="btn btn-secondary ms-2">Back</a>
+                <a href="@safeReturnUrl" class="btn btn-secondary ms-2">Back</a>
             </div>
         </form>
     </div>

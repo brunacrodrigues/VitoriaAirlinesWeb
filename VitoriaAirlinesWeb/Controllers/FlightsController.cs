@@ -38,16 +38,18 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
         // GET: FlightsController/Details/5
-        public async Task<IActionResult> Details(int id)
+        public async Task<IActionResult> Details(int id, string? returnUrl = null)
         {
             var flight = await _flightRepository.GetByIdWithDetailsAsync(id);
             if (flight == null) return NotFound();
+
+            ViewBag.ReturnUrl = returnUrl ?? Url.Action("Index", "Flights");
 
             return View(flight);
         }
 
         // GET: FlightsController/Create
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(string? returnUrl = null)
         {
             var airports = await _airportRepository.GetComboAirportsWithFlagsAsync();
             var airplanes = await _airplaneRepository.GetComboAirplanesAsync();
@@ -60,13 +62,15 @@ namespace VitoriaAirlinesWeb.Controllers
                 Airplanes = airplanes
             };
 
+            ViewBag.ReturnUrl = returnUrl ?? Url.Action("Index", "Flights");
+
             return View(model);
         }
 
         // POST: FlightsController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(FlightViewModel viewModel)
+        public async Task<IActionResult> Create(FlightViewModel viewModel, string? returnUrl)
         {
             if (viewModel.DepartureDate.HasValue && viewModel.DepartureTime.HasValue)
             {
@@ -94,6 +98,7 @@ namespace VitoriaAirlinesWeb.Controllers
                 viewModel.OriginAirports = airports;
                 viewModel.DestinationAirports = airports;
 
+                ViewBag.ReturnUrl = returnUrl ?? Url.Action("Index", "Flights");
                 return View(viewModel);
             }
             var flightNumber = await _flightHelper.GenerateUniqueFlightNumberAsync();
@@ -104,11 +109,11 @@ namespace VitoriaAirlinesWeb.Controllers
             await _flightRepository.CreateAsync(flight);
 
             TempData["SuccessMessage"] = "Flight scheduled successfully.";
-            return RedirectToAction(nameof(Index));
+            return Redirect(returnUrl ?? Url.Action(nameof(Index)));
         }
 
         // GET: FlightsController/Edit/5
-        public async Task<IActionResult> Edit(int id)
+        public async Task<IActionResult> Edit(int id, string? returnUrl = null)
         {
             var flight = await _flightRepository.GetByIdWithDetailsAsync(id);
             if (flight == null) return NotFound();
@@ -116,7 +121,7 @@ namespace VitoriaAirlinesWeb.Controllers
             if (flight.Status != FlightStatus.Scheduled)
             {
                 TempData["WarningMessage"] = "Only scheduled flights can be edited.";
-                return RedirectToAction(nameof(Index));
+                return Redirect(returnUrl ?? Url.Action(nameof(Index)));
             }
 
             var model = _converterHelper.ToFlightViewModel(flight);
@@ -125,13 +130,15 @@ namespace VitoriaAirlinesWeb.Controllers
             model.OriginAirports = airports;
             model.DestinationAirports = airports;
 
+            ViewBag.ReturnUrl = returnUrl ?? Url.Action("Index", "Flights");
+
             return View(model);
         }
 
         // POST: FlightsController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(FlightViewModel viewModel)
+        public async Task<IActionResult> Edit(FlightViewModel viewModel, string? returnUrl)
         {
             if (!ModelState.IsValid)
             {
@@ -139,6 +146,8 @@ namespace VitoriaAirlinesWeb.Controllers
                 var airports = await _airportRepository.GetComboAirportsWithFlagsAsync();
                 viewModel.OriginAirports = airports;
                 viewModel.DestinationAirports = airports;
+
+                ViewBag.ReturnUrl = returnUrl ?? Url.Action("Index", "Flights");
                 return View(viewModel);
             }
 
@@ -151,7 +160,7 @@ namespace VitoriaAirlinesWeb.Controllers
             if (existingFlight.Status != FlightStatus.Scheduled)
             {
                 TempData["WarningMessage"] = "Only scheduled flights can be edited.";
-                return RedirectToAction(nameof(Index));
+                return Redirect(returnUrl ?? Url.Action(nameof(Index)));
             }
 
             var updatedFlight = _converterHelper.ToFlight(viewModel, isNew: false);
@@ -161,12 +170,13 @@ namespace VitoriaAirlinesWeb.Controllers
             await _flightRepository.UpdateAsync(updatedFlight);
 
             TempData["SuccessMessage"] = "Flight updated successfully.";
-            return RedirectToAction(nameof(Index));
+            return Redirect(returnUrl ?? Url.Action(nameof(Index)));
+
         }
 
 
         // GET: FlightsController/Delete/5
-        public async Task<IActionResult> Cancel(int id)
+        public async Task<IActionResult> Cancel(int id, string? returnUrl = null)
         {
             var flight = await _flightRepository.GetByIdWithDetailsAsync(id);
             if (flight == null) return NotFound();
@@ -174,8 +184,10 @@ namespace VitoriaAirlinesWeb.Controllers
             if (flight.Status != FlightStatus.Scheduled)
             {
                 TempData["WarningMessage"] = "Only scheduled flights can be canceled.";
-                return RedirectToAction(nameof(Index));
+                return Redirect(returnUrl ?? Url.Action("Index", "Flights"));
             }
+
+            ViewBag.ReturnUrl = returnUrl ?? Url.Action("Index", "Flights");
 
             return View(flight);
         }
@@ -183,7 +195,7 @@ namespace VitoriaAirlinesWeb.Controllers
         // POST: FlightsController/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CancelConfirmed(int id)
+        public async Task<IActionResult> CancelConfirmed(int id, string? returnUrl)
         {
             var flight = await _flightRepository.GetByIdAsync(id);
             if (flight == null)
@@ -192,14 +204,29 @@ namespace VitoriaAirlinesWeb.Controllers
             if (flight.Status != FlightStatus.Scheduled)
             {
                 TempData["WarningMessage"] = "Only scheduled flights can be canceled.";
-                return RedirectToAction(nameof(Index));
+                return Redirect(returnUrl ?? Url.Action("Index", "Flights"));
             }
 
             flight.Status = FlightStatus.Canceled;
             await _flightRepository.UpdateAsync(flight);
 
             TempData["SuccessMessage"] = "Flight canceled successfully.";
-            return RedirectToAction(nameof(Index));
+            return Redirect(returnUrl ?? Url.Action("Index", "Flights"));
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> History()
+        {
+            var flights = await _flightRepository.GetFlightsHistoryAsync();
+            return View(flights);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Scheduled()
+        {
+            var flights = await _flightRepository.GetScheduledFlightsAsync();
+            return View(flights);
         }
     }
 }

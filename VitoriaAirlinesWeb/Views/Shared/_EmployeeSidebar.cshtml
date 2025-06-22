@@ -7,14 +7,31 @@
     var firstName = user?.FirstName ?? "Employee";
 }
 
-
 <ejs-sidebar id="mainSidebar" width="220px" isOpen="true">
     <e-content-template>
         <div class="sidebar-internal-container">
-            <div class="sidebar-header"><div class="sidebar-title">Welcome, @firstName</div></div>
+            <div class="sidebar-header">
+                <div class="sidebar-title">Welcome, @firstName</div>
+            </div>
+
             <ul class="sidebar-menu">
-                <li><i class="e-icons e-home"></i><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
-                <li><i class="e-icons e-home"></i><a asp-controller="Flights" asp-action="Index">Manage Flights</a></li>
+                <li>
+                    <i class="e-icons e-home"></i>
+                    <a asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+                </li>
+
+                <li id="manage-flights-menu-item" class="has-submenu">
+                    <i class="fas fa-plane"></i>
+                    <a href="#">Manage Flights</a>
+                    <i class="fas fa-chevron-down submenu-arrow"></i>
+                </li>
+
+                <ul id="flights-submenu" class="sidebar-submenu">
+                    <li><i class="fas fa-list-ul"></i><a asp-controller="Flights" asp-action="Index">All Flights</a></li>
+                    <li><i class="fas fa-history"></i><a asp-controller="Flights" asp-action="History" asp-route-filter="history">Flights History</a></li>
+                    <li><i class="far fa-calendar-alt"></i><a asp-controller="Flights" asp-action="Scheduled" asp-route-filter="scheduled">Scheduled Flights</a></li>
+                </ul>
+
             </ul>
         </div>
     </e-content-template>

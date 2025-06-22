@@ -3,6 +3,9 @@
 
 @{
     ViewData["Title"] = "Flight Details";
+
+    var returnUrl = Context.Request.Query["returnUrl"].ToString();
+    var safeReturnUrl = string.IsNullOrEmpty(returnUrl) ? Url.Action("Index", "Flights") : returnUrl;
 }
 
 <div class="main-content">
@@ -70,12 +73,22 @@
         </dl>
 
         <div class="mt-3">
-            <a asp-action="Index" class="btn btn-outline-light">Back to List</a>
+            <a href="@safeReturnUrl" class="btn btn-outline-light">Back to List</a>
+
+
 
             @if (Model.Status == VitoriaAirlinesWeb.Data.Enums.FlightStatus.Scheduled)
             {
-                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
-                <a asp-action="Cancel" asp-route-id="@Model.Id" class="btn btn-danger">Cancel</a>
+                <a asp-action="Edit"
+           asp-route-id="@Model.Id"
+           asp-route-returnUrl="@safeReturnUrl"
+           class="btn btn-warning">Edit</a>
+
+        <a asp-action="Cancel"
+           asp-route-id="@Model.Id"
+           asp-route-returnUrl="@safeReturnUrl"
+           class="btn btn-danger">Cancel</a>
+
             }
             
         </div>

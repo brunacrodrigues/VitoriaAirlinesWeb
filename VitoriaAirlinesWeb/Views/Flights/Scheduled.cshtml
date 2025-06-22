@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<VitoriaAirlinesWeb.Data.Entities.Flight>
 
 @{
-    ViewData["Title"] = "Manage Flights";
+    ViewData["Title"] = "Scheduled Flights";
 }
 
 @if (TempData["SuccessMessage"] != null)
@@ -12,7 +12,7 @@
 }
 
 <div class="main-content">
-    <h2>All Flights</h2>
+    <h2>Scheduled Flights</h2>
 
     <a asp-action="Create" asp-route-returnUrl="@Url.Action(ViewContext.RouteData.Values["action"]?.ToString(), "Flights")" class="btn btn-gold mb-3">Schedule New Flight</a>
 
@@ -66,21 +66,8 @@
                     <td>@($"{flight.EconomyClassPrice:0.00} €")</td>
 
                     <td>
-                        @switch (flight.Status)
-                        {
-                            case VitoriaAirlinesWeb.Data.Enums.FlightStatus.Scheduled:
-                                <span class="badge bg-primary">Scheduled</span>
-                                break;
-                            case VitoriaAirlinesWeb.Data.Enums.FlightStatus.Departed:
-                                <span class="badge bg-warning text-dark">Departed</span>
-                                break;
-                            case VitoriaAirlinesWeb.Data.Enums.FlightStatus.Completed:
-                                <span class="badge bg-success">Completed</span>
-                                break;
-                            case VitoriaAirlinesWeb.Data.Enums.FlightStatus.Canceled:
-                                <span class="badge bg-danger">Canceled</span>
-                                break;
-                        }
+                        <span class="badge bg-primary">@flight.Status</span>
+                              
                     </td>
 
                     <td>
@@ -89,12 +76,16 @@
                            asp-route-returnUrl="@Url.Action(ViewContext.RouteData.Values["action"]?.ToString(), "Flights")"
                            class="btn btn-sm btn-outline-info">Details</a>
 
+                        <a asp-action="Edit"
+                           asp-route-id="@flight.Id"
+                           asp-route-returnUrl="@Url.Action(ViewContext.RouteData.Values["action"]?.ToString(), "Flights")"
+                           class="btn btn-sm btn-outline-warning">Edit</a>
 
-                        @if (flight.Status == VitoriaAirlinesWeb.Data.Enums.FlightStatus.Scheduled)
-                        {
-                            <a asp-action="Edit" asp-route-id="@flight.Id" class="btn btn-sm btn-outline-warning">Edit</a>
-                            <a asp-action="Cancel" asp-route-id="@flight.Id" class="btn btn-sm btn-outline-danger">Cancel</a>
-                        }
+                        <a asp-action="Cancel"
+                           asp-route-id="@flight.Id"
+                           asp-route-returnUrl="@Url.Action(ViewContext.RouteData.Values["action"]?.ToString(), "Flights")"
+                           class="btn btn-sm btn-outline-danger">Cancel</a>
+                       
                     </td>
                 </tr>
             }
@@ -116,3 +107,4 @@
 
     @await Html.PartialAsync("_ValidationScriptsPartial")
 }
+

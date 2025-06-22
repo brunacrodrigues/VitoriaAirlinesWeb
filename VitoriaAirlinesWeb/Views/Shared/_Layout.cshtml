@@ -39,6 +39,9 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/VitoriaAirlinesWeb.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.syncfusion.com/ej2/29.1.33/fluent.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+
     <script src="https://cdn.syncfusion.com/ej2/29.1.33/dist/ej2.min.js"></script>
     @RenderSection("Styles", required: false)
 </head>
@@ -119,32 +122,38 @@ else if (role == "Customer") { <partial name="_CustomerSidebar" /> }
     <script src="~/js/site.js" asp-append-version="true"></script>
     <ejs-scripts></ejs-scripts>
 
-    @if (!string.IsNullOrEmpty(role))
-    {
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                var sidebar = document.querySelector('[id$="Sidebar"]')?.ej2_instances?.[0];
-                var hamburger = document.getElementById('hamburger');
-                if (sidebar && hamburger) {
-                    hamburger.onclick = function () {
-                        sidebar.toggle();
-                    };
-                }
-            });
-        </script>
-    }
-   @*  <script>
+@if (!string.IsNullOrEmpty(role))
+{
+    <script>
         document.addEventListener('DOMContentLoaded', function () {
-            var avatarElement = document.querySelector('ejs-avatar');
-            if (avatarElement && !avatarElement.ej2_instances) {
-                ej.base.enableRipple(true);
-                new ej.notifications.Avatar({
-                    cssClass: 'e-avatar e-avatar-circle e-avatar-small',
-                    imageUrl: '/images/users/profilepic.jpg'
-                }, avatarElement);
+            
+            // Lógica do Hamburger Menu
+            const sidebarInstance = document.getElementById('mainSidebar')?.ej2_instances?.[0];
+            const hamburgerButton = document.getElementById('hamburger');
+            if (sidebarInstance && hamburgerButton) {
+                hamburgerButton.onclick = function () {
+                    sidebarInstance.toggle();
+                };
+            }
+
+            @if (role == UserRoles.Employee)
+            {
+                @:const menuItem = document.getElementById('manage-flights-menu-item');
+                @:const submenu = document.getElementById('flights-submenu');
+
+                @:if (menuItem && submenu) {
+                    @:menuItem.addEventListener('click', function(event) {
+                        @:event.preventDefault();
+            
+                        @:submenu.classList.toggle('open');
+                        @:menuItem.classList.toggle('open');
+                    @:});
+                @:}
             }
         });
-    </script> *@
+    </script>
+}
+ 
     @RenderSection("Scripts", required: false)
 </body>
 </html>
