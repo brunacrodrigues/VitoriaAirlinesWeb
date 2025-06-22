@@ -37,13 +37,13 @@ namespace VitoriaAirlinesWeb.Data.Repositories
                 .FirstOrDefaultAsync(f => f.Id == id);
         }
 
-        public async Task<IEnumerable<Flight>> GetFutureFlightsAsync()
+        public async Task<IEnumerable<Flight>> GetScheduledFlightsAsync()
         {
             return await _context.Flights
                 .Where(f => f.DepartureUtc > DateTime.UtcNow && f.Status == FlightStatus.Scheduled)
                 .Include(f => f.Airplane)
-                .Include(f => f.OriginAirport)
-                .Include(f => f.DestinationAirport)
+                .Include(f => f.OriginAirport).ThenInclude(a => a.Country)
+                .Include(f => f.DestinationAirport).ThenInclude(a => a.Country)
                 .OrderBy(f => f.DepartureUtc)
                 .ToListAsync();
         }
@@ -52,6 +52,7 @@ namespace VitoriaAirlinesWeb.Data.Repositories
         public async Task<IEnumerable<Flight>> SearchFlightsAsync(DateTime? date, int? originId, int? destinationId)
         {
             var query = _context.Flights
+                .Where(f => f.DepartureUtc > DateTime.UtcNow && f.Status == FlightStatus.Scheduled)
                 .Include(f => f.OriginAirport)
                 .Include(f => f.DestinationAirport)
                 .Include(f => f.Airplane) // TODO incluir os tickets depois

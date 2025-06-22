@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using VitoriaAirlinesWeb.Data.Entities;
-using VitoriaAirlinesWeb.Models.Airplane;
+using VitoriaAirlinesWeb.Models.Airplanes;
 
 namespace VitoriaAirlinesWeb.Data.Repositories
 {

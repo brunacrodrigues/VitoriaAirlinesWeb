@@ -400,3 +400,50 @@ header .nav-link:hover {
 .bg-maroon-subtle .text-danger {
     color: white !important;
 }
+
+.flight-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.flight-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15) !important;
+}
+
+
+.flight-card .card-header {
+    background-color: #4B0012;
+    color: #ffffff;
+}
+
+
+.flight-card .card-body {
+    background-color: #A67C26;
+    color: #ffffff;
+}
+
+
+.flight-card .card-footer {
+    background-color: #A67C26;
+    border-top: none;
+}
+
+.flight-card .card-body i {
+    color: #ffffff;
+}
+
+.btn-brand-primary {
+    background-color: #4B0012;
+    border-color: #4B0012;
+    color: #ffffff;
+    transition: all 0.3s ease;
+}
+
+.btn-brand-primary:hover,
+.btn-brand-primary:focus {
+    background-color: #3a000e;
+    border-color: #3a000e;
+    color: #ffffff;
+    box-shadow: none;
+}
+

@@ -3,8 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using VitoriaAirlinesWeb.Data.Enums;
 using VitoriaAirlinesWeb.Data.Repositories;
 using VitoriaAirlinesWeb.Helpers;
-using VitoriaAirlinesWeb.Models.Airport;
-using VitoriaAirlinesWeb.Models.Flight;
+using VitoriaAirlinesWeb.Models.Flights;
 
 namespace VitoriaAirlinesWeb.Controllers
 {
@@ -50,7 +49,7 @@ namespace VitoriaAirlinesWeb.Controllers
         // GET: FlightsController/Create
         public async Task<IActionResult> Create()
         {
-            var airports =  await _airportRepository.GetComboAirportsWithFlagsAsync();
+            var airports = await _airportRepository.GetComboAirportsWithFlagsAsync();
             var airplanes = await _airplaneRepository.GetComboAirplanesAsync();
 
             var model = new FlightViewModel

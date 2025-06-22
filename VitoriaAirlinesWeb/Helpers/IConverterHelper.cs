@@ -1,8 +1,8 @@
 ﻿using VitoriaAirlinesWeb.Data.Entities;
-using VitoriaAirlinesWeb.Models.Airplane;
-using VitoriaAirlinesWeb.Models.Airport;
-using VitoriaAirlinesWeb.Models.Customer;
-using VitoriaAirlinesWeb.Models.Flight;
+using VitoriaAirlinesWeb.Models.Airplanes;
+using VitoriaAirlinesWeb.Models.Airports;
+using VitoriaAirlinesWeb.Models.Customers;
+using VitoriaAirlinesWeb.Models.Flights;
 
 namespace VitoriaAirlinesWeb.Helpers
 {

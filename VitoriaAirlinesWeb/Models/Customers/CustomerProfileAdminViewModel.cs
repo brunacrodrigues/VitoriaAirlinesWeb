@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
 
-namespace VitoriaAirlinesWeb.Models.Customer
+namespace VitoriaAirlinesWeb.Models.Customers
 {
-    public class CustomerProfileViewModel
+    public class CustomerProfileAdminViewModel
     {
+        public int Id { get; set; }
+
+
         [Display(Name = "Nationality")]
         public int? CountryId { get; set; }
 
@@ -15,5 +18,12 @@ namespace VitoriaAirlinesWeb.Models.Customer
         [Display(Name = "Passport Number")]
         [MaxLength(20)]
         public string? PassportNumber { get; set; }
+
+
+        public string FullName { get; set; } = string.Empty;
+
+
+        public string Email { get; set; } = string.Empty;
+
     }
 }

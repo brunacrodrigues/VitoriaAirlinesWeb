@@ -1,4 +1,4 @@
-﻿namespace VitoriaAirlinesWeb.Models.Airport
+﻿namespace VitoriaAirlinesWeb.Models.Airports
 {
     public class AirportDropdownViewModel
     {

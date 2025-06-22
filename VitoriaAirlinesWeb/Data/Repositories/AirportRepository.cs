@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using VitoriaAirlinesWeb.Data.Entities;
-using VitoriaAirlinesWeb.Models.Airport;
+using VitoriaAirlinesWeb.Models.Airports;
 
 namespace VitoriaAirlinesWeb.Data.Repositories
 {

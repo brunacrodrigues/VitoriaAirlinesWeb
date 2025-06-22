@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using VitoriaAirlinesWeb.Data.Repositories;
 using VitoriaAirlinesWeb.Helpers;
-using VitoriaAirlinesWeb.Models.Airport;
+using VitoriaAirlinesWeb.Models.Airports;
 
 namespace VitoriaAirlinesWeb.Controllers
 {

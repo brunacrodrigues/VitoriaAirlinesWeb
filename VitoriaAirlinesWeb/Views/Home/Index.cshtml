@@ -1,8 +1,153 @@
-﻿@{
+﻿@model VitoriaAirlinesWeb.Models.FlightSearch.SearchFlightViewModel
+@using VitoriaAirlinesWeb.Data.Enums
+@using VitoriaAirlinesWeb.Helpers
+@using Syncfusion.EJ2.DropDowns
+
+
+@{
     ViewData["Title"] = "Home Page";
+
+    var airportItemTemplate = "<div><span class='flag-icon flag-icon-${Icon} me-2'></span><span>${Text}</span></div>";
+    var airportValueTemplate = "<div><span class='flag-icon flag-icon-${Icon} me-2'></span><span>${Text}</span></div>";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="main-content">
+    <h2 class="mb-4">Available Flights</h2>
+
+    @if (!User.IsInRole(UserRoles.Admin))
+    {
+        <form asp-action="Index" method="get" class="card p-4 mb-4 bg-dark text-light shadow">
+            <div class="row align-items-end">
+                <div class="col-md-3 mb-3">
+                    <label asp-for="OriginAirportId" class="form-label">Origin</label>
+                    <ejs-dropdownlist id="OriginAirportId"
+                                      name="OriginAirportId"
+                                      dataSource="@Model.Airports"
+                                      placeholder="Select origin..."
+                                      popupHeight="250px"
+                                      itemTemplate="@airportItemTemplate"
+                                      valueTemplate="@airportValueTemplate"
+                                      value="@(Model.OriginAirportId?.ToString())">
+                        <e-dropdownlist-fields text="Text" value="Value" iconCss="Icon"></e-dropdownlist-fields>
+                    </ejs-dropdownlist>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label asp-for="DestinationAirportId" class="form-label">Destination</label>
+                    <ejs-dropdownlist id="DestinationAirportId"
+                                      name="DestinationAirportId"
+                                      dataSource="@Model.Airports"
+                                      placeholder="Select destination..."
+                                      popupHeight="250px"
+                                      itemTemplate="@airportItemTemplate"
+                                      valueTemplate="@airportValueTemplate"
+                                      value="@(Model.DestinationAirportId?.ToString())">
+                        <e-dropdownlist-fields text="Text" value="Value" iconCss="Icon"></e-dropdownlist-fields>
+                    </ejs-dropdownlist>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label asp-for="DepartureDate" class="form-label"></label>
+                    <input asp-for="DepartureDate" class="form-control" type="date" />
+                </div>
+                <div class="col-md-3 mb-3 d-grid">
+                    <button type="submit" class="btn btn-gold btn-lg">Search Flights</button>
+                </div>
+            </div>
+        </form>
+    }
+
+    @if (Model.Flights != null && Model.Flights.Any())
+    {
+        <div class="row">
+            @foreach (var flight in Model.Flights)
+            {
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm flight-card">
+
+               
+                        <div class="card-header fw-bold text-light">
+                            @flight.FlightNumber
+                        </div>
+
+                        <div class="card-body text-light">
+                            <p class="card-text mb-2">
+                                <strong>From:</strong>
+                                <img src="@flight.OriginAirport.Country.FlagImageUrl" alt="@flight.OriginAirport.Country.CountryCode" width="20" class="me-1" />
+                                @flight.OriginAirport.Name
+                            </p>
+                            <p class="card-text mb-2">
+                                <strong>To:</strong>
+                                <img src="@flight.DestinationAirport.Country.FlagImageUrl" alt="@flight.DestinationAirport.Country.CountryCode" width="20" class="me-1" />
+                                @flight.DestinationAirport.Name
+                            </p>
+                            <p class="card-text mb-2">
+                                <i class="far fa-calendar-alt me-1"></i>
+                                <strong>Date:</strong> @flight.DepartureUtc.ToLocalTime().ToString("dd MMM yyyy")
+                            </p>
+                            <p class="card-text mb-2">
+                                <i class="far fa-clock me-1"></i>
+                                <strong>Time:</strong> @flight.DepartureUtc.ToLocalTime().ToString("HH:mm") → @flight.ArrivalUtc.ToLocalTime().ToString("HH:mm")
+                            </p>
+
+                            @if (User.IsInRole(UserRoles.Admin) || User.IsInRole(UserRoles.Employee))
+                            {
+                                <p class="card-text mb-2">
+                                    <i class="fas fa-plane me-1"></i>
+                                    <strong>Airplane:</strong> @flight.Airplane.Model
+                                </p>
+                            }
+
+                            <p class="card-text">
+                                <strong>Status:</strong>
+                                <span class="badge bg-primary ms-1">
+                                    <i class="fas fa-plane-departure me-1"></i> Scheduled
+                                </span>
+                            </p>
+                        </div>
+
+                       
+                        <div class="card-footer d-flex justify-content-between align-items-center">
+                            <div class="flight-price">
+                                <span class="price-label text-light">From</span>
+                                <span class="fw-bold fs-5 text-light">@flight.EconomyClassPrice.ToString("C2")</span>
+                            </div>
+                            <div class="d-flex">
+                                @if (User.IsInRole(UserRoles.Employee))
+                                {
+                                    <a asp-controller="Flights" asp-action="Details" asp-route-id="@flight.Id" class="btn btn-outline-light btn-sm" title="View operational details">Details</a>
+                                }
+                                @if (!User.IsInRole(UserRoles.Admin) && !User.IsInRole(UserRoles.Employee))
+                                {
+                                    <a asp-controller="Booking" asp-action="SelectSeat" asp-route-flightId="@flight.Id" class="btn btn-brand-primary fw-bold">
+                                        <i class="fas fa-ticket-alt me-1"></i> Book Now
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info mt-4">
+            @if (User.IsInRole("Admin"))
+            {
+                <p>There are currently no scheduled flights available in the system.</p>
+            }
+            else
+            {
+                <p>No flights found. Please use the form above to search for available flights.</p>
+            }
+        </div>
+    }
 </div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+}

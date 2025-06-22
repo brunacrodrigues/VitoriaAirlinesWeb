@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
 
-namespace VitoriaAirlinesWeb.Models.Airport
+namespace VitoriaAirlinesWeb.Models.Airports
 {
     public class AirportViewModel
     {

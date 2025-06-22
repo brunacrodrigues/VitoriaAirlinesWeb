@@ -1,21 +1,46 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using VitoriaAirlinesWeb.Data.Repositories;
+using VitoriaAirlinesWeb.Helpers;
 using VitoriaAirlinesWeb.Models;
+using VitoriaAirlinesWeb.Models.FlightSearch;
 
 namespace VitoriaAirlinesWeb.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly IFlightRepository _flightRepository;
+        private readonly IAirportRepository _airportRepository;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(
+            IFlightRepository flightRepository,
+            IAirportRepository airportRepository)
         {
-            _logger = logger;
+            _flightRepository = flightRepository;
+            _airportRepository = airportRepository;
         }
 
-        public IActionResult Index()
+
+        [HttpGet]
+        public async Task<IActionResult> Index(SearchFlightViewModel viewModel)
         {
-            return View();
+            viewModel.Airports = await _airportRepository.GetComboAirportsWithFlagsAsync();
+
+            if (User.IsInRole(UserRoles.Admin))
+            {
+                viewModel.Flights = await _flightRepository.GetScheduledFlightsAsync();
+            }
+            else if (viewModel.OriginAirportId.HasValue || viewModel.DestinationAirportId.HasValue || viewModel.DepartureDate.HasValue)
+            {
+                viewModel.Flights = await _flightRepository.SearchFlightsAsync(
+                    viewModel.DepartureDate,
+                    viewModel.OriginAirportId,
+                    viewModel.DestinationAirportId
+                );
+            }
+
+            return View(viewModel);
+
         }
 
         public IActionResult Privacy()
