@@ -3,6 +3,7 @@ using VitoriaAirlinesWeb.Data.Enums;
 using VitoriaAirlinesWeb.Models.Airplanes;
 using VitoriaAirlinesWeb.Models.Airports;
 using VitoriaAirlinesWeb.Models.Customers;
+using VitoriaAirlinesWeb.Models.Employees;
 using VitoriaAirlinesWeb.Models.Flights;
 
 namespace VitoriaAirlinesWeb.Helpers
@@ -127,5 +128,21 @@ namespace VitoriaAirlinesWeb.Helpers
             };
         }
 
+        public User ToUser(EditEmployeeViewModel model, User user)
+        {
+            user.FirstName = model.FirstName;
+            user.LastName = model.LastName;
+            return user;
+        }
+
+        public EditEmployeeViewModel ToEditEmployeeViewModel(User entity)
+        {
+            return new EditEmployeeViewModel
+            {
+                Email = entity.Email,
+                FirstName = entity.FirstName,
+                LastName = entity.LastName
+            };
+        }
     }
 }

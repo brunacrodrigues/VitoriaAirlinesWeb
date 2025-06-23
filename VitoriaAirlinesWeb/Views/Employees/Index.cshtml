@@ -20,16 +20,25 @@
     <table class="table table-striped table-custom">
         <thead>
             <tr>
+                <th></th>
                 <th>Full Name</th>
                 <th>Email</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
             @foreach (var employee in Model)
             {
                 <tr>
+                    <td>
+                        <img src="@employee.ImageFullPath" alt="@employee.FullName" width="60" class="me-2 rounded-circle" />
+                    </td>
                     <td>@employee.FullName</td>
                     <td>@employee.Email</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-email="@employee.Email" class="btn btn-sm btn-outline-warning">Edit</a>
+                        <a asp-action="Deactivate" asp-route-email="@employee.Email" class="btn btn-sm btn-outline-danger">Deactivate</a>
+                    </td>
                 </tr>
             }
         </tbody>

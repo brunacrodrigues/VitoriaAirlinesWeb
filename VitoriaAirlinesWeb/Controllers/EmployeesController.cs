@@ -13,26 +13,27 @@ namespace VitoriaAirlinesWeb.Controllers
     {
         private readonly IUserHelper _userHelper;
         private readonly IMailHelper _mailHelper;
+        private readonly IConverterHelper _converterHelper;
 
         public EmployeesController(
             IUserHelper userHelper,
-            IMailHelper mailHelper)
+            IMailHelper mailHelper,
+            IConverterHelper converterHelper)
         {
             _userHelper = userHelper;
             _mailHelper = mailHelper;
+            _converterHelper = converterHelper;
         }
 
         public async Task<IActionResult> Index()
         {
             var employees = await _userHelper.GetUsersInRoleAsync(UserRoles.Employee);
 
-            ViewData["Role"] = "Admin";
             return View(employees);
         }
 
         public IActionResult Register()
         {
-            ViewData["Role"] = "Admin";
             return View();
         }
 
@@ -97,6 +98,67 @@ namespace VitoriaAirlinesWeb.Controllers
             return View(model);
         }
 
+
+        public async Task<IActionResult> Edit(string email)
+        {
+            var employee = await _userHelper.GetUserByEmailAsync(email);
+            if (employee == null) return NotFound();
+
+            var model = _converterHelper.ToEditEmployeeViewModel(employee);
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(string email, EditEmployeeViewModel model)
+        {
+
+            if (email != model.Email) return NotFound();
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var employee = await _userHelper.GetUserByEmailAsync(email);
+            if (employee == null) return NotFound();
+
+            _converterHelper.ToUser(model, employee);
+            await _userHelper.UpdateUserAsync(employee);
+
+            TempData["SuccessMessage"] = "Employee updated successfully.";
+            return RedirectToAction(nameof(Index));
+        }
+
+
+        public async Task<IActionResult> Deactivate(string email)
+        {
+            var employee = await _userHelper.GetUserByEmailAsync(email);
+            if (employee == null) return NotFound();
+
+            return View(employee);
+        }
+
+
+        [HttpPost, ActionName("Deactivate")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeactivateConfirmed(string email)
+        {
+            var employee = await _userHelper.GetUserByEmailAsync(email);
+            if (employee == null) return NotFound();
+
+
+            await _userHelper.DeactivateUserAsync(employee);
+
+            await _userHelper.RemoveUserFromRole(employee, UserRoles.Employee);
+
+            await _userHelper.CheckRoleAsync(UserRoles.Deactivated);
+            await _userHelper.AddUserToRoleAsync(employee, UserRoles.Deactivated);
+
+            TempData["SuccessMessage"] = "Employee deactivated successfully.";
+            return RedirectToAction(nameof(Index));
+
+        }
 
     }
 }
