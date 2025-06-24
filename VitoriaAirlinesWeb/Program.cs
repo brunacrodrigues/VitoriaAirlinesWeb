@@ -59,6 +59,7 @@ namespace VitoriaAirlinesWeb
             builder.Services.AddScoped<IAirplaneRepository, AirplaneRepository>();
             builder.Services.AddScoped<IAirportRepository, AirportRepository>();
             builder.Services.AddScoped<IFlightRepository, FlightRepository>();
+            builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 
             // Helpers
             builder.Services.AddScoped<IUserHelper, UserHelper>();

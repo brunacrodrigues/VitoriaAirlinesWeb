@@ -1,7 +1,9 @@
-﻿using VitoriaAirlinesWeb.Data.Entities;
+﻿using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
+using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Data.Enums;
 using VitoriaAirlinesWeb.Models.Airplanes;
 using VitoriaAirlinesWeb.Models.Airports;
+using VitoriaAirlinesWeb.Models.Booking;
 using VitoriaAirlinesWeb.Models.Customers;
 using VitoriaAirlinesWeb.Models.Employees;
 using VitoriaAirlinesWeb.Models.Flights;
@@ -142,6 +144,21 @@ namespace VitoriaAirlinesWeb.Helpers
                 Email = entity.Email,
                 FirstName = entity.FirstName,
                 LastName = entity.LastName
+            };
+        }
+
+        public SelectSeatViewModel ToSelectSeatViewModelAsync(Flight entity, IEnumerable<int> occupiedSeatsIds)
+        {
+            return new SelectSeatViewModel
+            {
+                FlightId = entity.Id,
+                FlightInfo = entity.FlightInfo,
+                OriginAirport = entity.OriginAirport,
+                DestinationAirport = entity.DestinationAirport,
+                EconomyPrice = entity.EconomyClassPrice,
+                ExecutivePrice = entity.ExecutiveClassPrice,
+                Seats = entity.Airplane.Seats.ToList(),
+                OccupiedSeatsIds = occupiedSeatsIds.ToHashSet()
             };
         }
     }

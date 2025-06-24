@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
-using VitoriaAirlinesWeb.Data.Entities;
+﻿using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Models.Airplanes;
 
 namespace VitoriaAirlinesWeb.Data.Repositories
@@ -12,7 +11,7 @@ namespace VitoriaAirlinesWeb.Data.Repositories
 
         Task ReplaceSeatsAsync(int airplaneId, List<Seat> seats);
 
-        Task <IEnumerable<AirplaneComboViewModel>> GetComboAirplanesAsync();
+        Task<IEnumerable<AirplaneComboViewModel>> GetComboAirplanesAsync();
 
         bool CanBeDeleted(int id);
 

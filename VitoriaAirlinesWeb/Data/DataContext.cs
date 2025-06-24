@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using VitoriaAirlinesWeb.Data.Entities;
-using VitoriaAirlinesWeb.Data.Enums;
 
 namespace VitoriaAirlinesWeb.Data
 {
@@ -18,6 +17,8 @@ namespace VitoriaAirlinesWeb.Data
         public DbSet<Airport> Airports { get; set; }
 
         public DbSet<Flight> Flights { get; set; }
+
+        public DbSet<Ticket> Tickets { get; set; }
 
 
 
@@ -64,6 +65,27 @@ namespace VitoriaAirlinesWeb.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
 
+            modelBuilder.Entity<Ticket>()
+                .HasOne(t => t.Flight)
+                .WithMany(f => f.Tickets)
+                .HasForeignKey(t => t.FlightId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            modelBuilder.Entity<Ticket>()
+                .HasOne(t => t.Seat)
+                .WithMany()
+                .HasForeignKey(t => t.SeatId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            modelBuilder.Entity<Ticket>()
+                .HasOne(t => t.User)
+                .WithMany(u => u.Tickets)
+                .HasForeignKey(t => t.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
             modelBuilder.Entity<CustomerProfile>()
                 .HasIndex(cp => cp.PassportNumber)
                 .IsUnique();
@@ -80,12 +102,19 @@ namespace VitoriaAirlinesWeb.Data
 
 
             modelBuilder.Entity<Seat>()
-                .HasIndex(seat => new { seat.AirplaneId, seat.Row, seat.Letter })
+                .HasIndex(s => new { s.AirplaneId, s.Row, s.Letter })
                 .IsUnique();
+
+
+            modelBuilder.Entity<Ticket>()
+                .HasIndex(t => new { t.FlightId, t.SeatId })
+                .IsUnique();
+
 
             modelBuilder.Entity<Airplane>()
                .Property(f => f.Status)
                .HasConversion<string>();
+
 
             modelBuilder.Entity<Seat>()
                 .Property(s => s.Class)
@@ -108,6 +137,11 @@ namespace VitoriaAirlinesWeb.Data
 
             modelBuilder.Entity<Flight>()
                 .Property(f => f.EconomyClassPrice)
+                .HasPrecision(10, 2);
+
+
+            modelBuilder.Entity<Ticket>()
+                .Property(t => t.PricePaid)
                 .HasPrecision(10, 2);
 
 

@@ -1,6 +1,7 @@
 ﻿using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Models.Airplanes;
 using VitoriaAirlinesWeb.Models.Airports;
+using VitoriaAirlinesWeb.Models.Booking;
 using VitoriaAirlinesWeb.Models.Customers;
 using VitoriaAirlinesWeb.Models.Employees;
 using VitoriaAirlinesWeb.Models.Flights;
@@ -32,5 +33,7 @@ namespace VitoriaAirlinesWeb.Helpers
         User ToUser(EditEmployeeViewModel model, User user);
 
         EditEmployeeViewModel ToEditEmployeeViewModel(User entity);
+
+        SelectSeatViewModel ToSelectSeatViewModelAsync(Flight flight, IEnumerable<int> occupiedSeatsIds);
     }
 }

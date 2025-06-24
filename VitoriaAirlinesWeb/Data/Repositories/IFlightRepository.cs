@@ -13,5 +13,7 @@ namespace VitoriaAirlinesWeb.Data.Repositories
         Task<IEnumerable<Flight>> SearchFlightsAsync(DateTime? date, int? originId, int? destinationId);
 
         Task<IEnumerable<Flight>> GetFlightsHistoryAsync();
+
+        Task<Flight?> GetByIdWithAirplaneAndSeatsAsync(int id);
     }
 }

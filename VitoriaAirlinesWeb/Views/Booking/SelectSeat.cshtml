@@ -1,0 +1,139 @@
+﻿@model VitoriaAirlinesWeb.Models.Booking.SelectSeatViewModel
+@using VitoriaAirlinesWeb.Data.Enums
+
+@{
+    ViewData["Title"] = "Select Your Fare & Seat";
+    var allLetters = new[] { "A", "B", "C", "D", "E", "F" };
+}
+
+<div class="container my-5">
+    <div class="text-center mb-5">
+        <h2 class="display-5">@ViewData["Title"]</h2>
+        <p class="lead text-muted d-flex justify-content-center align-items-center gap-2 flex-wrap">
+            For flight
+            <img src="@Model.OriginAirport.Country.FlagImageUrl" style="width: 24px;" />
+            <span>(@Model.OriginAirport.IATA) @Model.OriginAirport.Name</span>
+            →
+            <img src="@Model.DestinationAirport.Country.FlagImageUrl" style="width: 24px;" />
+            <span>(@Model.DestinationAirport.IATA) @Model.DestinationAirport.Name</span>
+            on @Model.FlightInfo.Split("on")[1]
+        </p>
+    </div>
+
+    <div class="row justify-content-center mb-5">
+        <h3 class="text-center mb-4 fw-light">First, choose your fare</h3>
+
+        <div class="col-md-4">
+            <div class="fare-card card-economy selectable-card text-center py-4 px-3" data-class-filter="Economy">
+                <div class="fare-card-header mb-2">
+                    <i class="fas fa-couch fa-2x"></i>
+                    <h4 class="mt-2 mb-1">Economy Class</h4>
+                    <p class="price">From <strong>@Model.EconomyPrice.ToString("C2")</strong></p>
+                </div>
+                <span class="btn btn-economy mt-2">Select This Fare</span>
+            </div>
+        </div>
+
+
+
+        <div class="col-md-4">
+            <div class="fare-card card-executive selectable-card text-center py-4 px-3" data-class-filter="Executive">
+                <div class="fare-card-header mb-2">
+                    <i class="fas fa-crown fa-2x"></i>
+                    <h4 class="mt-2 mb-1">Executive Class</h4>
+                    <p class="price">From <strong>@Model.ExecutivePrice.ToString("C2")</strong></p>
+                </div>
+                <span class="btn btn-executive mt-2">Select This Fare</span>
+            </div>
+        </div>
+
+
+    </div>
+
+
+    <div id="plane-section" class="plane-container mx-auto" style="display: none;">
+        <h3 id="plane-section-title" class="text-center mb-4 fw-light"></h3>
+
+        <div class="legend-container mb-4">
+            <div class="legend-item"><div class="seat-sample executive"></div> Executive Class</div>
+            <div class="legend-item"><div class="seat-sample economy"></div> Economy Class</div>
+            <div class="legend-item"><div class="seat-sample occupied"></div> Occupied</div>
+        </div>
+
+        <div class="plane">
+            <div class="cockpit">Cockpit</div>
+
+            @foreach (var rowGroup in Model.Seats.OrderBy(s => s.Row).GroupBy(s => s.Row))
+            {
+                var seats = rowGroup.ToList();
+
+                <div class="seat-row" data-row-class="@seats.First().Class.ToString()">
+                    <div class="row-label">@rowGroup.Key</div>
+
+                    @foreach (var letter in allLetters)
+                    {
+                        if (letter == "D")
+                        {
+                            <div class="aisle"></div>
+                        }
+
+                        var seat = seats.FirstOrDefault(s => s.Letter == letter);
+                        if (seat != null)
+                        {
+                            bool isOccupied = Model.OccupiedSeatsIds.Contains(seat.Id);
+                            string seatStateClass = isOccupied ? "occupied" : "available";
+                            string seatTypeClass = seat.Class == SeatClass.Executive ? "executive" : "economy";
+
+                            <a asp-action="@(isOccupied ? null : "ConfirmBooking")"
+                               asp-route-flightId="@Model.FlightId"
+                               asp-route-seatId="@seat.Id"
+                               class="booking-seat @seatStateClass @seatTypeClass"
+                               data-seat-class="@seat.Class.ToString()"
+                               title="@(isOccupied ? "Occupied" : $"Row {seat.Row}, Seat {seat.Letter} ({seat.Class})")">
+                                @seat.Letter
+                            </a>
+                        }
+                        else
+                        {
+                            <div style="width: 40px;"></div>
+                        }
+                    }
+                </div>
+            }
+
+
+            <div class="exit-row">Emergency Exit</div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const fareCards = document.querySelectorAll('.fare-card');
+            const planeSection = document.getElementById('plane-section');
+            const planeSectionTitle = document.getElementById('plane-section-title');
+            const allSeatRows = document.querySelectorAll('.seat-row');
+
+            fareCards.forEach(card => {
+                card.addEventListener('click', function () {
+                    fareCards.forEach(c => c.classList.remove('selected', 'border-primary', 'border-warning', 'border-3'));
+                    this.classList.add('selected');
+                    const isExecutive = this.getAttribute('data-class-filter') === 'Executive';
+                    this.classList.add(isExecutive ? 'border-warning' : 'border-primary', 'border-3');
+
+                    const selectedClass = this.getAttribute('data-class-filter');
+                    planeSectionTitle.textContent = `Now, please select your ${selectedClass} seat`;
+
+                    allSeatRows.forEach(row => {
+                        const rowClass = row.getAttribute('data-row-class');
+                        row.style.display = rowClass === selectedClass ? 'grid' : 'none';
+                    });
+
+                    planeSection.style.display = 'block';
+                    planeSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                });
+            });
+        });
+    </script>
+}

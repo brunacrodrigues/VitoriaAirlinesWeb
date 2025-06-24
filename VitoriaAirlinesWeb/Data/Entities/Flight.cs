@@ -48,7 +48,17 @@ namespace VitoriaAirlinesWeb.Data.Entities
         public FlightStatus Status { get; set; }
 
 
+        public ICollection<Ticket> Tickets { get; set; }
+
+
         public DateTime ArrivalUtc => DepartureUtc.Add(Duration);
+
+        public string FlightInfo =>
+                        $"({OriginAirport.IATA}) {OriginAirport.Name} → " +
+                        $"({DestinationAirport.IATA}) {DestinationAirport.Name} " +
+                        $"on {DepartureUtc.ToLocalTime():dd MMM yyyy HH:mm.}";
+
+
 
     }
 }

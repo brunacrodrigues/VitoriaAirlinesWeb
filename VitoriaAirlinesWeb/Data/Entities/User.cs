@@ -26,6 +26,9 @@ namespace VitoriaAirlinesWeb.Data.Entities
         public CustomerProfile? CustomerProfile {  get; set; }
 
 
+        public ICollection<Ticket> Tickets { get; set; }
+
+
 
     }
 }

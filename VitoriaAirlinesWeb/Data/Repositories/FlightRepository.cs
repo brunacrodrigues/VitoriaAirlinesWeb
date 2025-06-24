@@ -92,5 +92,17 @@ namespace VitoriaAirlinesWeb.Data.Repositories
                  .OrderByDescending(f => f.DepartureUtc)
                  .ToListAsync();
         }
+
+        public async Task<Flight?> GetByIdWithAirplaneAndSeatsAsync(int id)
+        {
+            return await _context.Flights
+                .Include(f => f.Airplane)
+                .ThenInclude(a => a.Seats)
+                .Include(f => f.OriginAirport)
+                .ThenInclude(a => a.Country)
+                .Include(f => f.DestinationAirport)
+                .ThenInclude(a => a.Country)
+                .FirstOrDefaultAsync(f => f.Id == id);
+        }
     }
 }
