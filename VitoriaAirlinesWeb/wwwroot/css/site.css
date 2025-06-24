@@ -684,6 +684,12 @@ header .nav-link:hover {
     color: white;
 }
 
+.selected-seat {
+    outline: 3px solid #007bff;
+    border-radius: 4px;
+}
+
+
 
 
 

@@ -34,8 +34,6 @@
             </div>
         </div>
 
-
-
         <div class="col-md-4">
             <div class="fare-card card-executive selectable-card text-center py-4 px-3" data-class-filter="Executive">
                 <div class="fare-card-header mb-2">
@@ -46,63 +44,66 @@
                 <span class="btn btn-executive mt-2">Select This Fare</span>
             </div>
         </div>
-
-
     </div>
 
+    <div id="plane-section" class="plane-container mx-auto d-flex justify-content-center gap-4" style="display: none;">
+        <div>
+            <h3 id="plane-section-title" class="text-center mb-4 fw-light"></h3>
 
-    <div id="plane-section" class="plane-container mx-auto" style="display: none;">
-        <h3 id="plane-section-title" class="text-center mb-4 fw-light"></h3>
+            <div class="legend-container mb-4">
+                <div class="legend-item"><div class="seat-sample executive"></div> Executive Class</div>
+                <div class="legend-item"><div class="seat-sample economy"></div> Economy Class</div>
+                <div class="legend-item"><div class="seat-sample occupied"></div> Occupied</div>
+            </div>
 
-        <div class="legend-container mb-4">
-            <div class="legend-item"><div class="seat-sample executive"></div> Executive Class</div>
-            <div class="legend-item"><div class="seat-sample economy"></div> Economy Class</div>
-            <div class="legend-item"><div class="seat-sample occupied"></div> Occupied</div>
+            <div class="plane">
+                <div class="cockpit">Cockpit</div>
+
+                @foreach (var rowGroup in Model.Seats.OrderBy(s => s.Row).GroupBy(s => s.Row))
+                {
+                    var seats = rowGroup.ToList();
+
+                    <div class="seat-row" data-row-class="@seats.First().Class.ToString()">
+                        <div class="row-label">@rowGroup.Key</div>
+
+                        @foreach (var letter in allLetters)
+                        {
+                            if (letter == "D")
+                            {
+                                <div class="aisle"></div>
+                            }
+
+                            var seat = seats.FirstOrDefault(s => s.Letter == letter);
+                            if (seat != null)
+                            {
+                                bool isOccupied = Model.OccupiedSeatsIds.Contains(seat.Id);
+                                string seatStateClass = isOccupied ? "occupied" : "available";
+                                string seatTypeClass = seat.Class == SeatClass.Executive ? "executive" : "economy";
+
+                                <a href="#"
+                                   class="booking-seat @seatStateClass @seatTypeClass"
+                                   data-seat-id="@seat.Id"
+                                   data-seat-class="@seat.Class.ToString()"
+                                   title="@(isOccupied ? "Occupied" : $"Row {seat.Row}, Seat {seat.Letter} ({seat.Class})")"
+                                   @(isOccupied ? "tabindex=\"-1\" aria-disabled=\"true\"" : "")>
+                                    @seat.Letter
+                                </a>
+                            }
+                            else
+                            {
+                                <div style="width: 40px;"></div>
+                            }
+                        }
+                    </div>
+                }
+            </div>
         </div>
 
-        <div class="plane">
-            <div class="cockpit">Cockpit</div>
+        <div id="confirm-seat-container" class="d-flex flex-column align-items-center justify-content-start" style="min-width: 205px; display: none; margin-left: 10rem;">
+            <h4>Selected Seat</h4>
+            <div id="selected-seat-info" class="mb-3 fw-semibold" style="font-size: 1.2rem;">None</div>
+            <a id="confirm-selection-btn" href="#" class="btn btn-gold disabled">Confirm Seat Selection</a>
 
-            @foreach (var rowGroup in Model.Seats.OrderBy(s => s.Row).GroupBy(s => s.Row))
-            {
-                var seats = rowGroup.ToList();
-
-                <div class="seat-row" data-row-class="@seats.First().Class.ToString()">
-                    <div class="row-label">@rowGroup.Key</div>
-
-                    @foreach (var letter in allLetters)
-                    {
-                        if (letter == "D")
-                        {
-                            <div class="aisle"></div>
-                        }
-
-                        var seat = seats.FirstOrDefault(s => s.Letter == letter);
-                        if (seat != null)
-                        {
-                            bool isOccupied = Model.OccupiedSeatsIds.Contains(seat.Id);
-                            string seatStateClass = isOccupied ? "occupied" : "available";
-                            string seatTypeClass = seat.Class == SeatClass.Executive ? "executive" : "economy";
-
-                            <a asp-action="@(isOccupied ? null : "ConfirmBooking")"
-                               asp-route-flightId="@Model.FlightId"
-                               asp-route-seatId="@seat.Id"
-                               class="booking-seat @seatStateClass @seatTypeClass"
-                               data-seat-class="@seat.Class.ToString()"
-                               title="@(isOccupied ? "Occupied" : $"Row {seat.Row}, Seat {seat.Letter} ({seat.Class})")">
-                                @seat.Letter
-                            </a>
-                        }
-                        else
-                        {
-                            <div style="width: 40px;"></div>
-                        }
-                    }
-                </div>
-            }
-
-
-            <div class="exit-row">Emergency Exit</div>
         </div>
     </div>
 </div>
@@ -114,6 +115,9 @@
             const planeSection = document.getElementById('plane-section');
             const planeSectionTitle = document.getElementById('plane-section-title');
             const allSeatRows = document.querySelectorAll('.seat-row');
+            const confirmContainer = document.getElementById('confirm-seat-container');
+            const selectedSeatInfo = document.getElementById('selected-seat-info');
+            const confirmButton = document.getElementById('confirm-selection-btn');
 
             fareCards.forEach(card => {
                 card.addEventListener('click', function () {
@@ -130,8 +134,49 @@
                         row.style.display = rowClass === selectedClass ? 'grid' : 'none';
                     });
 
-                    planeSection.style.display = 'block';
+                    planeSection.style.display = 'flex';
                     planeSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    clearSelection();
+                });
+            });
+
+            let selectedSeat = null;
+
+            function clearSelection() {
+                if (selectedSeat) {
+                    selectedSeat.classList.remove('selected-seat');
+                    selectedSeat = null;
+                }
+                selectedSeatInfo.textContent = 'None';
+                confirmButton.href = '#';
+                confirmButton.classList.add('disabled');
+                confirmContainer.style.display = 'none';
+            }
+
+            const seatLinks = document.querySelectorAll('.booking-seat.available');
+
+            seatLinks.forEach(seat => {
+                seat.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    if (selectedSeat) {
+                        selectedSeat.classList.remove('selected-seat');
+                    }
+
+                    this.classList.add('selected-seat');
+                    selectedSeat = this;
+
+                    selectedSeatInfo.textContent = this.title;
+
+                    const flightId = '@Model.FlightId';
+                    const seatId = this.getAttribute('data-seat-id');
+                    const url = `@Url.Action("ConfirmBooking", "Booking")?flightId=${flightId}&seatId=${seatId}`;
+
+                    confirmButton.href = url;
+                    confirmButton.classList.remove('disabled');
+
+                    confirmContainer.style.display = 'flex';
                 });
             });
         });
