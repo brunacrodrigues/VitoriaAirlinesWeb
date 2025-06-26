@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using VitoriaAirlinesWeb.Data.Repositories;
 using VitoriaAirlinesWeb.Helpers;
-using VitoriaAirlinesWeb.Models;
-using VitoriaAirlinesWeb.Models.FlightSearch;
+using VitoriaAirlinesWeb.Models.ViewModels;
+using VitoriaAirlinesWeb.Models.ViewModels.FlightSearch;
 
 namespace VitoriaAirlinesWeb.Controllers
 {

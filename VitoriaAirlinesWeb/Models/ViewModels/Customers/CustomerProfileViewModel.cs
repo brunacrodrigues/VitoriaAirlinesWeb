@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
 
-namespace VitoriaAirlinesWeb.Models.Customers
+namespace VitoriaAirlinesWeb.Models.ViewModels.Customers
 {
     public class CustomerProfileViewModel
     {

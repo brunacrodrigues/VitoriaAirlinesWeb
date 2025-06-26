@@ -1,4 +1,4 @@
-﻿namespace VitoriaAirlinesWeb.Models.Airplanes
+﻿namespace VitoriaAirlinesWeb.Models.ViewModels.Airplanes
 {
     public class AirplaneComboViewModel
     {

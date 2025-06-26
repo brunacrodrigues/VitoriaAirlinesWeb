@@ -1,9 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace VitoriaAirlinesWeb.Models.Employees
+namespace VitoriaAirlinesWeb.Models.ViewModels.Employees
 {
-    public class RegisterEmployeeViewModel
+    public class EditEmployeeViewModel
     {
+        public string Email { get; set; } = null!;
+
         [Required]
         [Display(Name = "First Name")]
         [MaxLength(100, ErrorMessage = "This field must have {1} characters or less.")]
@@ -14,10 +16,5 @@ namespace VitoriaAirlinesWeb.Models.Employees
         [Display(Name = "Last Name")]
         [MaxLength(100, ErrorMessage = "This field must have {1} characters or less.")]
         public string LastName { get; set; } = null!;
-
-
-        [Required]
-        [DataType(DataType.EmailAddress)]
-        public string Username { get; set; } = null!;
     }
 }

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Helpers;
-using VitoriaAirlinesWeb.Models.Employees;
+using VitoriaAirlinesWeb.Models.ViewModels.Employees;
 using VitoriaAirlinesWeb.Responses;
 
 namespace VitoriaAirlinesWeb.Controllers

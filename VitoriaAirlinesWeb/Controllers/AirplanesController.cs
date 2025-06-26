@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using VitoriaAirlinesWeb.Data.Enums;
 using VitoriaAirlinesWeb.Data.Repositories;
 using VitoriaAirlinesWeb.Helpers;
-using VitoriaAirlinesWeb.Models.Airplanes;
+using VitoriaAirlinesWeb.Models.ViewModels.Airplanes;
 
 namespace VitoriaAirlinesWeb.Controllers
 {

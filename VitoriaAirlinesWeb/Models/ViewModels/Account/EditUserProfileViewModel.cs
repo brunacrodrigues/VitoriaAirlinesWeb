@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace VitoriaAirlinesWeb.Models.Account
+namespace VitoriaAirlinesWeb.Models.ViewModels.Account
 {
     public class EditUserProfileViewModel
     {

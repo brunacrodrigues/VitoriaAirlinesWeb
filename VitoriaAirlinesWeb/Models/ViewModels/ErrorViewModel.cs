@@ -1,4 +1,4 @@
-namespace VitoriaAirlinesWeb.Models
+namespace VitoriaAirlinesWeb.Models.ViewModels
 {
     public class ErrorViewModel
     {

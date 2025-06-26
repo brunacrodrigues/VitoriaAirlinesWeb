@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Data.Enums;
-using VitoriaAirlinesWeb.Models.Airplanes;
 using VitoriaAirlinesWeb.Models.Airports;
-using VitoriaAirlinesWeb.Models.Booking;
-using VitoriaAirlinesWeb.Models.Customers;
-using VitoriaAirlinesWeb.Models.Employees;
-using VitoriaAirlinesWeb.Models.Flights;
+using VitoriaAirlinesWeb.Models.ViewModels.Airplanes;
+using VitoriaAirlinesWeb.Models.ViewModels.Booking;
+using VitoriaAirlinesWeb.Models.ViewModels.Customers;
+using VitoriaAirlinesWeb.Models.ViewModels.Employees;
+using VitoriaAirlinesWeb.Models.ViewModels.Flights;
 
 namespace VitoriaAirlinesWeb.Helpers
 {

@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using VitoriaAirlinesWeb.Data.Enums;
-using VitoriaAirlinesWeb.Models.Airplanes;
 using VitoriaAirlinesWeb.Models.Airports;
+using VitoriaAirlinesWeb.Models.ViewModels.Airplanes;
 
-namespace VitoriaAirlinesWeb.Models.Flights
+namespace VitoriaAirlinesWeb.Models.ViewModels.Flights
 {
     public class FlightViewModel
     {

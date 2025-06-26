@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using VitoriaAirlinesWeb.Data.Entities;
-using VitoriaAirlinesWeb.Models.Account;
+using VitoriaAirlinesWeb.Models.ViewModels.Account;
 
 namespace VitoriaAirlinesWeb.Helpers
 {

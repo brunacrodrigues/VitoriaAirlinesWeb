@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Data.Repositories;
 using VitoriaAirlinesWeb.Helpers;
-using VitoriaAirlinesWeb.Models.Account;
+using VitoriaAirlinesWeb.Models.ViewModels.Account;
 using VitoriaAirlinesWeb.Responses;
 
 namespace VitoriaAirlinesWeb.Controllers

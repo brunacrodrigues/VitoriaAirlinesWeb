@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Data.Enums;
-using VitoriaAirlinesWeb.Models.Airplanes;
+using VitoriaAirlinesWeb.Models.ViewModels.Airplanes;
 
 namespace VitoriaAirlinesWeb.Data.Repositories
 {

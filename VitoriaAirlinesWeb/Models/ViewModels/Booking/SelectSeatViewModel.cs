@@ -1,6 +1,6 @@
 ﻿using VitoriaAirlinesWeb.Data.Entities;
 
-namespace VitoriaAirlinesWeb.Models.Booking
+namespace VitoriaAirlinesWeb.Models.ViewModels.Booking
 {
     public class SelectSeatViewModel
     {

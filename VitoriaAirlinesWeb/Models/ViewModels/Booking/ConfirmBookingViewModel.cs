@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace VitoriaAirlinesWeb.Models.Booking
+namespace VitoriaAirlinesWeb.Models.ViewModels.Booking
 {
     public class ConfirmBookingViewModel
     {

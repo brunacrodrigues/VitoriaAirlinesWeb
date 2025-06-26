@@ -2,7 +2,7 @@
 using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Models.Airports;
 
-namespace VitoriaAirlinesWeb.Models.FlightSearch
+namespace VitoriaAirlinesWeb.Models.ViewModels.FlightSearch
 {
     public class SearchFlightViewModel
     {

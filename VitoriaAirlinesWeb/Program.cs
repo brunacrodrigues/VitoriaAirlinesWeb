@@ -1,8 +1,13 @@
 using Hangfire;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Stripe;
 using Syncfusion.Licensing;
+using System.Text;
+using System.Text.Json.Serialization;
 using VitoriaAirlinesWeb.Configuration;
 using VitoriaAirlinesWeb.Data;
 using VitoriaAirlinesWeb.Data.Entities;
@@ -18,11 +23,20 @@ namespace VitoriaAirlinesWeb
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // Synfusion License
             SyncfusionLicenseProvider.RegisterLicense(builder.Configuration["Syncfusion:LicenseKey"]);
 
             // Add services to the container.
-            builder.Services.AddControllersWithViews();
+            builder.Services
+            .AddControllersWithViews()
+            .AddJsonOptions(opts =>
+            {
+                opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+                opts.JsonSerializerOptions.WriteIndented = true;
+            });
 
+
+            // Database Context
             builder.Services.AddDbContext<DataContext>(o =>
 
             {
@@ -30,6 +44,7 @@ namespace VitoriaAirlinesWeb
 
             });
 
+            // ASP.NET Core Identity
             builder.Services.AddIdentity<User, IdentityRole>(options =>
             {
                 // Password settings
@@ -51,6 +66,57 @@ namespace VitoriaAirlinesWeb
                 .AddDefaultTokenProviders()
                 .AddEntityFrameworkStores<DataContext>();
 
+
+            // JWT Authentication configuration
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+               .AddJwtBearer(options =>
+               {
+                   options.TokenValidationParameters = new TokenValidationParameters
+                   {
+                       ValidateIssuer = true,
+                       ValidateAudience = true,
+                       ValidateLifetime = true,
+                       ValidateIssuerSigningKey = true,
+                       //define o emissor e a audiência validas para o token JWT obtidos da aplicação
+                       ValidAudience = builder.Configuration["JWT:Audience"],
+                       ValidIssuer = builder.Configuration["JWT:Issuer"],
+                       //Define a chave de assinatura usada para assinar e verificar o token JWT.
+                       IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]!))
+                   };
+               });
+
+
+            // Swagger + JWT setup
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "VitoriaAirlines API", Version = "v1" });
+
+                // Define JWT Bearer scheme
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description = "JWT Authorization header using the Bearer scheme",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT"
+                });
+
+                // Apply Bearer scheme globally to all endpoints
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+                        },
+                        Array.Empty<string>()
+                    }
+                });
+            });
+
+
+            // Razor Pages
             builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
 
 
@@ -90,7 +156,7 @@ namespace VitoriaAirlinesWeb
             builder.Services.AddScoped<IPaymentService, StripePaymentService>();
 
             builder.Services.AddSession();
-            
+
 
             var app = builder.Build();
 
@@ -101,6 +167,19 @@ namespace VitoriaAirlinesWeb
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+
+            // Swagger JSON and UI at /api
+            app.UseSwagger(options =>
+            {
+                options.RouteTemplate = "api/swagger/{documentName}/swagger.json";
+            });
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/api/swagger/v1/swagger.json", "VitoriaAirlines API v1");
+                c.RoutePrefix = "api";
+            });
+
+
             app.UseSession();
 
             app.UseHttpsRedirection();
@@ -125,6 +204,7 @@ namespace VitoriaAirlinesWeb
                 name: "default",
                 //pattern: "{controller=Home}/{action=Index}/{id?}");
                 pattern: "{controller=Dashboard}/{action=Index}/{id?}");
+            app.MapControllers();
 
 
             // Seed the database
