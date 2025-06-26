@@ -7,5 +7,9 @@ namespace VitoriaAirlinesWeb.Data.Repositories
         Task <IEnumerable<Ticket>> GetTicketsByUserAsync(string userId);
 
         Task<IEnumerable<Ticket>> GetTicketsByFlightAsync(int flightId);
+
+        Task<IEnumerable<Ticket>> GetTicketsHistoryByUserAsync(string userId);
+
+        Task<IEnumerable<Ticket>> GetUpcomingTicketsByUserAsync(string userId);
     }
 }

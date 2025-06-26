@@ -10,11 +10,32 @@
 <ejs-sidebar id="mainSidebar" width="220px" isOpen="true">
     <e-content-template>
         <div class="sidebar-internal-container">
-            <div class="sidebar-header"><div class="sidebar-title">Welcome, @firstName</div></div>
+            <div class="sidebar-header">
+                <div class="sidebar-title">Welcome, @firstName</div>
+            </div>
+
             <ul class="sidebar-menu">
-                <li><i class="e-icons e-home"></i><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
-                <li><i class="e-icons e-home"></i><a asp-controller="Flights" asp-action="Index">My Flights</a></li>
-                <li><i class="e-icons e-home"></i><a asp-controller="Customers" asp-action="EditTravellerProfile">Edit Traveller Profile</a></li>
+                <li>
+                    <i class="e-icons e-home"></i>
+                    <a asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+                </li>
+
+                <li id="manage-flights-menu-item" class="has-submenu">
+                    <i class="fas fa-plane"></i>
+                    <a href="#">My Flights</a>
+                    <i class="fas fa-chevron-down submenu-arrow"></i>
+                </li>
+
+                <ul id="flights-submenu" class="sidebar-submenu">
+                    <li>
+                        <i class="far fa-calendar-check"></i>
+                        <a asp-controller="MyFlights" asp-action="Upcoming">Upcoming Flights</a>
+                    </li>
+                    <li>
+                        <i class="fas fa-history"></i>
+                        <a asp-controller="MyFlights" asp-action="History">Flight History</a>
+                    </li>
+                </ul>
             </ul>
         </div>
     </e-content-template>

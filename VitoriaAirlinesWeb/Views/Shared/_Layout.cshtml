@@ -136,7 +136,7 @@ else if (role == "Customer") { <partial name="_CustomerSidebar" /> }
                 };
             }
 
-            @if (role == UserRoles.Employee)
+            @if (role == UserRoles.Employee || role == UserRoles.Customer)
             {
                 @:const menuItem = document.getElementById('manage-flights-menu-item');
                 @:const submenu = document.getElementById('flights-submenu');

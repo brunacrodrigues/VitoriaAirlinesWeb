@@ -719,6 +719,99 @@ header .nav-link:hover {
     text-align: center;
 }
 
+.table-custom thead {
+    background-color: #4B0012;
+    color: #f0b400;
+    border-bottom: 2px solid #660000;
+}
+
+.table-custom tbody tr {
+    background-color: transparent;
+    color: #ffffff;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+  
+    .table-custom tbody tr:nth-child(even) {
+        background-color: #1a1a1a;
+    }
+
+    .table-custom tbody tr:hover {
+        background-color: #2a2a2a;
+    }
+
+
+.table-custom th,
+.table-custom td {
+    padding: 0.75rem 1rem;
+    border-color: #660000;
+}
+
+
+.table-custom .badge.bg-primary {
+    background-color: #f0b400 !important;
+    color: #000000 !important;
+}
+
+.table-custom .badge.bg-danger {
+    background-color: #D32F2F !important;
+    color: #ffffff !important;
+}
+
+.table-custom .badge.bg-warning {
+    background-color: #A67C26 !important;
+    color: #000000 !important;
+}
+
+.table-custom .badge.bg-success {
+    background-color: #66BB6A !important;
+    color: #ffffff !important;
+}
+
+
+.d-flex.justify-content-center .pagination {
+    margin: 1.5rem 0;
+}
+
+.pagination li a,
+.pagination li span {
+    color: black;
+    background-color: #f0b400;
+    border: 1px solid #4B0012;
+    margin: 0 4px;
+    padding: 0.4rem 0.75rem;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+
+.pagination li a:hover {
+    background-color: #4B0012;
+    color: #ffffff;
+    border-color: #D32F2F;
+}
+
+.pagination li.active span {
+    background-color: #f0b400;
+    color: black;
+    border-color: #f0b400;
+}
+
+.pagination li.disabled span {
+    color: black;
+    border-color: #444444;
+}
+
+.pagination li.disabled 
+{
+    color: black;
+}
+
+.pagination li.disabled a:hover {
+    color: white;
+
+}
+
 
 
 

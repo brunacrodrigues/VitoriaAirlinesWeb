@@ -1,0 +1,88 @@
+﻿@model X.PagedList.IPagedList<VitoriaAirlinesWeb.Data.Entities.Ticket>
+@using VitoriaAirlinesWeb.Data.Enums
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+
+@{
+    ViewData["Title"] = "Upcoming Flights";
+}
+
+<div class="main-content">
+    <h2>My Upcoming Flights</h2>
+    <p>Here you can view your future trips with Vitoria Airlines.</p>
+
+    <table class="table table-custom table-striped">
+        <thead>
+            <tr>
+                <th>Flight No</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Departure (UTC)</th>
+                <th>Arrival (UTC)</th>
+                <th>Seat</th>
+                <th>Class</th>
+                <th>Price Paid</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var ticket in Model)
+            {
+                <tr>
+                    <td>@ticket.Flight.FlightNumber</td>
+                    <td>
+                        <img src="@ticket.Flight.OriginAirport.Country?.FlagImageUrl"
+                             alt="@ticket.Flight.OriginAirport.Country?.CountryCode"
+                             width="30"
+                             class="me-2" />
+                        @ticket.Flight.OriginAirport.FullName
+                    </td>
+                     <td>
+                        <img src="@ticket.Flight.DestinationAirport.Country?.FlagImageUrl"
+                             alt="@ticket.Flight.DestinationAirport.Country?.CountryCode"
+                             width="30"
+                             class="me-2" />
+                        @ticket.Flight.DestinationAirport.FullName
+                    </td>
+                    <td>@ticket.Flight.DepartureUtc.ToLocalTime()</td>
+                    <td>@ticket.Flight.ArrivalUtc.ToLocalTime()</td>
+                    <td>@ticket.Seat.Row@ticket.Seat.Letter</td>
+                    <td>@ticket.Seat.Class</td>
+                    <td>@($"{ticket.PricePaid:0.00} €")</td>
+                    <td>
+                        <span class="badge bg-primary">@ticket.Flight.Status</span>
+                              
+                    </td>
+                     <td class="text-center">
+                    <a asp-action="ChangeSeat" asp-route-id="@ticket.Id" class="btn btn-sm btn-warning me-2" title="Change Seat">
+                        <i class="fas fa-exchange-alt"></i>
+                    </a>
+                    <form asp-action="Cancel" asp-route-id="@ticket.Id" method="post" style="display:inline">
+                        <button type="submit" class="btn btn-sm btn-danger" title="Cancel Ticket">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </form>
+                </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+<div class="d-flex justify-content-center">
+  @Html.PagedListPager(
+      Model,
+      page => Url.Action("Upcoming", new { page }),
+      new PagedListRenderOptions {
+        DisplayLinkToFirstPage       = PagedListDisplayMode.Always,
+        DisplayLinkToLastPage        = PagedListDisplayMode.Always,
+        DisplayLinkToPreviousPage    = PagedListDisplayMode.Always,
+        DisplayLinkToNextPage        = PagedListDisplayMode.Always,
+        DisplayLinkToIndividualPages = true,
+        MaximumPageNumbersToDisplay  = 5
+      }
+  )
+</div>
+
+</div>
+
