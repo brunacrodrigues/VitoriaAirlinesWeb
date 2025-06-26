@@ -161,5 +161,22 @@ namespace VitoriaAirlinesWeb.Helpers
                 OccupiedSeatsIds = occupiedSeatsIds.ToHashSet()
             };
         }
+
+        public ConfirmBookingViewModel ToConfirmBookingViewModel(Flight flight, Seat seat)
+        {
+            return new ConfirmBookingViewModel
+            {
+                FlightId = flight.Id,
+                SeatId = seat.Id,
+                FlightNumber = flight.FlightNumber,
+                DepartureInfo = $"{flight.OriginAirport.Name} ({flight.OriginAirport.IATA})",
+                ArrivalInfo = $"{flight.DestinationAirport.Name} ({flight.DestinationAirport.IATA})",
+                DepartureTime = flight.DepartureUtc.ToLocalTime(),
+                ArrivalTime = flight.ArrivalUtc.ToLocalTime(),
+                SeatInfo = $"Row {seat.Row}, Seat {seat.Letter}",
+                SeatClass = seat.Class.ToString(),
+                FinalPrice = seat.Class == SeatClass.Executive ? flight.ExecutiveClassPrice : flight.EconomyClassPrice
+            };
+        }
     }
 }

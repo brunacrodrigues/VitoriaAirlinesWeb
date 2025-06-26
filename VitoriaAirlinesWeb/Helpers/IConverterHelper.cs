@@ -34,6 +34,8 @@ namespace VitoriaAirlinesWeb.Helpers
 
         EditEmployeeViewModel ToEditEmployeeViewModel(User entity);
 
-        SelectSeatViewModel ToSelectSeatViewModelAsync(Flight flight, IEnumerable<int> occupiedSeatsIds);
+        SelectSeatViewModel ToSelectSeatViewModelAsync(Flight enitty, IEnumerable<int> occupiedSeatsIds);
+
+        ConfirmBookingViewModel ToConfirmBookingViewModel(Flight flight, Seat seat);
     }
 }

@@ -1,0 +1,25 @@
+﻿@{
+    ViewData["Title"] = "Payment Canceled";
+}
+
+<div class="login-background">
+    <div class="login-card payment-card">
+        <div class="payment-card-header">
+            <i class="fas fa-times-circle"></i>
+            <h2>Payment Canceled</h2>
+        </div>
+
+        <div class="payment-card-body">
+            <p class="lead mb-4">
+                Your booking was not completed.<br />
+                No charges were made.
+            </p>
+
+            <div class="mt-4">
+                <a asp-controller="Home" asp-action="Index" class="btn btn-gold w-100">
+                    Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

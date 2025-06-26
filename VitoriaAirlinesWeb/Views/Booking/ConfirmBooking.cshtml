@@ -1,0 +1,64 @@
+﻿@model VitoriaAirlinesWeb.Models.Booking.ConfirmBookingViewModel
+
+<div class="login-background">
+    <div class="login-card" style="max-width: 450px; width: 100%;">
+        <div class="card-header" style="background-color: #660000; border-radius: 12px 12px 0 0; padding: 1rem;">
+            <h2 class="text-white text-center mb-0">Confirm Your Booking</h2>
+        </div>
+
+        <div class="card-body" style="background-color: #1a1a1a; color: white; padding: 2rem;">
+            <dl class="row mb-4">
+                <dt class="col-5">Flight Number:</dt>
+                <dd class="col-7">@Model.FlightNumber</dd>
+
+                <dt class="col-5">Departure:</dt>
+                <dd class="col-7">@Model.DepartureInfo at @Model.DepartureTime.ToString("g")</dd>
+
+                <dt class="col-5">Arrival:</dt>
+                <dd class="col-7">@Model.ArrivalInfo  at @Model.ArrivalTime.ToString("g")</dd>
+
+                <dt class="col-5">Seat:</dt>
+                <dd class="col-7">@Model.SeatInfo (@Model.SeatClass)</dd>
+
+                <dt class="col-5">Price:</dt>
+                <dd class="col-7">€@Model.FinalPrice.ToString("F2")</dd>
+            </dl>
+
+            <form asp-action="CreateCheckoutSession" method="post">
+                <input type="hidden" name="FlightId" value="@Model.FlightId" />
+                <input type="hidden" name="SeatId" value="@Model.SeatId" />
+                <input type="hidden" name="Price" value="@Model.FinalPrice" />
+
+                @if (!Model.IsCustomer)
+                {
+                    <div class="mb-3">
+                        <label asp-for="FirstName" class="form-label"></label>
+                        <input asp-for="FirstName" class="form-control"/>
+                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="LastName" class="form-label"></label>
+                        <input asp-for="LastName" class="form-control"/>
+                        <span asp-validation-for="LastName" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label"></label>
+                        <input asp-for="Email" type="email" class="form-control" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+                }
+
+                @Html.AntiForgeryToken()
+
+                <button type="submit" class="btn btn-gold w-100">Confirm and Pay</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+

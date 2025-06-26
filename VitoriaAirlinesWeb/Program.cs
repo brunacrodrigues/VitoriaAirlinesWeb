@@ -1,7 +1,9 @@
 using Hangfire;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Stripe;
 using Syncfusion.Licensing;
+using VitoriaAirlinesWeb.Configuration;
 using VitoriaAirlinesWeb.Data;
 using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Data.Repositories;
@@ -78,6 +80,17 @@ namespace VitoriaAirlinesWeb
             // FlightService
             builder.Services.AddScoped<IFlightService, FlightService>();
 
+            // Stripe config
+            builder.Services.Configure<StripeSettings>(
+                builder.Configuration.GetSection("Stripe"));
+
+            StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+
+            // Stripe Service
+            builder.Services.AddScoped<IPaymentService, StripePaymentService>();
+
+            builder.Services.AddSession();
+            
 
             var app = builder.Build();
 
@@ -88,6 +101,7 @@ namespace VitoriaAirlinesWeb
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+            app.UseSession();
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();

@@ -23,6 +23,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
     <PackageReference Include="MimeKit" Version="4.12.0" />
+    <PackageReference Include="Stripe.net" Version="48.2.0" />
     <PackageReference Include="Syncfusion.EJ2.AspNet.Core" Version="29.1.33" />
     <PackageReference Include="Syncfusion.Licensing" Version="29.2.9" />
   </ItemGroup>
