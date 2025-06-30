@@ -21,5 +21,10 @@ namespace VitoriaAirlinesWeb.Models.ViewModels.Booking
 
 
         public HashSet<int> OccupiedSeatsIds { get; set; }
+
+        public bool IsChangingSeat { get; set; }
+
+        public int? TicketId { get; set; }
+
     }
 }

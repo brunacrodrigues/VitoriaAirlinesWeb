@@ -9,6 +9,23 @@
 
 <div class="main-content">
     <h2>My Upcoming Flights</h2>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
     <p>Here you can view your future trips with Vitoria Airlines.</p>
 
     <table class="table table-custom table-striped">
@@ -55,10 +72,15 @@
                               
                     </td>
                      <td class="text-center">
-                    <a asp-action="ChangeSeat" asp-route-id="@ticket.Id" class="btn btn-sm btn-warning me-2" title="Change Seat">
-                        <i class="fas fa-exchange-alt"></i>
+                    <a asp-action="SelectSeat"
+                       asp-controller="Booking"
+                       asp-route-flightId="@ticket.FlightId"
+                       asp-route-ticketId="@ticket.Id"
+                       class="btn btn-sm btn-warning me-2"
+                       title="Change Seat">
+                        <i class="fas fa-exchange-alt"></i> Change Seat
                     </a>
-                    <form asp-action="Cancel" asp-route-id="@ticket.Id" method="post" style="display:inline">
+                    <form asp-action="CancelTicket" asp-route-id="@ticket.Id" method="post" style="display:inline">
                         <button type="submit" class="btn btn-sm btn-danger" title="Cancel Ticket">
                             <i class="fas fa-times"></i>
                         </button>
@@ -85,4 +107,16 @@
 </div>
 
 </div>
+
+@section Scripts {
+    <script>
+        setTimeout(function () {
+            var alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function (alert) {
+                var bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    </script>
+}
 

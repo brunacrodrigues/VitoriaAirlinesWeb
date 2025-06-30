@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Stripe.Checkout;
 using System.Globalization;
 using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Data.Enums;
 using VitoriaAirlinesWeb.Data.Repositories;
 using VitoriaAirlinesWeb.Helpers;
+using VitoriaAirlinesWeb.Models.ViewModels.Booking;
 using VitoriaAirlinesWeb.Services;
 
 namespace VitoriaAirlinesWeb.Controllers
@@ -38,7 +40,7 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> SelectSeat(int flightId)
+        public async Task<IActionResult> SelectSeat(int flightId, int? ticketId = null)
         {
             if (User.Identity.IsAuthenticated && (User.IsInRole(UserRoles.Admin) || User.IsInRole(UserRoles.Employee)))
             {
@@ -54,10 +56,26 @@ namespace VitoriaAirlinesWeb.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            var occupiedSeatIds = (await _ticketRepository.GetTicketsByFlightAsync(flightId))
-                .Select(t => t.SeatId);
+            var allTickets = await _ticketRepository.GetTicketsByFlightAsync(flightId);
+
+
+            var validTickets = allTickets.Where(t => !t.IsCanceled);
+
+            if (ticketId.HasValue)
+            {
+                validTickets = validTickets.Where(t => t.Id != ticketId.Value);
+            }
+
+            var occupiedSeatIds = validTickets
+                .Select(t => t.SeatId)
+                .ToList();
+
+
 
             var viewModel = _converterHelper.ToSelectSeatViewModelAsync(flight, occupiedSeatIds);
+
+            viewModel.IsChangingSeat = ticketId.HasValue;
+            viewModel.TicketId = ticketId;
 
             return View(viewModel);
         }
@@ -263,6 +281,137 @@ namespace VitoriaAirlinesWeb.Controllers
             return View();
         }
 
+        [HttpGet]
+        [Authorize(Roles = UserRoles.Customer)]
+        public async Task<IActionResult> ConfirmSeatChange(int oldTicketId, int newSeatId)
+        {
+            var oldTicket = await _ticketRepository.GetTicketWithDetailsAsync(oldTicketId);
+            if (oldTicket == null) return NotFound("Original ticket not found.");
+
+            var user = await _userHelper.GetUserByEmailAsync(User.Identity.Name);
+            if (oldTicket.UserId != user.Id) return Forbid();
+
+            var flight = oldTicket.Flight;
+            var newSeat = flight.Airplane.Seats.FirstOrDefault(s => s.Id == newSeatId);
+            if (newSeat == null) return NotFound("New seat not found.");
+
+            var oldPrice = oldTicket.PricePaid;
+            var newPrice = (newSeat.Class == SeatClass.Economy) ? flight.EconomyClassPrice : flight.ExecutiveClassPrice;
+            var priceDifference = newPrice - oldPrice;
+
+
+            var viewModel = _converterHelper.ToConfirmSeatChangeViewModel(oldTicket, newSeat, newPrice);
+
+            return View("ConfirmSeatChange", viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ExecuteSeatChange(int oldTicketId, int newSeatId)
+        {
+            var ticket = await _ticketRepository.GetTicketWithDetailsAsync(oldTicketId);
+            if (ticket == null || ticket.IsCanceled) return NotFound();
+
+            var user = await _userHelper.GetUserByEmailAsync(User.Identity.Name);
+            if (ticket.UserId != user.Id) return Forbid();
+
+            var flight = ticket.Flight;
+            var newSeat = flight.Airplane.Seats.FirstOrDefault(s => s.Id == newSeatId);
+            if (newSeat == null) return NotFound();
+
+            if (ticket.Flight.DepartureUtc <= DateTime.UtcNow.AddHours(24))
+            {
+                TempData["Error"] = "Seat changes are not allowed less than 24 hours before departure.";
+                return RedirectToAction("Upcoming", "MyFlights");
+            }
+
+
+            var oldPrice = ticket.PricePaid;
+            var newPrice = (newSeat.Class == SeatClass.Economy) ? flight.EconomyClassPrice : flight.ExecutiveClassPrice;
+            var priceDifference = newPrice - oldPrice;
+
+            if (priceDifference == 0)
+            {
+                ticket.SeatId = newSeatId;
+                await _ticketRepository.UpdateAsync(ticket);
+
+                TempData["Success"] = $"Your seat has been successfully changed to {newSeat.Row}{newSeat.Letter} at no extra cost.";
+                return RedirectToAction("Upcoming", "MyFlights");
+            }
+
+            else if (priceDifference < 0)
+            {
+                var amountToRefund = Math.Abs(priceDifference);
+                ticket.SeatId = newSeatId;
+                ticket.PricePaid = newPrice;
+                await _ticketRepository.UpdateAsync(ticket);
+                
+                // TODO send email
+
+                TempData["Success"] = $"Seat changed to {newSeat.Row}{newSeat.Letter}! A refund of {amountToRefund:C} has been issued.";
+                return RedirectToAction("Upcoming", "MyFlights");
+            }
+
+            else
+            {
+                HttpContext.Session.SetInt32("OldTicketId", oldTicketId);
+                HttpContext.Session.SetInt32("NewSeatId", newSeatId);
+                HttpContext.Session.SetString("PriceDifference", priceDifference.ToString(CultureInfo.InvariantCulture));
+
+
+                var baseUrl = $"{Request.Scheme}://{Request.Host}";
+                var successUrl = $"{baseUrl}/Booking/ChangeSeatSuccess?session_id={{CHECKOUT_SESSION_ID}}";
+                var cancelUrl = $"{baseUrl}/Booking/Cancel";
+
+
+                var description = $"Upgrade from seat {ticket.Seat.Row}{ticket.Seat.Letter} to {newSeat.Row}{newSeat.Letter} on flight {flight.FlightNumber}";
+
+                var checkoutUrl = await _paymentService.CreateSeatUpgradeCheckoutSessionAsync(
+                    description,
+                    priceDifference,
+                    successUrl,
+                    cancelUrl
+                );
+
+                return Redirect(checkoutUrl); 
+            }
+        }
+
+        public async Task<IActionResult> ChangeSeatSuccess(string session_id)
+        {
+            var sessionService = new SessionService();
+            var session = await sessionService.GetAsync(session_id);
+
+            if (session.PaymentStatus != "paid")
+            {
+                TempData["Error"] = "Payment was not completed.";
+                return RedirectToAction("Upcoming", "MyFlights");
+            }
+
+            var oldTicketId = HttpContext.Session.GetInt32("OldTicketId");
+            var newSeatId = HttpContext.Session.GetInt32("NewSeatId");
+            var priceDifferenceString = HttpContext.Session.GetString("PriceDifference");
+
+            if (oldTicketId == null || newSeatId == null)
+            {
+                TempData["Error"] = "Critical error: Seat change information was lost after payment. Please contact support immediately.";
+                return RedirectToAction("Upcoming", "MyFlights");
+            }
+
+            var ticket = await _ticketRepository.GetByIdAsync(oldTicketId.Value);
+            var newPrice = ticket.PricePaid + decimal.Parse(priceDifferenceString, CultureInfo.InvariantCulture);
+
+            ticket.SeatId = newSeatId.Value;
+            ticket.PricePaid = newPrice;
+
+            await _ticketRepository.UpdateAsync(ticket);
+
+            HttpContext.Session.Remove("OldTicketId");
+            HttpContext.Session.Remove("NewSeatId");
+            HttpContext.Session.Remove("PriceDifference");
+
+            return View();
+        }
 
     }
 }

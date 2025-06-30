@@ -1,11 +1,18 @@
-﻿@model SelectSeatViewModel
+﻿@model VitoriaAirlinesWeb.Models.ViewModels.Booking.SelectSeatViewModel
 @using VitoriaAirlinesWeb.Data.Enums
-@using VitoriaAirlinesWeb.Models.ViewModels.Booking
 
 @{
     ViewData["Title"] = "Select Your Fare & Seat";
     var allLetters = new[] { "A", "B", "C", "D", "E", "F" };
 }
+
+@{
+    // 1. DETERMINA A ACTION E O MÉTODO CORRETOS COM BASE NO CONTEXTO
+    bool isSeatChange = Model.TicketId.HasValue;
+    string formAction = isSeatChange ? "ConfirmSeatChange" : "ConfirmBooking";
+    string formMethod = isSeatChange ? "get" : "post"; // Troca vai para um GET, Compra vai para um POST
+}
+
 
 <div class="container my-5">
     <div class="text-center mb-5">
@@ -47,9 +54,18 @@
         </div>
     </div>
 
-    <form asp-action="ConfirmBooking" method="post" id="confirmSeatForm">
-        <input type="hidden" name="flightId" value="@Model.FlightId" />
-        <input type="hidden" name="seatId" id="selectedSeatId" />
+    <form asp-action="@formAction" asp-controller="Booking" method="@formMethod" id="confirmSeatForm">
+        @if (!isSeatChange)
+        {
+
+            <input type="hidden" name="flightId" value="@Model.FlightId" />
+            <input type="hidden" name="seatId" id="selectedSeatId" />
+        }
+        else
+        {
+            <input type="hidden" name="oldTicketId" value="@Model.TicketId" />
+            <input type="hidden" name="newSeatId" id="selectedSeatId" />
+        }
 
         <div id="plane-section" class="plane-container mx-auto d-flex justify-content-center gap-4" style="display: none;">
             <div>

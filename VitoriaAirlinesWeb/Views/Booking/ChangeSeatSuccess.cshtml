@@ -1,0 +1,26 @@
+﻿@{
+    ViewData["Title"] = "Class Upgrade Confirmed";
+}
+
+<div class="login-background">
+    <div class="login-card payment-card">
+        <div class="payment-card-header">
+            <i class="fas fa-check-circle"></i>
+            <h2>Class Upgrade Confirmed</h2>
+        </div>
+
+        <div class="payment-card-body">
+            <p class="lead mb-4">
+                Thank you for booking with <strong>Vitoria Airlines</strong>.<br />
+                Your ticket has been successfully upgraded.
+            </p>
+
+            <div class="mt-4">
+                <a asp-controller="MyFlights" asp-action="Upcoming" class="btn btn-gold w-100">
+                    Back to My Flights
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+

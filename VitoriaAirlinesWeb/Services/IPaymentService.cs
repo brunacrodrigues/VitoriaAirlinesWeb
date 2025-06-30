@@ -1,4 +1,6 @@
-﻿namespace VitoriaAirlinesWeb.Services
+﻿using NuGet.Protocol.Plugins;
+
+namespace VitoriaAirlinesWeb.Services
 {
     public interface IPaymentService
     {
@@ -12,6 +14,12 @@
             string seatClass,
             DateTime departureTime,
             decimal price,
+            string successUrl,
+            string cancelUrl);
+
+        Task<string> CreateSeatUpgradeCheckoutSessionAsync(
+            string description, 
+            decimal priceDifference,
             string successUrl,
             string cancelUrl);
     }

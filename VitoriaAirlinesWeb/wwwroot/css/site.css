@@ -813,6 +813,19 @@ header .nav-link:hover {
 }
 
 
+.card-header {
+    background-color: #660000;
+    border-radius: 12px 12px 0 0;
+    padding: 1rem
+}
+
+.card-body {
+    background-color: #1a1a1a;
+    color: white;
+    padding: 2rem
+}
+
+
 
 
 

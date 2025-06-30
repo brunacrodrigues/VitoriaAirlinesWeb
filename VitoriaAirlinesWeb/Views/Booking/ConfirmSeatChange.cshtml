@@ -1,0 +1,101 @@
+﻿@model VitoriaAirlinesWeb.Models.ViewModels.Booking.ConfirmSeatChangeViewModel
+
+@{
+    ViewData["Title"] = "Confirm Seat Change";
+}
+
+<div class="login-background">
+
+    <div class="login-card" style="max-width: 800px; width: 100%;">
+        <div class="card-header">
+
+            <h2 class="text-white text-center mb-0">Confirm Your Seat Change</h2>
+        </div>
+
+        <div class="card-body">
+
+
+            <div class="mb-4">
+                <h5 class="text-gold">Flight Details</h5>
+                <dl class="row">
+                    <dt class="col-sm-3">Flight:</dt>
+                    <dd class="col-sm-9">@Model.FlightNumber</dd>
+
+                    <dt class="col-5">Departure:</dt>
+                    <dd class="col-7">@Model.DepartureInfo at @Model.DepartureTime.ToString("g")</dd>
+
+                    <dt class="col-5">Arrival:</dt>
+                    <dd class="col-7">@Model.ArrivalInfo  at @Model.ArrivalTime.ToString("g")</dd>
+                </dl>
+            </div>
+            <hr style="border-color: #444;" />
+
+            <div class="row mt-4 text-center">
+                <div class="col-5">
+                    <h5 class="text-muted">FROM</h5>
+                    <h3>@Model.OldSeatInfo</h3>
+                    <p>@Model.OldSeatClass</p>
+                </div>
+                <div class="col-2 d-flex align-items-center justify-content-center">
+                    <i class="fa-solid fa-arrow-right-long fa-2x text-gold"></i>
+                </div>
+                <div class="col-5">
+                    <h5 class="text-muted">TO</h5>
+                    <h3>@Model.NewSeatInfo</h3>
+                    <p>@Model.NewSeatClass</p>
+                </div>
+            </div>
+            <hr style="border-color: #444;" />
+
+
+            <div class="mt-4">
+                <h5 class="text-gold">Price Summary</h5>
+                <dl class="row">
+                    <dt class="col-sm-5">Original Price Paid:</dt>
+                    <dd class="col-sm-7">@Model.OldPricePaid.ToString("C")</dd>
+
+                    <dt class="col-sm-5">New Seat Price:</dt>
+                    <dd class="col-sm-7">@Model.NewPrice.ToString("C")</dd>
+
+                    <dt class="col-sm-5 border-top pt-2 mt-2" style="border-color: #444 !important;">
+                        @if (Model.PriceDifference > 0)
+                        {
+                            <text>Amount to Pay:</text>
+                        }
+                        else if (Model.PriceDifference < 0)
+                        {
+
+                            <text>Amount to be Refunded:</text>
+                        }
+                        else
+                        {
+
+                            <text>Price Difference:</text>
+                        }
+                    </dt>
+                    <dd class="col-sm-7 border-top pt-2 mt-2 fw-bold fs-5 @(Model.PriceDifference > 0 ? "text-danger" : "text-success")" style="border-color: #444 !important;">
+                        @if (Model.PriceDifference != 0)
+                        {
+                            @Math.Abs(Model.PriceDifference).ToString("C")
+                        }
+                        else
+                        {
+                            @Model.PriceDifference.ToString("C")
+                        }
+                    </dd>
+                </dl>
+            </div>
+
+
+            <form asp-action="ExecuteSeatChange" method="post" class="mt-4">
+                <input type="hidden" asp-for="OldTicketId" />
+                <input type="hidden" asp-for="NewSeatId" />
+
+                @Html.AntiForgeryToken()
+
+                <button type="submit" class="btn btn-gold w-100">Confirm Change</button>
+                <a asp-action="Upcoming" asp-controller="MyFlights" class="btn btn-secondary w-100 mt-2">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>

@@ -37,5 +37,7 @@ namespace VitoriaAirlinesWeb.Helpers
         SelectSeatViewModel ToSelectSeatViewModelAsync(Flight enitty, IEnumerable<int> occupiedSeatsIds);
 
         ConfirmBookingViewModel ToConfirmBookingViewModel(Flight flight, Seat seat);
+
+        ConfirmSeatChangeViewModel ToConfirmSeatChangeViewModel(Ticket oldTicket, Seat newSeat, decimal newPrice);
     }
 }

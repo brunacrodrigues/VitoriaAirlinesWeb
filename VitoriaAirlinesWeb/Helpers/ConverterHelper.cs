@@ -178,5 +178,30 @@ namespace VitoriaAirlinesWeb.Helpers
                 FinalPrice = seat.Class == SeatClass.Executive ? flight.ExecutiveClassPrice : flight.EconomyClassPrice
             };
         }
+
+        public ConfirmSeatChangeViewModel ToConfirmSeatChangeViewModel(Ticket oldTicket, Seat newSeat, decimal newPrice)
+        {
+            var flight = oldTicket.Flight;
+            var oldPrice = oldTicket.PricePaid;
+            var priceDifference = newPrice - oldPrice;
+
+            return new ConfirmSeatChangeViewModel
+            {
+                OldTicketId = oldTicket.Id,
+                NewSeatId = newSeat.Id,
+                FlightNumber = flight.FlightNumber,
+                DepartureInfo = $"{flight.OriginAirport.City} ({flight.OriginAirport.IATA})",
+                ArrivalInfo = $"{flight.DestinationAirport.City} ({flight.DestinationAirport.IATA})",
+                DepartureTime = flight.DepartureUtc.ToLocalTime(),
+                ArrivalTime = flight.ArrivalUtc.ToLocalTime(),
+                OldSeatInfo = $"{oldTicket.Seat.Row}{oldTicket.Seat.Letter}",
+                OldSeatClass = oldTicket.Seat.Class.ToString(),
+                NewSeatInfo = $"{newSeat.Row}{newSeat.Letter}",
+                NewSeatClass = newSeat.Class.ToString(),
+                OldPricePaid = oldPrice,
+                NewPrice = newPrice,
+                PriceDifference = priceDifference
+            };
+        }
     }
 }

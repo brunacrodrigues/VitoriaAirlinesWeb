@@ -29,5 +29,9 @@ namespace VitoriaAirlinesWeb.Data.Entities
 
         [Required]
         public DateTime PurchaseDateUtc { get; set; }
+
+
+        public bool IsCanceled { get; set; } = false;
+        public DateTime? CanceledDateUtc { get; set; }
     }
 }
