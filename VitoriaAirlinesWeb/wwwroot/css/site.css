@@ -825,6 +825,14 @@ header .nav-link:hover {
     padding: 2rem
 }
 
+.fade-out {
+    background-color: #8b0000 !important;
+    transition: opacity 0.5s ease, background-color 0.3s ease;
+    opacity: 0;
+}
+
+
+
 
 
 

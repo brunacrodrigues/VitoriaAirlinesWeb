@@ -3,6 +3,7 @@ using VitoriaAirlinesWeb.Models.Airports;
 using VitoriaAirlinesWeb.Models.ViewModels.Airplanes;
 using VitoriaAirlinesWeb.Models.ViewModels.Booking;
 using VitoriaAirlinesWeb.Models.ViewModels.Customers;
+using VitoriaAirlinesWeb.Models.ViewModels.Dashboard;
 using VitoriaAirlinesWeb.Models.ViewModels.Employees;
 using VitoriaAirlinesWeb.Models.ViewModels.Flights;
 
@@ -39,5 +40,7 @@ namespace VitoriaAirlinesWeb.Helpers
         ConfirmBookingViewModel ToConfirmBookingViewModel(Flight flight, Seat seat);
 
         ConfirmSeatChangeViewModel ToConfirmSeatChangeViewModel(Ticket oldTicket, Seat newSeat, decimal newPrice);
+
+        FlightDashboardViewModel ToFlightDashboardViewModel(Flight entity);
     }
 }

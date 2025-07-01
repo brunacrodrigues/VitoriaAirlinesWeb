@@ -34,6 +34,7 @@ namespace VitoriaAirlinesWeb.Data.Repositories
                 .ThenInclude(a => a.Country)
                 .Include(f => f.DestinationAirport)
                 .ThenInclude(a => a.Country)
+                .Include(f => f.Tickets).ThenInclude(t => t.User)
                 .FirstOrDefaultAsync(f => f.Id == id);
         }
 
@@ -56,7 +57,7 @@ namespace VitoriaAirlinesWeb.Data.Repositories
                 .Where(f => f.DepartureUtc > DateTime.UtcNow && f.Status == FlightStatus.Scheduled)
                 .Include(f => f.OriginAirport)
                 .Include(f => f.DestinationAirport)
-                .Include(f => f.Airplane) // TODO incluir os tickets depois
+                .Include(f => f.Airplane)
                 .AsQueryable();
 
             if (date is not null)

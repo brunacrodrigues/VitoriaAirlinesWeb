@@ -41,7 +41,6 @@
     <link rel="stylesheet" href="https://cdn.syncfusion.com/ej2/29.1.33/fluent.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-
     <script src="https://cdn.syncfusion.com/ej2/29.1.33/dist/ej2.min.js"></script>
     @RenderSection("Styles", required: false)
 </head>
@@ -94,6 +93,20 @@ else if (role == "Customer") { <partial name="_CustomerSidebar" /> }
                                         </ul>
                                     </li>
 
+                                    <li class="nav-item dropdown">
+                                        <a class="nav-link position-relative" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fas fa-bell"></i>
+                                            <span id="notificationCount"
+                                                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning"
+                                                  style="font-size: 0.7rem; display: none;">
+                                                0
+                                            </span>
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown" id="notificationList">
+                                            <li><span class="dropdown-item-text text-muted">No notifications yet.</span></li>
+                                        </ul>
+                                    </li>
+
                                 }
                                 else
                                 {
@@ -121,6 +134,10 @@ else if (role == "Customer") { <partial name="_CustomerSidebar" /> }
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <ejs-scripts></ejs-scripts>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
 
 @if (!string.IsNullOrEmpty(role))
 {
@@ -151,6 +168,43 @@ else if (role == "Customer") { <partial name="_CustomerSidebar" /> }
                 @:}
             }
         });
+
+           window.flightConnection = new signalR.HubConnectionBuilder()
+            .withUrl("/notificationHub")
+            .build();
+
+            toastr.options = {
+                "positionClass": "toast-bottom-right",
+                "timeOut": "5000"
+            };
+
+            let notificationCount = 0;
+            const notificationList = document.getElementById("notificationList");
+            const notificationBadge = document.getElementById("notificationCount");
+
+            window.flightConnection.on("ReceiveNotification", function (message) {
+                notificationCount++;
+                if (notificationBadge) {
+                    notificationBadge.textContent = notificationCount;
+                    notificationBadge.style.display = "inline-block";
+                }
+
+                if (notificationList) {
+                    if (notificationCount === 1) {
+                        notificationList.innerHTML = "";
+                    }
+
+                    const li = document.createElement("li");
+                    li.innerHTML = `<span class="dropdown-item-text">${message}</span>`;
+                    notificationList.prepend(li);
+                }
+
+                toastr.info(message, "✈️ Notification");
+            });
+
+            window.flightConnection.start()
+                .then(() => console.log("SignalR connected."))
+                .catch(err => console.error("SignalR connection error:", err.toString()));
     </script>
 }
  

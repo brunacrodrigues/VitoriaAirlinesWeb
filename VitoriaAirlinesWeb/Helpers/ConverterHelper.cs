@@ -5,6 +5,7 @@ using VitoriaAirlinesWeb.Models.Airports;
 using VitoriaAirlinesWeb.Models.ViewModels.Airplanes;
 using VitoriaAirlinesWeb.Models.ViewModels.Booking;
 using VitoriaAirlinesWeb.Models.ViewModels.Customers;
+using VitoriaAirlinesWeb.Models.ViewModels.Dashboard;
 using VitoriaAirlinesWeb.Models.ViewModels.Employees;
 using VitoriaAirlinesWeb.Models.ViewModels.Flights;
 
@@ -201,6 +202,23 @@ namespace VitoriaAirlinesWeb.Helpers
                 OldPricePaid = oldPrice,
                 NewPrice = newPrice,
                 PriceDifference = priceDifference
+            };
+        }
+
+        public FlightDashboardViewModel ToFlightDashboardViewModel(Flight entity)
+        {
+            return new FlightDashboardViewModel
+            {
+                Id = entity.Id,
+                FlightNumber = entity.FlightNumber,
+
+                OriginAirportFullName = entity.OriginAirport.FullName,
+                OriginCountryFlagUrl = entity.OriginAirport.Country?.FlagImageUrl ?? "",
+
+                DestinationAirportFullName = entity.DestinationAirport.FullName,
+                DestinationCountryFlagUrl = entity.DestinationAirport.Country?.FlagImageUrl ?? "",
+
+                DepartureFormatted = entity.DepartureUtc.ToLocalTime().ToString("HH:mm dd MMM")
             };
         }
     }

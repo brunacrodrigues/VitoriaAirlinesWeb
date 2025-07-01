@@ -4,6 +4,7 @@ using VitoriaAirlinesWeb.Data.Enums;
 using VitoriaAirlinesWeb.Data.Repositories;
 using VitoriaAirlinesWeb.Helpers;
 using VitoriaAirlinesWeb.Models.ViewModels.Flights;
+using VitoriaAirlinesWeb.Services;
 
 namespace VitoriaAirlinesWeb.Controllers
 {
@@ -15,19 +16,22 @@ namespace VitoriaAirlinesWeb.Controllers
         private readonly IAirplaneRepository _airplaneRepository;
         private readonly IAirportRepository _airportRepository;
         private readonly IFlightHelper _flightHelper;
+        private readonly INotificationService _notificationService;
 
         public FlightsController(
             IFlightRepository flightRepository,
             IConverterHelper converterHelper,
             IAirplaneRepository airplaneRepository,
             IAirportRepository airportRepository,
-            IFlightHelper flightHelper)
+            IFlightHelper flightHelper,
+            INotificationService notificationService)
         {
             _flightRepository = flightRepository;
             _converterHelper = converterHelper;
             _airplaneRepository = airplaneRepository;
             _airportRepository = airportRepository;
             _flightHelper = flightHelper;
+            _notificationService = notificationService;
         }
 
 
@@ -108,6 +112,17 @@ namespace VitoriaAirlinesWeb.Controllers
             var flight = _converterHelper.ToFlight(viewModel, isNew: true);
             await _flightRepository.CreateAsync(flight);
 
+            flight = await _flightRepository.GetByIdWithDetailsAsync(flight.Id);
+
+            var dashboardModel = _converterHelper.ToFlightDashboardViewModel(flight);
+
+            await _notificationService.NotifyAdminsAsync($" New flight {flight.FlightNumber} was scheduled.");
+            await _notificationService.NotifyEmployeesAsync($" Flight {flight.FlightNumber} was added to the schedule.");
+
+            await _notificationService.NotifyNewFlightScheduledAsync(dashboardModel);
+
+
+
             TempData["SuccessMessage"] = "Flight scheduled successfully.";
             return Redirect(returnUrl ?? Url.Action(nameof(Index)));
         }
@@ -151,7 +166,7 @@ namespace VitoriaAirlinesWeb.Controllers
                 return View(viewModel);
             }
 
-            var existingFlight = await _flightRepository.GetByIdAsync(viewModel.Id);
+            var existingFlight = await _flightRepository.GetByIdWithDetailsAsync(viewModel.Id);
             if (existingFlight == null)
             {
                 return NotFound();
@@ -168,6 +183,10 @@ namespace VitoriaAirlinesWeb.Controllers
             updatedFlight.Status = existingFlight.Status;
 
             await _flightRepository.UpdateAsync(updatedFlight);
+
+            await _notificationService.NotifyAdminsAsync($"Flight {updatedFlight.FlightNumber} has been updated.");
+            await _notificationService.NotifyEmployeesAsync($"Flight {updatedFlight.FlightNumber} was updated by staff");
+            await _notificationService.NotifyFlightCustomersAsync(updatedFlight, $"Your flight {updatedFlight.FlightNumber} has been updated. Please review the new details.");
 
             TempData["SuccessMessage"] = "Flight updated successfully.";
             return Redirect(returnUrl ?? Url.Action(nameof(Index)));
@@ -197,9 +216,10 @@ namespace VitoriaAirlinesWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CancelConfirmed(int id, string? returnUrl)
         {
-            var flight = await _flightRepository.GetByIdAsync(id);
+            var flight = await _flightRepository.GetByIdWithDetailsAsync(id);
             if (flight == null)
                 return NotFound();
+
 
             if (flight.Status != FlightStatus.Scheduled)
             {
@@ -207,10 +227,21 @@ namespace VitoriaAirlinesWeb.Controllers
                 return Redirect(returnUrl ?? Url.Action("Index", "Flights"));
             }
 
+
             flight.Status = FlightStatus.Canceled;
             await _flightRepository.UpdateAsync(flight);
 
             TempData["SuccessMessage"] = "Flight canceled successfully.";
+
+
+            await _notificationService.NotifyAdminsAsync($"Flight {flight.FlightNumber} was canceled by a staff member.");
+            await _notificationService.NotifyFlightCustomersAsync(flight, $"Your flight {flight.FlightNumber} has been canceled. You will be issued with a refund.");
+
+            await _notificationService.NotifyFlightStatusChangedAsync(flight.Id, "Canceled");
+
+
+
+
             return Redirect(returnUrl ?? Url.Action("Index", "Flights"));
         }
 

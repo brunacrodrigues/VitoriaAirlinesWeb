@@ -13,6 +13,7 @@ using VitoriaAirlinesWeb.Data;
 using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Data.Repositories;
 using VitoriaAirlinesWeb.Helpers;
+using VitoriaAirlinesWeb.Hubs;
 using VitoriaAirlinesWeb.Services;
 
 namespace VitoriaAirlinesWeb
@@ -35,6 +36,8 @@ namespace VitoriaAirlinesWeb
                 opts.JsonSerializerOptions.WriteIndented = true;
             });
 
+            // SignalR
+            builder.Services.AddSignalR();
 
             // Database Context
             builder.Services.AddDbContext<DataContext>(o =>
@@ -146,6 +149,9 @@ namespace VitoriaAirlinesWeb
             // FlightService
             builder.Services.AddScoped<IFlightService, FlightService>();
 
+            // NotificationService
+            builder.Services.AddScoped<INotificationService, NotificationService>();
+
             // Stripe config
             builder.Services.Configure<StripeSettings>(
                 builder.Configuration.GetSection("Stripe"));
@@ -196,7 +202,9 @@ namespace VitoriaAirlinesWeb
             RecurringJob.AddOrUpdate<IFlightService>(
                 "update-completed-flights",
                 service => service.UpdateFlightStatusAsync(),
-                Cron.Minutely); // TODO change to hourly 
+                Cron.Minutely); // TODO delete past jobs
+
+            // TODO job to send emails
 
 
 
@@ -206,6 +214,10 @@ namespace VitoriaAirlinesWeb
                 pattern: "{controller=Dashboard}/{action=Index}/{id?}");
             app.MapControllers();
 
+
+            // Maps SignalR endpoint to NotificationHub.
+            // Clients will connect to "/notificationHub" for real time communication.
+            app.MapHub<NotificationHub>("/notificationHub");
 
             // Seed the database
             await RunSeeding(app);
