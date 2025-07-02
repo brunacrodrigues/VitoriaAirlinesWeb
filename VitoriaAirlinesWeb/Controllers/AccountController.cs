@@ -126,7 +126,7 @@ namespace VitoriaAirlinesWeb.Controllers
                     }, protocol: scheme);
 
 
-                    Response response = await _mailHelper.SendEmailAsync(model.Username, "Email confirmation", $"<h1>Email Confirmation</h1>" +
+                    ApiResponse response = await _mailHelper.SendEmailAsync(model.Username, "Email confirmation", $"<h1>Email Confirmation</h1>" +
                                                        $"Please confirm your email by clicking this link:</br></br><a href = \"{tokenLink}\">Confirm Email</a>");
 
                     if (response.IsSuccess)
@@ -228,7 +228,7 @@ namespace VitoriaAirlinesWeb.Controllers
                     "Account",
                     new { token = myToken, email = user.Email }, protocol: HttpContext.Request.Scheme);
 
-                Response response = await _mailHelper.SendEmailAsync(model.Email, "Password Reset", $"<h1>Password Reset</h1>" +
+                ApiResponse response = await _mailHelper.SendEmailAsync(model.Email, "Password Reset", $"<h1>Password Reset</h1>" +
                 $"To reset the password click in this link:<br/><br>" +
                 $"<a href = \"{link}\">Reset Password</a>");
 

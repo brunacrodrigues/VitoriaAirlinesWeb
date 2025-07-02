@@ -130,6 +130,13 @@ else if (role == "Customer") { <partial name="_CustomerSidebar" /> }
         </div>
     </div>
 
+<a asp-controller="AssistBot"
+   asp-action="Index"
+   id="chatToggle">
+    <i class="fas fa-comment-dots"></i>
+</a>
+
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
@@ -205,6 +212,7 @@ else if (role == "Customer") { <partial name="_CustomerSidebar" /> }
             window.flightConnection.start()
                 .then(() => console.log("SignalR connected."))
                 .catch(err => console.error("SignalR connection error:", err.toString()));
+
     </script>
 }
  

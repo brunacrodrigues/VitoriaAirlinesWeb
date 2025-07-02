@@ -1,0 +1,53 @@
+﻿@using Syncfusion.EJ2.InteractiveChat
+@{
+    var suggestions = new string[]
+    {
+        "Como posso comprar bilhetes?",
+        "Quais são os meus voos futuros?",
+        "Como posso alterar a minha palavra-passe?"
+    };
+}
+
+<div class="aiassist-container" style="height: 350px; width: 650px;">
+    <ejs-aiassistview id="aiAssistView"
+                      promptSuggestions="@suggestions"
+                      promptRequest="onPromptRequest"
+                      created="onCreated">
+    </ejs-aiassistview>
+</div>
+
+<script>
+    var assistObj;
+
+    function onCreated() {
+        assistObj = this;
+    }
+
+    function onPromptRequest(args) {
+        var allMessages = assistObj.getAllMessages();
+        var history = allMessages
+            .filter(m => m.role === 'user' || m.role === 'assistant')
+            .map(m => ({
+                role: m.role,
+                content: m.content
+            }));
+
+        var payload = {
+            prompt: args.prompt,
+            history: history
+        };
+
+        fetch('/AssistBot/Ask', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            assistObj.addPromptResponse(data.answer);
+        })
+        .catch(() => {
+            assistObj.addPromptResponse("Ocorreu um erro ao processar a pergunta.");
+        });
+    }
+</script>

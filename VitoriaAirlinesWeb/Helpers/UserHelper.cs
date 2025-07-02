@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Models.ViewModels.Account;
 
@@ -128,6 +129,11 @@ namespace VitoriaAirlinesWeb.Helpers
         public async Task RemoveUserFromRole(User user, string roleName)
         {
             await _userManager.RemoveFromRoleAsync(user, roleName);
+        }
+
+        public async Task<User?> GetUserAsync(ClaimsPrincipal user)
+        {
+            return await _userManager.GetUserAsync(user);
         }
     }
 }

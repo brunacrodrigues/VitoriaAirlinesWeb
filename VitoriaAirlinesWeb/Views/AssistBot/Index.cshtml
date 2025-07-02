@@ -1,0 +1,74 @@
+﻿@using Syncfusion.EJ2.InteractiveChat
+
+@{
+    ViewData["Title"] = "Assistente Virtual";
+    var suggestions = new string[]
+    {
+        "Como posso comprar bilhetes?",
+        "Quais são os meus voos futuros?",
+        "Como posso alterar a minha palavra-passe?"
+    };
+}
+
+<div class="aiassist-container" style="height: 450px; width: 650px; margin: 0 auto; border: 1px solid #ccc; border-radius: 8px;">
+    <ejs-aiassistview id="aiAssistView"
+                      promptSuggestions="@suggestions"
+                      promptRequest="onPromptRequest"
+                      created="onCreated">
+    </ejs-aiassistview>
+</div>
+
+<script>
+    var assistObj;
+    var messageHistory = [];
+
+    function onCreated() {
+        assistObj = this;
+    }
+
+    
+    window.onPromptRequest = async function (args) {
+        if (args.event) {
+            args.event.preventDefault();
+        }
+
+        const userPrompt = args.prompt;
+
+        const payload = {
+            prompt: userPrompt,
+            history: messageHistory
+        };
+
+        messageHistory.push({ role: "user", content: userPrompt });
+
+        try {
+            const response = await fetch('/AssistBot/Ask', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+           
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Network error: ${response.status}. ${errorText}`);
+            }
+
+           
+            const data = await response.json();
+
+            
+            if (!data.isSuccess) {
+                throw new Error(data.message);
+            }
+
+            messageHistory.push({ role: "assistant", content: data.results });
+            assistObj.addPromptResponse(data.results);
+
+        } catch (error) {
+            assistObj.addPromptResponse("An error occured.");
+            messageHistory.pop();
+        }
+    };
+</script>

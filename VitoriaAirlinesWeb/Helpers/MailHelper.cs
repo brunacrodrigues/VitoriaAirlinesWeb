@@ -16,7 +16,7 @@ namespace VitoriaAirlinesWeb.Helpers
         }
 
         
-        public async Task<Response> SendEmailAsync(string to, string subject, string body)
+        public async Task<ApiResponse> SendEmailAsync(string to, string subject, string body)
         {
             var nameFrom = _configuration["Mail:NameFrom"];
             var from = _configuration["Mail:From"];
@@ -48,14 +48,14 @@ namespace VitoriaAirlinesWeb.Helpers
             catch (Exception ex)
             {
                
-                return new Response
+                return new ApiResponse
                 {
                     IsSuccess = false,
                     Message = ex.ToString()
                 };
             }
 
-            return new Response
+            return new ApiResponse
             {
                 IsSuccess = true,
             };

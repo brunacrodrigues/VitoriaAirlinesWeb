@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using OpenAI;
 using Stripe;
 using Syncfusion.Licensing;
 using System.Text;
@@ -32,7 +33,7 @@ namespace VitoriaAirlinesWeb
             .AddControllersWithViews()
             .AddJsonOptions(opts =>
             {
-                opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+                opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
                 opts.JsonSerializerOptions.WriteIndented = true;
             });
 
@@ -151,6 +152,12 @@ namespace VitoriaAirlinesWeb
 
             // NotificationService
             builder.Services.AddScoped<INotificationService, NotificationService>();
+
+            // GeminiApiService
+            builder.Services.AddHttpClient();
+            builder.Services.AddScoped<IGeminiApiService, GeminiApiService>();
+
+
 
             // Stripe config
             builder.Services.Configure<StripeSettings>(

@@ -82,7 +82,7 @@ namespace VitoriaAirlinesWeb.Controllers
                        $"<p>You have been registered as an employee. Click the link below to change your password:</p>" +
                        $"<p><a href='{tokenLink}'>Change Password</a></p>";
 
-                    Response emailResponse = await _mailHelper.SendEmailAsync(user.Email, "Reset your password", emailBody);
+                    ApiResponse emailResponse = await _mailHelper.SendEmailAsync(user.Email, "Reset your password", emailBody);
 
                     if (!emailResponse.IsSuccess)
                     {

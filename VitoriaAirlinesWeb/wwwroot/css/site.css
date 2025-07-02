@@ -831,7 +831,38 @@ header .nav-link:hover {
     opacity: 0;
 }
 
+#chatBox {
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    visibility: visible;
+    opacity: 1;
+}
 
+.chat-box-hidden {
+    visibility: hidden;
+    opacity: 0;
+}
+
+/* Estilos para o botão que abre o Chat */
+#chatToggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    background: #800000;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 55px;
+    height: 55px;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    #chatToggle:hover {
+        transform: scale(1.1);
+    }
 
 
 

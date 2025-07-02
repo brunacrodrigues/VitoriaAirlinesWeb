@@ -4,6 +4,6 @@ namespace VitoriaAirlinesWeb.Helpers
 {
     public interface IMailHelper
     {
-        Task<Response> SendEmailAsync(string to, string subject, string body);
+        Task<ApiResponse> SendEmailAsync(string to, string subject, string body);
     }
 }

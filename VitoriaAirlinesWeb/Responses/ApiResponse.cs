@@ -1,6 +1,6 @@
 ﻿namespace VitoriaAirlinesWeb.Responses
 {
-    public class Response
+    public class ApiResponse
     {
         public bool IsSuccess { get; set; }
 
