@@ -100,6 +100,13 @@ namespace VitoriaAirlinesWeb.Data.Repositories
                           f.DepartureUtc > DateTime.UtcNow);
         }
 
+        public IEnumerable<Airplane> GetActiveAirplanes()
+        {
+            return _context.Airplanes
+                .Where(a => a.Status == AirplaneStatus.Active)
+                .ToList();
+        }
+
         // TODO: Validar voos futuros com bilhetes vendidos para este avião via FlightRepository
 
     }

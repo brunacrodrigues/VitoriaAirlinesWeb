@@ -9,15 +9,18 @@ namespace VitoriaAirlinesWeb.Services
         private readonly IAirplaneRepository _airplaneRepository;
         private readonly IFlightRepository _flightRepository;
         private readonly IAirportRepository _airportRepository;
+        private readonly string _baseUrl;
 
         public AdminPromptService(
             IAirplaneRepository airplaneRepository,
             IFlightRepository flightRepository,
-            IAirportRepository airportRepository)
+            IAirportRepository airportRepository,
+            IConfiguration configuration)
         {
             _airplaneRepository = airplaneRepository;
             _flightRepository = flightRepository;
             _airportRepository = airportRepository;
+            _baseUrl = configuration["App:BaseUrl"]!;
         }
 
 
@@ -99,7 +102,7 @@ namespace VitoriaAirlinesWeb.Services
                 {
                     IsSuccess = true,
                     Message = "Click below to create a new airplane.",
-                    Results = "To register a new airplane go to https://localhost:7106/Airplanes/Create."
+                    Results = $"To register a new airplane go to {_baseUrl}/Airplanes/Create."
                 };
             }
 

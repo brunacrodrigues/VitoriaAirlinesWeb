@@ -20,5 +20,7 @@ namespace VitoriaAirlinesWeb.Data.Repositories
         bool HasAnyNonCanceledFlights(int id);
 
         bool HasFutureScheduledFlights(int id);
+
+        IEnumerable<Airplane> GetActiveAirplanes();
     }
 }

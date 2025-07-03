@@ -157,7 +157,11 @@ namespace VitoriaAirlinesWeb
             builder.Services.AddHttpClient();
             builder.Services.AddScoped<IGeminiApiService, GeminiApiService>();
 
+            // Prompt Services
             builder.Services.AddScoped<IAdminPromptService, AdminPromptService>();
+            builder.Services.AddScoped<IEmployeePromptService, EmployeePromptService>();
+            builder.Services.AddScoped<ICustomerPromptService, CustomerPromptService>();
+            builder.Services.AddScoped<IAnonymousPromptService, AnonymousPromptService>();
 
 
 

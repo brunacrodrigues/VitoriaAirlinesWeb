@@ -12,15 +12,24 @@ namespace VitoriaAirlinesWeb.Controllers
         private readonly IGeminiApiService _geminiService;
         private readonly IUserHelper _userHelper;
         private readonly IAdminPromptService _adminPrompt;
+        private readonly IEmployeePromptService _employeePrompt;
+        private readonly ICustomerPromptService _customerPrompt;
+        private readonly IAnonymousPromptService _anonymousPrompt;
 
         public AssistBotController(
             IGeminiApiService geminiService,
             IUserHelper userHelper,
-            IAdminPromptService adminPrompt)
+            IAdminPromptService adminPrompt,
+            IEmployeePromptService employeePrompt,
+            ICustomerPromptService customerPrompt,
+            IAnonymousPromptService anonymousPrompt)
         {
             _geminiService = geminiService;
             _userHelper = userHelper;
             _adminPrompt = adminPrompt;
+            _employeePrompt = employeePrompt;
+            _customerPrompt = customerPrompt;
+            _anonymousPrompt = anonymousPrompt;
         }
 
         [HttpGet]
@@ -46,6 +55,26 @@ namespace VitoriaAirlinesWeb.Controllers
                         "View today's scheduled flights",
                         "List all airports",
                         "Create an airplane model"
+                    };
+                    break;
+
+                case UserRoles.Employee:
+                    suggestions = new[]
+                    {
+                       "List all active airplanes",
+                       "Schedule a flight",
+                       "List all airports",
+                       "View today's scheduled flights"
+                    };
+                    break;
+
+                case UserRoles.Customer:
+                    suggestions = new[]
+                    {
+                       "List all available flights",
+                       "View my flights history",
+                       "View my future flights",
+                       "How can I edit my profile?"
                     };
                     break;
 
@@ -89,18 +118,19 @@ namespace VitoriaAirlinesWeb.Controllers
                     role = roles.FirstOrDefault();
                 }
 
-                // 2) tenta prompt custom de acordo com a role (ou anon)
+
                 ApiResponse? response = null;
                 var promptLower = dto.Prompt.ToLower();
 
                 if (role == UserRoles.Admin)
                     response = await _adminPrompt.ProcessPromptAsync(promptLower);
-                //else if (role == UserRoles.Employee)
-                //    custom = await _employeePrompt.ProcessPromptAsync(promptLower);
-                //else if (role == UserRoles.Customer)
-                //    custom = await _customerPrompt.ProcessPromptAsync(promptLower);
-                //else
-                //    custom = await _anonymousPrompt.ProcessPromptAsync(promptLower);
+                else if (role == UserRoles.Employee)
+                    response = await _employeePrompt.ProcessPromptAsync(promptLower);
+                else if (role == UserRoles.Customer)
+                    response = await _customerPrompt.ProcessPromptAsync(promptLower);
+                else
+                    response = await _anonymousPrompt.ProcessPromptAsync(promptLower);
+
 
                 if (response is null)
                     response = await _geminiService.AskAsync(dto.Prompt, dto.History, role);
