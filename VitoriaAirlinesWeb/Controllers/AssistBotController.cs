@@ -11,18 +11,56 @@ namespace VitoriaAirlinesWeb.Controllers
     {
         private readonly IGeminiApiService _geminiService;
         private readonly IUserHelper _userHelper;
+        private readonly IAdminPromptService _adminPrompt;
 
         public AssistBotController(
             IGeminiApiService geminiService,
-            IUserHelper userHelper)
+            IUserHelper userHelper,
+            IAdminPromptService adminPrompt)
         {
             _geminiService = geminiService;
             _userHelper = userHelper;
+            _adminPrompt = adminPrompt;
         }
 
         [HttpGet]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            var user = await _userHelper.GetUserAsync(User);
+            string? role = null;
+
+            if (user != null)
+            {
+                var roles = await _userHelper.GetUserRolesAsync(user);
+                role = roles.FirstOrDefault();
+            }
+
+            string[] suggestions;
+
+            switch (role)
+            {
+                case UserRoles.Admin:
+                    suggestions = new[]
+                    {
+                        "List all registered airplanes",
+                        "View today's scheduled flights",
+                        "List all airports",
+                        "Create an airplane model"
+                    };
+                    break;
+
+                default:
+                    suggestions = new[]
+                    {
+                        "How can I buy a ticket?",
+                        "What destinations are available?",
+                        "How do I create an account?"
+                    };
+                    break;
+            }
+
+            ViewBag.Suggestions = suggestions;
+
             return View();
         }
 
@@ -44,40 +82,49 @@ namespace VitoriaAirlinesWeb.Controllers
             try
             {
                 var user = await _userHelper.GetUserAsync(User);
-                string role = "Anonymous";
-
+                 string? role = null;
                 if (user != null)
                 {
                     var roles = await _userHelper.GetUserRolesAsync(user);
-                    role = roles.FirstOrDefault() ?? "Anonymous";
+                    role = roles.FirstOrDefault();
                 }
 
-                var result = await _geminiService.AskAsync(dto.Prompt, dto.History, role);
+                // 2) tenta prompt custom de acordo com a role (ou anon)
+                ApiResponse? response = null;
+                var promptLower = dto.Prompt.ToLower();
 
-                string jsonResponse;
+                if (role == UserRoles.Admin)
+                    response = await _adminPrompt.ProcessPromptAsync(promptLower);
+                //else if (role == UserRoles.Employee)
+                //    custom = await _employeePrompt.ProcessPromptAsync(promptLower);
+                //else if (role == UserRoles.Customer)
+                //    custom = await _customerPrompt.ProcessPromptAsync(promptLower);
+                //else
+                //    custom = await _anonymousPrompt.ProcessPromptAsync(promptLower);
 
-                if (result.IsSuccess && result.Results is string resultText)
+                if (response is null)
+                    response = await _geminiService.AskAsync(dto.Prompt, dto.History, role);
+
+                var escapedMessage = JsonEncodedText.Encode(response.Message ?? "").ToString();
+
+                string escapedResults;
+                if (response.Results is string resultText)
                 {
-                    var escapedResultText = JsonEncodedText.Encode(resultText);
-
-                    jsonResponse = $@"{{
-                        ""isSuccess"": true,
-                        ""message"": ""Request successful."",
-                        ""results"": ""{escapedResultText}""
-                    }}";
+                    escapedResults = JsonEncodedText.Encode(resultText).ToString();
                 }
                 else
                 {
-                    var escapedMessage = JsonEncodedText.Encode(result.Message ?? "Unknown error.");
-                    jsonResponse = $@"{{
-                        ""isSuccess"": false,
-                        ""message"": ""{escapedMessage}"",
-                        ""results"": null
-                    }}";
+                    escapedResults = JsonEncodedText.Encode("(no results)").ToString();
                 }
 
-                return Content(jsonResponse, "application/json");
-                //return Ok(result);
+                var json = $@"{{
+                    ""isSuccess"": {response.IsSuccess.ToString().ToLower()},
+                    ""message"": ""{escapedMessage}"",
+                    ""results"": ""{escapedResults}""
+                }}";
+
+                return Content(json, "application/json");
+
             }
             catch (Exception ex)
             {

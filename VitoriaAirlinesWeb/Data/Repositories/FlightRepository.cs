@@ -105,5 +105,16 @@ namespace VitoriaAirlinesWeb.Data.Repositories
                 .ThenInclude(a => a.Country)
                 .FirstOrDefaultAsync(f => f.Id == id);
         }
+
+        public async Task<IEnumerable<Flight>> GetFlightsForDateAsync(DateTime date)
+        {
+            var target = date.Date;
+            return await _context.Flights
+                .Where(f => f.DepartureUtc.Date == target)
+                .Include(f => f.Airplane)
+                .Include(f => f.OriginAirport)
+                .Include(f => f.DestinationAirport)
+                .ToListAsync();
+        }
     }
 }

@@ -157,6 +157,8 @@ namespace VitoriaAirlinesWeb
             builder.Services.AddHttpClient();
             builder.Services.AddScoped<IGeminiApiService, GeminiApiService>();
 
+            builder.Services.AddScoped<IAdminPromptService, AdminPromptService>();
+
 
 
             // Stripe config
