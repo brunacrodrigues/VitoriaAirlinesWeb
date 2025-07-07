@@ -29,7 +29,7 @@ namespace VitoriaAirlinesWeb.Controllers
             var user = await _userHelper.GetUserByEmailAsync(User.Identity.Name);
             if (user == null)
             {
-                return NotFound();
+                return new NotFoundViewResult("Error404");
             }
 
             if (User.IsInRole(UserRoles.Admin) || User.IsInRole(UserRoles.Employee))

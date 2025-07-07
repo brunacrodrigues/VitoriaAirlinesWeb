@@ -46,7 +46,7 @@ namespace VitoriaAirlinesWeb.Controllers
 
             var customer = await _customerRepository.GetByIdWithUserAsync(id);
 
-            if (customer == null) return NotFound();
+            if (customer == null) return new NotFoundViewResult("Error404");
 
             return View(customer);
         }
@@ -57,7 +57,7 @@ namespace VitoriaAirlinesWeb.Controllers
         public async Task<IActionResult> EditCustomerProfile(int id)
         {
             var customer = await _customerRepository.GetByIdWithUserAsync(id);
-            if (customer == null) return NotFound();
+            if (customer == null) return new NotFoundViewResult("Error404");
 
             var model = _converterHelper.ToCustomerProfileAdminViewModel(customer);
             model.Countries = _countryRepository.GetComboCountries();
@@ -70,7 +70,7 @@ namespace VitoriaAirlinesWeb.Controllers
         public async Task<IActionResult> EditCustomerProfile(int id, CustomerProfileAdminViewModel model)
         {
 
-            if (id != model.Id) return NotFound();
+            if (id != model.Id) return new NotFoundViewResult("Error404");
 
             if (!ModelState.IsValid)
             {
@@ -79,7 +79,7 @@ namespace VitoriaAirlinesWeb.Controllers
             }
 
             var customer = await _customerRepository.GetByIdWithUserAsync(id);
-            if (customer == null) return NotFound();
+            if (customer == null) return new NotFoundViewResult("Error404");
 
             _converterHelper.UpdateCustomerProfile(customer, model);
             await _customerRepository.UpdateAsync(customer);
@@ -93,10 +93,10 @@ namespace VitoriaAirlinesWeb.Controllers
         public async Task<IActionResult> EditTravellerProfile()
         {
             var user = await _userHelper.GetUserByEmailAsync(User.Identity.Name);
-            if (user == null) return NotFound();
+            if (user == null) return new NotFoundViewResult("Error404"); ;
 
             var profile = await _customerRepository.GetByUserIdAsync(user.Id);
-            if (profile == null) return NotFound();
+            if (profile == null) return new NotFoundViewResult("Error404");
 
             var model = _converterHelper.ToCustomerProfileViewModel(profile);
             model.Countries = _countryRepository.GetComboCountries();
@@ -117,10 +117,10 @@ namespace VitoriaAirlinesWeb.Controllers
             }
 
             var user = await _userHelper.GetUserByEmailAsync(User.Identity.Name);
-            if (user == null) return NotFound();
+            if (user == null) return new NotFoundViewResult("Error404");
 
             var profile = await _customerRepository.GetByUserIdAsync(user.Id);
-            if (profile == null) return NotFound();
+            if (profile == null) return new NotFoundViewResult("Error404");
 
             _converterHelper.UpdateCustomerProfile(profile, model);
             await _customerRepository.UpdateAsync(profile);
@@ -134,7 +134,7 @@ namespace VitoriaAirlinesWeb.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var customer = await _customerRepository.GetByIdWithUserAsync(id);
-            if (customer == null) return NotFound();
+            if (customer == null) return new NotFoundViewResult("Error404");
 
             return View(customer);
         }
@@ -147,7 +147,7 @@ namespace VitoriaAirlinesWeb.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var customer = await _customerRepository.GetByIdWithUserAsync(id);
-            if (customer == null) return NotFound();
+            if (customer == null) return new NotFoundViewResult("Error404");
 
             try
             {

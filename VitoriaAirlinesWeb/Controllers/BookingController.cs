@@ -115,10 +115,10 @@ namespace VitoriaAirlinesWeb.Controllers
         public async Task<IActionResult> CreateCheckoutSession(int flightId, int seatId, decimal price, string? firstName, string? lastName, string? email)
         {
             var flight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(flightId);
-            if (flight == null) return NotFound("Flight not found.");
+            if (flight == null) return new NotFoundViewResult("Error404"); ;
 
             var seat = flight.Airplane.Seats.FirstOrDefault(s => s.Id == seatId);
-            if (seat == null) return NotFound("Seat not found.");
+            if (seat == null) return new NotFoundViewResult("Error404");
 
 
             HttpContext.Session.SetInt32("FlightId", flightId);
@@ -286,14 +286,14 @@ namespace VitoriaAirlinesWeb.Controllers
         public async Task<IActionResult> ConfirmSeatChange(int oldTicketId, int newSeatId)
         {
             var oldTicket = await _ticketRepository.GetTicketWithDetailsAsync(oldTicketId);
-            if (oldTicket == null) return NotFound("Original ticket not found.");
+            if (oldTicket == null) return new NotFoundViewResult("Error404");
 
             var user = await _userHelper.GetUserByEmailAsync(User.Identity.Name);
             if (oldTicket.UserId != user.Id) return Forbid();
 
             var flight = oldTicket.Flight;
             var newSeat = flight.Airplane.Seats.FirstOrDefault(s => s.Id == newSeatId);
-            if (newSeat == null) return NotFound("New seat not found.");
+            if (newSeat == null) return new NotFoundViewResult("Error404");
 
             var oldPrice = oldTicket.PricePaid;
             var newPrice = (newSeat.Class == SeatClass.Economy) ? flight.EconomyClassPrice : flight.ExecutiveClassPrice;
@@ -310,14 +310,14 @@ namespace VitoriaAirlinesWeb.Controllers
         public async Task<IActionResult> ExecuteSeatChange(int oldTicketId, int newSeatId)
         {
             var ticket = await _ticketRepository.GetTicketWithDetailsAsync(oldTicketId);
-            if (ticket == null || ticket.IsCanceled) return NotFound();
+            if (ticket == null || ticket.IsCanceled) return new NotFoundViewResult("Error404");
 
             var user = await _userHelper.GetUserByEmailAsync(User.Identity.Name);
             if (ticket.UserId != user.Id) return Forbid();
 
             var flight = ticket.Flight;
             var newSeat = flight.Airplane.Seats.FirstOrDefault(s => s.Id == newSeatId);
-            if (newSeat == null) return NotFound();
+            if (newSeat == null) return new NotFoundViewResult("Error404");
 
             if (ticket.Flight.DepartureUtc <= DateTime.UtcNow.AddHours(24))
             {

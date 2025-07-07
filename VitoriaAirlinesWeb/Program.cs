@@ -28,6 +28,17 @@ namespace VitoriaAirlinesWeb
             // Synfusion License
             SyncfusionLicenseProvider.RegisterLicense(builder.Configuration["Syncfusion:LicenseKey"]);
 
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                // Quando um utilizador não está logado, envia-o para a página de login.
+                options.LoginPath = "/Account/Login";
+
+                // Quando um utilizador está logado mas não tem permissão (ex: Role errada),
+                // envia-o para a sua nova página de acesso proibido.
+                options.AccessDeniedPath = "/Account/NotAuthorized";
+            });
+
+
             // Add services to the container.
             builder.Services
             .AddControllersWithViews()
@@ -197,6 +208,8 @@ namespace VitoriaAirlinesWeb
                 c.SwaggerEndpoint("/api/swagger/v1/swagger.json", "VitoriaAirlines API v1");
                 c.RoutePrefix = "api";
             });
+
+            app.UseStatusCodePagesWithReExecute("/Errors/Handle404");
 
 
             app.UseSession();

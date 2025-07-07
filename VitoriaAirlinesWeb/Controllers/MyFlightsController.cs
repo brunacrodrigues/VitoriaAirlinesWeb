@@ -30,7 +30,7 @@ namespace VitoriaAirlinesWeb.Controllers
         {
             var email = User.Identity?.Name;
             var user = await _userHelper.GetUserByEmailAsync(email);
-            if (user == null) return NotFound();
+            if (user == null) return new NotFoundViewResult("Error404");
 
             var tickets = await _ticketRepository.GetTicketsHistoryByUserAsync(user.Id);
 
@@ -47,7 +47,7 @@ namespace VitoriaAirlinesWeb.Controllers
         {
             var email = User.Identity?.Name;
             var user = await _userHelper.GetUserByEmailAsync(email);
-            if (user == null) return NotFound();
+            if (user == null) return new NotFoundViewResult("Error404");
 
             var tickets = await _ticketRepository.GetUpcomingTicketsByUserAsync(user.Id);
 

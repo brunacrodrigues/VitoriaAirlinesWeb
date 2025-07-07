@@ -1,0 +1,112 @@
+﻿@{
+    ViewData["Title"] = "404 - Page Not Found";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"]</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet" />
+    <style>
+        body {
+            margin: 0;
+            background-color: #0e0e0e;
+            font-family: 'Outfit', sans-serif;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .container-404 {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .lost-plane-icon {
+            width: 220px;
+            height: auto;
+            margin-bottom: 2.5rem;
+        }
+
+        .plane-path {
+            fill: #D4A437;
+            animation: fly-across 8s ease-in-out infinite;
+        }
+
+        .clouds-path {
+            fill: #2a2a2a;
+        }
+
+        svg .plane-path {
+            transform-origin: center;
+        }
+
+        @@keyframes fly-across {
+            0% {
+                transform: translateX(-350px);
+            }
+
+            100% {
+                transform: translateX(500px);
+            }
+        }
+
+        .error-code {
+            font-size: 10rem;
+            font-weight: 700;
+            color: #4B0012;
+            margin: 0;
+            line-height: 1;
+            text-shadow: 3px 3px 8px rgba(0,0,0,0.2);
+        }
+
+        .error-message {
+            font-size: 1.25rem;
+            color: #ccc;
+            margin-top: 1.5rem;
+            margin-bottom: 2.5rem;
+            max-width: 550px;
+            line-height: 1.6;
+        }
+
+        .btn-go-back {
+            display: inline-block;
+            padding: 0.8rem 2.5rem;
+            background-color: #D4A437;
+            color: #0e0e0e;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+            .btn-go-back:hover {
+                background-color: #A67C26;
+                color: white;
+                transform: translateY(-3px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+            }
+    </style>
+</head>
+<body>
+    <div class="container-404">
+        <svg class="lost-plane-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+            <path class="plane-path" d="M73.1,245.3h23.6l53-94.4h60.9c0,0,35.4,0,35.4-16.5c0-16.5-35.4-16.5-35.4-16.5h-60.9l-53-94.4H73.1l29.4,94.4H60.2L33.6,94.2H10l18.9,40.1L10,174.5h23.6l26.6-23.6h42.3L73.1,245.3L73.1,245.3z" />
+            <path class="clouds-path" d="M144 112c-24.8 0-46.3 14.5-56.2 36.1C80.3 145.4 72.5 144 64 144c-35.3 0-64 28.7-64 64s28.7 64 64 64h384c35.3 0 64-28.7 64-64s-28.7-64-64-64c-8.5 0-16.3 1.4-23.8 3.9C414.3 126.5 392.8 112 368 112c-29.2 0-54.3 16.4-67.4 40.1C288.5 137.9 273.1 128 256 128s-32.5 9.9-44.6 24.1C198.3 128.4 172.8 112 144 112zM384 352H128c-35.3 0-64 28.7-64 64s28.7 64 64 64h256c35.3 0 64-28.7 64-64s-28.7-64-64-64z" />
+        </svg>
+
+        <h1 class="error-code">404</h1>
+        <h2 class="error-message">Page Not Found – Our navigation systems can't find this destination. It seems we are lost in the clouds.</h2>
+
+        <a href="@Url.Action("Index", "Home")" class="btn-go-back">Return to Homepage</a>
+    </div>
+</body>
+</html>

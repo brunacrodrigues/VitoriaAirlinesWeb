@@ -40,7 +40,7 @@ namespace VitoriaAirlinesWeb.Controllers
         {
             var airplane = await _airplaneRepository.GetByIdWithSeatsAsync(id);
             if (airplane == null)
-                return NotFound();
+                return new NotFoundViewResult("Error404");
 
             return View(airplane);
         }
@@ -101,7 +101,7 @@ namespace VitoriaAirlinesWeb.Controllers
         {
             var airplane = await _airplaneRepository.GetByIdAsync(id);
             if (airplane == null)
-                return NotFound();
+                return new NotFoundViewResult("Error404");
 
             var model = _converterHelper.ToAirplaneViewModel(airplane);
 
@@ -128,7 +128,7 @@ namespace VitoriaAirlinesWeb.Controllers
 
             var airplane = await _airplaneRepository.GetByIdAsync(viewModel.Id);
             if (airplane == null)
-                return NotFound();
+                return new NotFoundViewResult("Error404");
 
             Guid imageId = airplane.ImageId;
 
@@ -174,7 +174,7 @@ namespace VitoriaAirlinesWeb.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var airplane = await _airplaneRepository.GetByIdAsync(id);
-            if (airplane == null) return NotFound();
+            if (airplane == null) return new NotFoundViewResult("Error404");
 
             if (!_airplaneRepository.CanBeDeleted(id))
             {
@@ -198,7 +198,7 @@ namespace VitoriaAirlinesWeb.Controllers
             var airplane = await _airplaneRepository.GetByIdAsync(id);
             if (airplane == null)
             {
-                return NotFound();
+                return new NotFoundViewResult("Error404");
             }
 
             if (!_airplaneRepository.CanBeDeleted(id))

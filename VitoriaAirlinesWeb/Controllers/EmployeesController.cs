@@ -102,7 +102,7 @@ namespace VitoriaAirlinesWeb.Controllers
         public async Task<IActionResult> Edit(string email)
         {
             var employee = await _userHelper.GetUserByEmailAsync(email);
-            if (employee == null) return NotFound();
+            if (employee == null) return new NotFoundViewResult("Error404");
 
             var model = _converterHelper.ToEditEmployeeViewModel(employee);
             return View(model);
@@ -113,7 +113,7 @@ namespace VitoriaAirlinesWeb.Controllers
         public async Task<IActionResult> Edit(string email, EditEmployeeViewModel model)
         {
 
-            if (email != model.Email) return NotFound();
+            if (email != model.Email) return new NotFoundViewResult("Error404");
 
             if (!ModelState.IsValid)
             {
@@ -121,7 +121,7 @@ namespace VitoriaAirlinesWeb.Controllers
             }
 
             var employee = await _userHelper.GetUserByEmailAsync(email);
-            if (employee == null) return NotFound();
+            if (employee == null) return new NotFoundViewResult("Error404");
 
             _converterHelper.ToUser(model, employee);
             await _userHelper.UpdateUserAsync(employee);
@@ -134,7 +134,7 @@ namespace VitoriaAirlinesWeb.Controllers
         public async Task<IActionResult> Deactivate(string email)
         {
             var employee = await _userHelper.GetUserByEmailAsync(email);
-            if (employee == null) return NotFound();
+            if (employee == null) return new NotFoundViewResult("Error404");
 
             return View(employee);
         }
@@ -145,7 +145,7 @@ namespace VitoriaAirlinesWeb.Controllers
         public async Task<IActionResult> DeactivateConfirmed(string email)
         {
             var employee = await _userHelper.GetUserByEmailAsync(email);
-            if (employee == null) return NotFound();
+            if (employee == null) return new NotFoundViewResult("Error404");
 
 
             await _userHelper.DeactivateUserAsync(employee);

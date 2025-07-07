@@ -148,19 +148,19 @@ namespace VitoriaAirlinesWeb.Controllers
         {
             if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
             {
-                return NotFound();
+                return new NotFoundViewResult("Error404");
             }
 
             var user = await _userHelper.GetUserByIdAsync(userId);
             if (user == null)
             {
-                return NotFound();
+                return new NotFoundViewResult("Error404");
             }
 
             var result = await _userHelper.ConfirmEmailAsync(user, token);
             if (!result.Succeeded)
             {
-                return NotFound();
+                return new NotFoundViewResult("Error404");
             }
 
             return View();
@@ -247,7 +247,7 @@ namespace VitoriaAirlinesWeb.Controllers
         public async Task<IActionResult> ChangePassword()
         {
             var user = await _userHelper.GetUserByEmailAsync(User.Identity.Name);
-            if (user == null) return NotFound();
+            if (user == null) return new NotFoundViewResult("Error404");
 
             var roles = await _userHelper.GetUserRolesAsync(user);
             ViewData["Role"] = roles.FirstOrDefault();
@@ -291,7 +291,7 @@ namespace VitoriaAirlinesWeb.Controllers
         public async Task<IActionResult> EditProfile()
         {
             var user = await _userHelper.GetUserByEmailAsync(User.Identity.Name);
-            if (user == null) return NotFound();
+            if (user == null) return new NotFoundViewResult("Error404");
 
             var roles = await _userHelper.GetUserRolesAsync(user);
             ViewData["Role"] = roles.FirstOrDefault();
@@ -311,7 +311,7 @@ namespace VitoriaAirlinesWeb.Controllers
         public async Task<IActionResult> EditProfile(EditUserProfileViewModel model)
         {
             var user = await _userHelper.GetUserByEmailAsync(User.Identity.Name);
-            if (user == null) return NotFound();
+            if (user == null) return new NotFoundViewResult("Error404");
 
 
             var roles = await _userHelper.GetUserRolesAsync(user);
@@ -350,6 +350,12 @@ namespace VitoriaAirlinesWeb.Controllers
 
             model.CurrentProfileImagePath = user.ImageFullPath;
             return View(model);
+        }
+
+
+        public IActionResult NotAuthorized()
+        {
+            return View();
         }
     }
 }

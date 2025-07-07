@@ -45,7 +45,7 @@ namespace VitoriaAirlinesWeb.Controllers
         public async Task<IActionResult> Details(int id, string? returnUrl = null)
         {
             var flight = await _flightRepository.GetByIdWithDetailsAsync(id);
-            if (flight == null) return NotFound();
+            if (flight == null) return new NotFoundViewResult("Error404");
 
             ViewBag.ReturnUrl = returnUrl ?? Url.Action("Index", "Flights");
 
@@ -131,7 +131,7 @@ namespace VitoriaAirlinesWeb.Controllers
         public async Task<IActionResult> Edit(int id, string? returnUrl = null)
         {
             var flight = await _flightRepository.GetByIdWithDetailsAsync(id);
-            if (flight == null) return NotFound();
+            if (flight == null) return new NotFoundViewResult("Error404");
 
             if (flight.Status != FlightStatus.Scheduled)
             {
@@ -169,7 +169,7 @@ namespace VitoriaAirlinesWeb.Controllers
             var existingFlight = await _flightRepository.GetByIdWithDetailsAsync(viewModel.Id);
             if (existingFlight == null)
             {
-                return NotFound();
+                return new NotFoundViewResult("Error404");
             }
 
             if (existingFlight.Status != FlightStatus.Scheduled)
@@ -198,7 +198,7 @@ namespace VitoriaAirlinesWeb.Controllers
         public async Task<IActionResult> Cancel(int id, string? returnUrl = null)
         {
             var flight = await _flightRepository.GetByIdWithDetailsAsync(id);
-            if (flight == null) return NotFound();
+            if (flight == null) return new NotFoundViewResult("Error404");
 
             if (flight.Status != FlightStatus.Scheduled)
             {
@@ -218,7 +218,7 @@ namespace VitoriaAirlinesWeb.Controllers
         {
             var flight = await _flightRepository.GetByIdWithDetailsAsync(id);
             if (flight == null)
-                return NotFound();
+                return new NotFoundViewResult("Error404");
 
 
             if (flight.Status != FlightStatus.Scheduled)

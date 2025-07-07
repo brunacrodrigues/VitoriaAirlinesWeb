@@ -34,7 +34,7 @@ namespace VitoriaAirlinesWeb.Controllers
         public async Task<IActionResult> Details(int id)
         {
             var airport = await _airportRepository.GetByIdWithCountryAsync(id);
-            if (airport == null) return NotFound();
+            if (airport == null) return new NotFoundViewResult("Error404");
 
             return View(airport);
         }
@@ -82,7 +82,7 @@ namespace VitoriaAirlinesWeb.Controllers
         public async Task<IActionResult> Edit(int id)
         {
             var airplane = await _airportRepository.GetByIdWithCountryAsync(id);
-            if (airplane == null) return NotFound();
+            if (airplane == null) return new NotFoundViewResult("Error404");
 
             var model = _converterHelper.ToAirportViewModel(airplane);
             model.Countries = _countryRepository.GetComboCountries();
@@ -94,7 +94,7 @@ namespace VitoriaAirlinesWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, AirportViewModel viewModel)
         {
-            if (id != viewModel.Id) return NotFound();
+            if (id != viewModel.Id) return new NotFoundViewResult("Error404");
 
             if (!ModelState.IsValid)
             {
@@ -124,7 +124,7 @@ namespace VitoriaAirlinesWeb.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var airport = await _airportRepository.GetByIdWithCountryAsync(id);
-            if (airport == null) return NotFound();
+            if (airport == null) return new NotFoundViewResult("Error404");
 
             return View(airport);
         }
@@ -136,7 +136,7 @@ namespace VitoriaAirlinesWeb.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var airport = await _airportRepository.GetByIdAsync(id);
-            if (airport == null) return NotFound();
+            if (airport == null) return new NotFoundViewResult("Error404");
 
             await _airportRepository.DeleteAsync(airport);
 
