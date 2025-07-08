@@ -10,6 +10,15 @@
 
     var airportItemTemplate = "<div><span class='flag-icon flag-icon-${Icon} me-2'></span><span>${Text}</span></div>";
     var airportValueTemplate = "<div><span class='flag-icon flag-icon-${Icon} me-2'></span><span>${Text}</span></div>";
+
+    if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
 }
 
 <div class="main-content">
@@ -118,10 +127,20 @@
                                 }
                                 @if (!User.IsInRole(UserRoles.Admin) && !User.IsInRole(UserRoles.Employee))
                                 {
-                                    <a asp-controller="Booking" asp-action="SelectSeat" asp-route-flightId="@flight.Id" class="btn btn-brand-primary fw-bold">
-                                        <i class="fas fa-ticket-alt me-1"></i> Book Now
-                                    </a>
+                                    if (Model.BookedFlightIds != null && Model.BookedFlightIds.Contains(flight.Id))
+                                    {
+                                        <button class="btn btn-secondary fw-bold" disabled>
+                                            <i class="fas fa-check-circle me-1"></i> Already Booked
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <a asp-controller="Booking" asp-action="SelectSeat" asp-route-flightId="@flight.Id" class="btn btn-brand-primary fw-bold">
+                                            <i class="fas fa-ticket-alt me-1"></i> Book Now
+                                        </a>
+                                    }
                                 }
+
                             </div>
                         </div>
                     </div>

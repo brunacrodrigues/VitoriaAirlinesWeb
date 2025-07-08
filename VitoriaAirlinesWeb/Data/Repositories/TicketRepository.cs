@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Data.Enums;
+using VitoriaAirlinesWeb.Helpers;
 
 namespace VitoriaAirlinesWeb.Data.Repositories
 {
@@ -69,5 +70,11 @@ namespace VitoriaAirlinesWeb.Data.Repositories
                 .FirstOrDefaultAsync(t => t.Id == ticketId);
         }
 
+        public async Task<bool> UserHasTicketForFlightAsync(string userId, int flightId)
+        {
+            return await _context.Tickets.
+                AnyAsync(t => t.UserId == userId &&
+                t.FlightId == flightId);
+        }
     }
 }

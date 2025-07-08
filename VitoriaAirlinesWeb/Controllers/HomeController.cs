@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Data.Repositories;
 using VitoriaAirlinesWeb.Helpers;
 using VitoriaAirlinesWeb.Models.ViewModels;
@@ -11,13 +12,19 @@ namespace VitoriaAirlinesWeb.Controllers
     {
         private readonly IFlightRepository _flightRepository;
         private readonly IAirportRepository _airportRepository;
+        private readonly ITicketRepository _ticketRepository;
+        private readonly IUserHelper _userHelper;
 
         public HomeController(
             IFlightRepository flightRepository,
-            IAirportRepository airportRepository)
+            IAirportRepository airportRepository,
+            ITicketRepository ticketRepository,
+            IUserHelper userHelper)
         {
             _flightRepository = flightRepository;
             _airportRepository = airportRepository;
+            _ticketRepository = ticketRepository;
+            _userHelper = userHelper;
         }
 
 
@@ -37,6 +44,30 @@ namespace VitoriaAirlinesWeb.Controllers
                     viewModel.OriginAirportId,
                     viewModel.DestinationAirportId
                 );
+            }
+
+            viewModel.Flights ??= Enumerable.Empty<Flight>();
+
+
+            var bookedFlightIds = viewModel.BookedFlightIds = new();
+
+            if (User.IsInRole(UserRoles.Customer))
+            {
+                var user = await _userHelper.GetUserAsync(User);
+                if (user is null) 
+                    return new NotFoundViewResult("Error404");
+
+
+                foreach (var flight in viewModel.Flights)
+                {
+                    var hasTicketForFlight = await _ticketRepository.UserHasTicketForFlightAsync(user.Id, flight.Id);
+
+                    if (hasTicketForFlight)
+                    {
+                        bookedFlightIds.Add(flight.Id);
+                    }
+                }
+                
             }
 
             return View(viewModel);

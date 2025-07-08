@@ -28,5 +28,7 @@ namespace VitoriaAirlinesWeb.Models.ViewModels.FlightSearch
 
 
         public IEnumerable<Flight> Flights { get; set; }
+
+        public HashSet<int> BookedFlightIds { get; set; }
     }
 }

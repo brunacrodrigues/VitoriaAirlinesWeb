@@ -56,6 +56,20 @@ namespace VitoriaAirlinesWeb.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
+            if (User.Identity.IsAuthenticated && User.IsInRole(UserRoles.Customer))
+            {
+                var user = await _userHelper.GetUserAsync(User);
+                if (user != null)
+                {
+                    var alreadyBooked = await _ticketRepository.UserHasTicketForFlightAsync(user.Id, flightId);
+                    if (alreadyBooked && !ticketId.HasValue) 
+                    {
+                        TempData["Error"] = "You have already booked this flight.";
+                        return RedirectToAction("Index", "Home");
+                    }
+                }
+            }
+
             var allTickets = await _ticketRepository.GetTicketsByFlightAsync(flightId);
 
 
@@ -250,6 +264,13 @@ namespace VitoriaAirlinesWeb.Controllers
                 }
 
                 userId = user.Id;
+            }
+
+            var alreadyBooked = await _ticketRepository.UserHasTicketForFlightAsync(userId, flightId.Value);
+            if (alreadyBooked)
+            {
+                TempData["Error"] = "You already have a ticket for this flight.";
+                return RedirectToAction("Index", "Home");
             }
 
             var ticket = new Ticket
