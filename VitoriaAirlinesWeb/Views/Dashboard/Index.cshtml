@@ -81,79 +81,148 @@
 }
 
 @section Scripts {
-        // <script>
-                              const connection = window.flightConnection;
+    <script>
+        async function setupFlightListeners() {
+            try {
+                if (!window.flightConnection) {
+                    console.warn("❗ SignalR not initialized yet.");
+                    return;
+                }
 
-                   connection.on("FlightStatusChanged", function (flightId, newStatus) {
-                       const row = document.querySelector(`[data-flight-id="${flightId}"]`);
-                       const statusCell = row?.querySelector(".status-cell");
+                await window.flightConnection.start();
 
-                       if (!row || !statusCell) return;
+                const connection = window.flightConnection;
 
-                       if (newStatus === "Departed") {
-                           statusCell.innerHTML = `<span class="badge bg-primary">
-                               <i class="fas fa-plane-departure me-1"></i> Departed
-                           </span>`;
-                       } else if (newStatus === "Completed") {
-                           statusCell.innerHTML = `<span class="badge bg-success">
-                               <i class="fas fa-plane-arrival me-1"></i> Completed
-                           </span>`;
-                       } else if (newStatus === "Canceled") {
-                           statusCell.innerHTML = `<span class="badge bg-danger">
-                               <i class="fas fa-times-circle me-1"></i> Canceled
-                           </span>`;
-                       }
+                connection.on("FlightStatusChanged", function (flightId, newStatus) {
+                    const row = document.querySelector(`[data-flight-id="${flightId}"]`);
+                    const statusCell = row?.querySelector(".status-cell");
 
-                       if (newStatus !== "Scheduled") {
-                           row.classList.add("fade-out");
-                           setTimeout(() => row.remove(), 1000);
-                       }
-                   });
+                    if (!row || !statusCell) return;
 
-                   connection.on("NewFlightScheduled", function (flight) {
-                       const tbody = document.querySelector("#flightTable tbody");
+                    if (newStatus === "Departed") {
+                        statusCell.innerHTML = `<span class="badge bg-primary">
+                            <i class="fas fa-plane-departure me-1"></i> Departed
+                        </span>`;
+                    } else if (newStatus === "Completed") {
+                        statusCell.innerHTML = `<span class="badge bg-success">
+                            <i class="fas fa-plane-arrival me-1"></i> Completed
+                        </span>`;
+                    } else if (newStatus === "Canceled") {
+                        statusCell.innerHTML = `<span class="badge bg-danger">
+                            <i class="fas fa-times-circle me-1"></i> Canceled
+                        </span>`;
+                    }
 
-                       const newRow = document.createElement("tr");
-                       newRow.setAttribute("data-flight-id", flight.id);
-                       newRow.innerHTML = `
-                           <td>${flight.flightNumber}</td>
-                           <td>
-                               <img src="${flight.originCountryFlagUrl}" alt="flag" width="30" class="me-2" />
-                               ${flight.originAirportFullName}
-                           </td>
-                           <td>
-                               <img src="${flight.destinationCountryFlagUrl}" alt="flag" width="30" class="me-2" />
-                               ${flight.destinationAirportFullName}
-                           </td>
-                           <td>${flight.departureFormatted}</td>
-                           <td class="status-cell">
-                               <span class="badge bg-warning">
-                                   <i class="fas fa-clock me-1"></i> Scheduled
-                               </span>
-                           </td>`;
+                    if (newStatus !== "Scheduled") {
+                        row.classList.add("fade-out");
+                        setTimeout(() => row.remove(), 1000);
+                    }
+                });
 
-                       const departureDate = new Date(flight.departureFormatted);
-                       const rows = Array.from(tbody.querySelectorAll("tr"));
-                       let inserted = false;
+                connection.on("NewFlightScheduled", function (flight) {
+                    const tbody = document.querySelector("#flightTable tbody");
 
-                       for (let i = 0; i < rows.length; i++) {
-                           if (rows[i].children.length < 4) continue;
+                    const newRow = document.createElement("tr");
+                    newRow.setAttribute("data-flight-id", flight.id);
+                    newRow.innerHTML = `
+                        <td>${flight.flightNumber}</td>
+                        <td>
+                            <img src="${flight.originCountryFlagUrl}" alt="flag" width="30" class="me-2" />
+                            ${flight.originAirportFullName}
+                        </td>
+                        <td>
+                            <img src="${flight.destinationCountryFlagUrl}" alt="flag" width="30" class="me-2" />
+                            ${flight.destinationAirportFullName}
+                        </td>
+                        <td>${flight.departureFormatted}</td>
+                        <td class="status-cell">
+                            <span class="badge bg-warning">
+                                <i class="fas fa-clock me-1"></i> Scheduled
+                            </span>
+                        </td>`;
 
-                           const rowDateText = rows[i].children[3].textContent;
-                           const rowDate = new Date(rowDateText);
-                           if (departureDate < rowDate) {
-                               tbody.insertBefore(newRow, rows[i]);
-                               inserted = true;
-                               break;
-                           }
-                       }
+                    const departureDate = new Date(flight.departureFormatted);
+                    const rows = Array.from(tbody.querySelectorAll("tr"));
+                    let inserted = false;
 
-                       if (!inserted) {
-                           tbody.appendChild(newRow);
-                       }
+                    for (let i = 0; i < rows.length; i++) {
+                        if (rows[i].children.length < 4) continue;
 
-                       const emptyRow = tbody.querySelector("td[colspan='5']");
-                       if (emptyRow) emptyRow.parentElement.remove();
-                   });
+                        const rowDateText = rows[i].children[3].textContent;
+                        const rowDate = new Date(rowDateText);
+                        if (departureDate < rowDate) {
+                            tbody.insertBefore(newRow, rows[i]);
+                            inserted = true;
+                            break;
+                        }
+                    }
+
+                    if (!inserted) {
+                        tbody.appendChild(newRow);
+                    }
+
+                    const emptyRow = tbody.querySelector("td[colspan='5']");
+                    if (emptyRow) emptyRow.parentElement.remove();
+                });
+
+                connection.on("UpdatedFlight", function (flight) {
+                    const tbody = document.querySelector("#flightTable tbody");
+
+                    const existingRow = tbody.querySelector(`[data-flight-id="${flight.id}"]`);
+                    if (existingRow) existingRow.remove();
+
+                    const newRow = document.createElement("tr");
+                    newRow.setAttribute("data-flight-id", flight.id);
+                    newRow.innerHTML = `
+                        <td>${flight.flightNumber}</td>
+                        <td>
+                            <img src="${flight.originCountryFlagUrl}" alt="flag" width="30" class="me-2" />
+                            ${flight.originAirportFullName}
+                        </td>
+                        <td>
+                            <img src="${flight.destinationCountryFlagUrl}" alt="flag" width="30" class="me-2" />
+                            ${flight.destinationAirportFullName}
+                        </td>
+                        <td>${flight.departureFormatted}</td>
+                        <td class="status-cell">
+                            <span class="badge bg-warning">
+                                <i class="fas fa-clock me-1"></i> Scheduled
+                            </span>
+                        </td>`;
+
+                    const departureDate = new Date(flight.departureFormatted);
+                    const rows = Array.from(tbody.querySelectorAll("tr"));
+                    let inserted = false;
+
+                    for (let i = 0; i < rows.length; i++) {
+                        if (rows[i].children.length < 4) continue;
+
+                        const rowDateText = rows[i].children[3].textContent;
+                        const rowDate = new Date(rowDateText);
+                        if (departureDate < rowDate) {
+                            tbody.insertBefore(newRow, rows[i]);
+                            inserted = true;
+                            break;
+                        }
+                    }
+
+                    if (!inserted) {
+                        tbody.appendChild(newRow);
+                    }
+
+                    const emptyRow = tbody.querySelector("td[colspan='5']");
+                    if (emptyRow) emptyRow.parentElement.remove();
+
+                    newRow.classList.add("highlighted");
+                    setTimeout(() => newRow.classList.remove("highlighted"), 1000);
+                });
+
+                console.log("✅ Flight dashboard listeners active.");
+            } catch (err) {
+                console.error("⚠️ Error setting up SignalR listeners:", err);
+            }
+        }
+
+        setupFlightListeners();
     </script>
 }

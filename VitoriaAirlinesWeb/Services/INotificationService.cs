@@ -17,6 +17,8 @@ namespace VitoriaAirlinesWeb.Services
 
         Task NotifyNewFlightScheduledAsync(FlightDashboardViewModel flight);
 
+        Task NotifyUpdatedFlightDashboardAsync(FlightDashboardViewModel flight);
+
 
     }
 }

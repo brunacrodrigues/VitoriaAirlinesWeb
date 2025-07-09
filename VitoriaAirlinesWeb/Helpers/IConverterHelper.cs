@@ -42,5 +42,7 @@ namespace VitoriaAirlinesWeb.Helpers
         ConfirmSeatChangeViewModel ToConfirmSeatChangeViewModel(Ticket oldTicket, Seat newSeat, decimal newPrice);
 
         FlightDashboardViewModel ToFlightDashboardViewModel(Flight entity);
+
+        void UpdateFlightFromViewModel(Flight entity, FlightViewModel model);
     }
 }

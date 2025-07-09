@@ -866,6 +866,26 @@ header .nav-link:hover {
 
 
 
+/* animação para o atualizações no dashboard */
+.highlighted {
+    animation: flashHighlight 1s ease-in-out;
+}
+
+@keyframes flashHighlight {
+    0% {
+        background-color: #fff3cd;
+    }
+
+    50% {
+        background-color: #ffeeba;
+    }
+
+    100% {
+        background-color: transparent;
+    }
+}
+
+
 
 
 

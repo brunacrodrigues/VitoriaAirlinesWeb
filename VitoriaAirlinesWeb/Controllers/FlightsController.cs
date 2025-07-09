@@ -150,6 +150,7 @@ namespace VitoriaAirlinesWeb.Controllers
             return View(model);
         }
 
+
         // POST: FlightsController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -178,20 +179,22 @@ namespace VitoriaAirlinesWeb.Controllers
                 return Redirect(returnUrl ?? Url.Action(nameof(Index)));
             }
 
-            var updatedFlight = _converterHelper.ToFlight(viewModel, isNew: false);
+            _converterHelper.UpdateFlightFromViewModel(existingFlight, viewModel);
+            await _flightRepository.UpdateAsync(existingFlight);
 
-            updatedFlight.Status = existingFlight.Status;
 
-            await _flightRepository.UpdateAsync(updatedFlight);
+            await _notificationService.NotifyAdminsAsync($"Flight {existingFlight.FlightNumber} has been updated.");
+            await _notificationService.NotifyEmployeesAsync($"Flight {existingFlight.FlightNumber} was updated by staff");
+            await _notificationService.NotifyFlightCustomersAsync(existingFlight, $"Your flight {existingFlight.FlightNumber} has been updated. Please review the new details.");
 
-            await _notificationService.NotifyAdminsAsync($"Flight {updatedFlight.FlightNumber} has been updated.");
-            await _notificationService.NotifyEmployeesAsync($"Flight {updatedFlight.FlightNumber} was updated by staff");
-            await _notificationService.NotifyFlightCustomersAsync(updatedFlight, $"Your flight {updatedFlight.FlightNumber} has been updated. Please review the new details.");
+            var dashboardModel = _converterHelper.ToFlightDashboardViewModel(existingFlight);
+            await _notificationService.NotifyUpdatedFlightDashboardAsync(dashboardModel);
 
             TempData["SuccessMessage"] = "Flight updated successfully.";
             return Redirect(returnUrl ?? Url.Action(nameof(Index)));
 
         }
+
 
 
         // GET: FlightsController/Delete/5
@@ -210,6 +213,8 @@ namespace VitoriaAirlinesWeb.Controllers
 
             return View(flight);
         }
+
+
 
         // POST: FlightsController/Delete/5
         [HttpPost]
@@ -246,12 +251,15 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
+
         [HttpGet]
         public async Task<IActionResult> History()
         {
             var flights = await _flightRepository.GetFlightsHistoryAsync();
             return View(flights);
         }
+
+
 
         [HttpGet]
         public async Task<IActionResult> Scheduled()

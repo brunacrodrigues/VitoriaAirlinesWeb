@@ -221,5 +221,16 @@ namespace VitoriaAirlinesWeb.Helpers
                 DepartureFormatted = entity.DepartureUtc.ToLocalTime().ToString("HH:mm dd MMM")
             };
         }
+
+        public void UpdateFlightFromViewModel(Flight entity, FlightViewModel model)
+        {
+            entity.OriginAirportId = model.OriginAirportId!.Value;
+            entity.DestinationAirportId = model.DestinationAirportId!.Value;
+            entity.AirplaneId = model.AirplaneId;
+            entity.EconomyClassPrice = model.EconomyClassPrice;
+            entity.ExecutiveClassPrice = model.ExecutiveClassPrice;
+            entity.DepartureUtc = model.DepartureDate!.Value.ToDateTime(model.DepartureTime!.Value).ToUniversalTime();
+            entity.Duration = model.Duration!.Value;
+        }
     }
 }
