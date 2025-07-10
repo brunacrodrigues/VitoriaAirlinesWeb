@@ -97,16 +97,28 @@ namespace VitoriaAirlinesWeb.Controllers
 
             if (!ModelState.IsValid)
             {
-                viewModel.Airplanes = await _airplaneRepository.GetComboAirplanesAsync();
-                var airports = await _airportRepository.GetComboAirportsWithFlagsAsync();
-                viewModel.OriginAirports = airports;
-                viewModel.DestinationAirports = airports;
-
-                ViewBag.ReturnUrl = returnUrl ?? Url.Action("Index", "Flights");
-                return View(viewModel);
+                return await LoadViewModelCombos(viewModel, returnUrl);
             }
+
             var flightNumber = await _flightHelper.GenerateUniqueFlightNumberAsync();
             viewModel.FlightNumber = flightNumber;
+
+            var departureUtc = viewModel.DepartureDate!.Value.ToDateTime(viewModel.DepartureTime!.Value);
+            var isAvailable = await _flightRepository.IsAirplaneAvailableAsync(
+                viewModel.AirplaneId,
+                departureUtc,
+                viewModel.Duration!.Value,
+                viewModel.OriginAirportId!.Value
+            );
+
+
+            if (!isAvailable)
+            {
+                ModelState.AddModelError("", "The selected airplane is either unavailable or not at the origin airport at the scheduled time.");
+
+                return await LoadViewModelCombos(viewModel, returnUrl);
+            }
+
 
 
             var flight = _converterHelper.ToFlight(viewModel, isNew: true);
@@ -127,6 +139,7 @@ namespace VitoriaAirlinesWeb.Controllers
             return Redirect(returnUrl ?? Url.Action(nameof(Index)));
         }
 
+
         // GET: FlightsController/Edit/5
         public async Task<IActionResult> Edit(int id, string? returnUrl = null)
         {
@@ -140,14 +153,8 @@ namespace VitoriaAirlinesWeb.Controllers
             }
 
             var model = _converterHelper.ToFlightViewModel(flight);
-            model.Airplanes = await _airplaneRepository.GetComboAirplanesAsync();
-            var airports = await _airportRepository.GetComboAirportsWithFlagsAsync();
-            model.OriginAirports = airports;
-            model.DestinationAirports = airports;
 
-            ViewBag.ReturnUrl = returnUrl ?? Url.Action("Index", "Flights");
-
-            return View(model);
+            return await LoadViewModelCombos(model, returnUrl);
         }
 
 
@@ -156,16 +163,30 @@ namespace VitoriaAirlinesWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(FlightViewModel viewModel, string? returnUrl)
         {
+            if (viewModel.DepartureDate.HasValue && viewModel.DepartureTime.HasValue)
+            {
+                var departure = viewModel.DepartureDate.Value.ToDateTime(viewModel.DepartureTime.Value);
+                if (departure < DateTime.Now)
+                {
+                    ModelState.AddModelError(nameof(viewModel.DepartureDate), "The departure date and time cannot be in the past.");
+                }
+            }
+
+            if (!viewModel.Duration.HasValue || viewModel.Duration.Value.TotalMinutes <= 0)
+            {
+                ModelState.AddModelError(nameof(viewModel.Duration), "Flight duration must be greater than zero.");
+            }
+
+            if (viewModel.ExecutiveClassPrice < viewModel.EconomyClassPrice)
+            {
+                ModelState.AddModelError(nameof(viewModel.ExecutiveClassPrice), "Executive price cannot be lower than economy price.");
+            }
+
             if (!ModelState.IsValid)
             {
-                viewModel.Airplanes = await _airplaneRepository.GetComboAirplanesAsync();
-                var airports = await _airportRepository.GetComboAirportsWithFlagsAsync();
-                viewModel.OriginAirports = airports;
-                viewModel.DestinationAirports = airports;
-
-                ViewBag.ReturnUrl = returnUrl ?? Url.Action("Index", "Flights");
-                return View(viewModel);
+                return await LoadViewModelCombos(viewModel, returnUrl);
             }
+
 
             var existingFlight = await _flightRepository.GetByIdWithDetailsAsync(viewModel.Id);
             if (existingFlight == null)
@@ -178,6 +199,23 @@ namespace VitoriaAirlinesWeb.Controllers
                 TempData["WarningMessage"] = "Only scheduled flights can be edited.";
                 return Redirect(returnUrl ?? Url.Action(nameof(Index)));
             }
+
+
+            var departureUtc = viewModel.DepartureDate!.Value.ToDateTime(viewModel.DepartureTime!.Value);
+            var isAvailable = await _flightRepository.IsAirplaneAvailableAsync(
+                viewModel.AirplaneId,
+                departureUtc,
+                viewModel.Duration!.Value,
+                viewModel.OriginAirportId!.Value,
+                viewModel.Id // excludes this flight
+            );
+
+            if (!isAvailable)
+            {
+                ModelState.AddModelError("", "The selected airplane is either unavailable or not at the origin airport at the scheduled time.");
+                return await LoadViewModelCombos(viewModel, returnUrl);
+            }
+
 
             _converterHelper.UpdateFlightFromViewModel(existingFlight, viewModel);
             await _flightRepository.UpdateAsync(existingFlight);
@@ -267,5 +305,18 @@ namespace VitoriaAirlinesWeb.Controllers
             var flights = await _flightRepository.GetScheduledFlightsAsync();
             return View(flights);
         }
+
+
+        private async Task<IActionResult> LoadViewModelCombos(FlightViewModel viewModel, string? returnUrl)
+        {
+            viewModel.Airplanes = await _airplaneRepository.GetComboAirplanesAsync();
+            var airports = await _airportRepository.GetComboAirportsWithFlagsAsync();
+            viewModel.OriginAirports = airports;
+            viewModel.DestinationAirports = airports;
+
+            ViewBag.ReturnUrl = returnUrl ?? Url.Action("Index", "Flights");
+            return View(viewModel);
+        }
+
     }
 }

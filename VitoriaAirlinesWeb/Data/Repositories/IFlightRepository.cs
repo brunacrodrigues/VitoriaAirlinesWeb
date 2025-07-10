@@ -17,5 +17,12 @@ namespace VitoriaAirlinesWeb.Data.Repositories
         Task<Flight?> GetByIdWithAirplaneAndSeatsAsync(int id);
 
         Task<IEnumerable<Flight>> GetFlightsForDateAsync(DateTime date);
+
+        Task<bool> IsAirplaneAvailableAsync(
+            int airplaneId,
+            DateTime newDepartureUtc,
+            TimeSpan newDuration,
+            int newFlightOriginAirportId,
+            int? flightToEdit = null);
     }
 }
