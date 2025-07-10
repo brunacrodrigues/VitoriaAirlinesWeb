@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using OpenAI;
 using Stripe;
 using Syncfusion.Licensing;
 using System.Text;
@@ -224,13 +223,12 @@ namespace VitoriaAirlinesWeb
 
             app.UseHangfireDashboard(); // localhost/hangfire
 
-           
+
             RecurringJob.AddOrUpdate<IFlightService>(
                 "update-completed-flights",
                 service => service.UpdateFlightStatusAsync(),
-                Cron.Minutely); // TODO delete past jobs
+                Cron.Hourly);
 
-            // TODO job to send emails
 
 
 

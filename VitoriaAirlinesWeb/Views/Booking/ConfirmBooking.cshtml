@@ -48,6 +48,16 @@
                     </div>
                 }
 
+                @if (string.IsNullOrWhiteSpace(Model.ExistingPassportNumber))
+                {
+                    <div class="mb-3">
+                        <label asp-for="PassportNumber" class="form-label"></label>
+                        <input asp-for="PassportNumber" class="form-control" />
+                        <span asp-validation-for="PassportNumber" class="text-danger"></span>
+                    </div>
+                }
+
+
                 @Html.AntiForgeryToken()
 
                 <button type="submit" class="btn btn-gold w-100">Confirm and Pay</button>

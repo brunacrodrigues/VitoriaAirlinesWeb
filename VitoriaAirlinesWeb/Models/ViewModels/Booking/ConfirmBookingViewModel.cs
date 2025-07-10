@@ -33,6 +33,13 @@ namespace VitoriaAirlinesWeb.Models.ViewModels.Booking
 
         public bool IsCustomer {  get; set; }
 
+        public string? ExistingPassportNumber { get; set; }
+
+
+        [Display(Name = "Passport Number")]
+        [Required(ErrorMessage = "Passport Number is required")]
+        public string? PassportNumber { get; set; }
+
 
         [Display(Name = "First Name")]
         [Required(ErrorMessage = "First Name is required")]

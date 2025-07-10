@@ -94,6 +94,9 @@ namespace VitoriaAirlinesWeb.Controllers
             return View(viewModel);
         }
 
+
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ConfirmBooking(int flightId, int seatId)
@@ -119,6 +122,13 @@ namespace VitoriaAirlinesWeb.Controllers
             var model = _converterHelper.ToConfirmBookingViewModel(flight, seat);
             model.IsCustomer = User.Identity.IsAuthenticated && User.IsInRole(UserRoles.Customer);
 
+            if (model.IsCustomer)
+            {
+                var user = await _userHelper.GetUserAsync(User);
+                var profile = await _customerProfileRepository.GetByUserIdAsync(user.Id);
+                model.ExistingPassportNumber = profile?.PassportNumber;
+            }
+
             return View(model);
         }
 
@@ -126,7 +136,7 @@ namespace VitoriaAirlinesWeb.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateCheckoutSession(int flightId, int seatId, decimal price, string? firstName, string? lastName, string? email)
+        public async Task<IActionResult> CreateCheckoutSession(int flightId, int seatId, decimal price, string? firstName, string? lastName, string? email, string? passportNumber)
         {
             var flight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(flightId);
             if (flight == null) return new NotFoundViewResult("Error404"); ;
@@ -134,17 +144,36 @@ namespace VitoriaAirlinesWeb.Controllers
             var seat = flight.Airplane.Seats.FirstOrDefault(s => s.Id == seatId);
             if (seat == null) return new NotFoundViewResult("Error404");
 
+            if (string.IsNullOrWhiteSpace(passportNumber))
+            {
+                TempData["Error"] = "Passport number is required.";
+                return RedirectToAction("ConfirmBooking", new { flightId, seatId });
+            }
+
+
 
             HttpContext.Session.SetInt32("FlightId", flightId);
             HttpContext.Session.SetInt32("SeatId", seatId);
             HttpContext.Session.SetString("Price", price.ToString(CultureInfo.InvariantCulture));
+            if (User.Identity.IsAuthenticated && User.IsInRole(UserRoles.Customer))
+            {
+                var user = await _userHelper.GetUserAsync(User);
+                var profile = await _customerProfileRepository.GetByUserIdAsync(user.Id);
 
-            if (!User.Identity.IsAuthenticated || !User.IsInRole(UserRoles.Customer))
+                if (string.IsNullOrWhiteSpace(profile?.PassportNumber))
+                {
+                    profile.PassportNumber = passportNumber;
+                    await _customerProfileRepository.UpdateAsync(profile);
+                }
+            }
+            else
             {
                 HttpContext.Session.SetString("FirstName", firstName ?? "");
                 HttpContext.Session.SetString("LastName", lastName ?? "");
                 HttpContext.Session.SetString("Email", email ?? "");
+                HttpContext.Session.SetString("PassportNumber", passportNumber ?? "");
             }
+
 
             var baseUrl = $"{Request.Scheme}://{Request.Host}";
             var successUrl = $"{baseUrl}/Booking/Success?session_id={{CHECKOUT_SESSION_ID}}";
@@ -210,6 +239,8 @@ namespace VitoriaAirlinesWeb.Controllers
                 var email = HttpContext.Session.GetString("Email");
                 var firstName = HttpContext.Session.GetString("FirstName");
                 var lastName = HttpContext.Session.GetString("LastName");
+                var passportNumber = HttpContext.Session.GetString("PassportNumber");
+
 
                 if (string.IsNullOrWhiteSpace(email))
                 {
@@ -239,7 +270,8 @@ namespace VitoriaAirlinesWeb.Controllers
 
                 var profile = new CustomerProfile
                 {
-                    UserId = user.Id
+                    UserId = user.Id,
+                    PassportNumber = passportNumber
                 };
                 await _customerProfileRepository.CreateAsync(profile);
 
@@ -290,6 +322,8 @@ namespace VitoriaAirlinesWeb.Controllers
             HttpContext.Session.Remove("FirstName");
             HttpContext.Session.Remove("LastName");
             HttpContext.Session.Remove("Email");
+            HttpContext.Session.Remove("PassportNumber");
+
 
             return View();
         }
@@ -301,6 +335,8 @@ namespace VitoriaAirlinesWeb.Controllers
         {
             return View();
         }
+
+
 
         [HttpGet]
         [Authorize(Roles = UserRoles.Customer)]
