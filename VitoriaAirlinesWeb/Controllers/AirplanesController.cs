@@ -4,6 +4,7 @@ using VitoriaAirlinesWeb.Data.Enums;
 using VitoriaAirlinesWeb.Data.Repositories;
 using VitoriaAirlinesWeb.Helpers;
 using VitoriaAirlinesWeb.Models.ViewModels.Airplanes;
+using VitoriaAirlinesWeb.Services;
 
 namespace VitoriaAirlinesWeb.Controllers
 {
@@ -11,20 +12,32 @@ namespace VitoriaAirlinesWeb.Controllers
     public class AirplanesController : Controller
     {
         private readonly IAirplaneRepository _airplaneRepository;
+        private readonly IFlightRepository _flightRepository;
         private readonly ISeatGeneratorHelper _seatGeneratorHelper;
         private readonly IConverterHelper _converterHelper;
         private readonly IBlobHelper _blobHelper;
+        private readonly IUserHelper _userHelper;
+        private readonly IMailHelper _mailHelper;
+        private readonly INotificationService _notificationService;
 
         public AirplanesController(
             IAirplaneRepository airplaneRepository,
+            IFlightRepository flightRepository,
             ISeatGeneratorHelper seatGeneratorHelper,
             IConverterHelper converterHelper,
-            IBlobHelper blobHelper)
+            IBlobHelper blobHelper,
+            IUserHelper userHelper,
+            IMailHelper mailHelper,
+            INotificationService notificationService)
         {
             _airplaneRepository = airplaneRepository;
+            _flightRepository = flightRepository;
             _seatGeneratorHelper = seatGeneratorHelper;
             _converterHelper = converterHelper;
             _blobHelper = blobHelper;
+            _userHelper = userHelper;
+            _mailHelper = mailHelper;
+            _notificationService = notificationService;
         }
 
         // GET: AirplanesController
@@ -105,9 +118,8 @@ namespace VitoriaAirlinesWeb.Controllers
 
             var model = _converterHelper.ToAirplaneViewModel(airplane);
 
-            var hasFlights = _airplaneRepository.HasAnyNonCanceledFlights(id);
-            ViewBag.LockCapacity = hasFlights;
-            ViewBag.LockStatus = _airplaneRepository.HasFutureScheduledFlights(id);
+            ViewBag.LockCapacity = _airplaneRepository.HasAnyNonCanceledFlights(id);
+            ViewBag.LockStatus = false;
 
             return View(model);
         }
@@ -137,34 +149,76 @@ namespace VitoriaAirlinesWeb.Controllers
                 imageId = await _blobHelper.UploadBlobAsync(viewModel.ImageFile, "images");
             }
 
-            // TODO para quando houver bilhetes vendidos 
 
             var hasFlights = _airplaneRepository.HasAnyNonCanceledFlights(viewModel.Id);
             var hasFutureFlights = _airplaneRepository.HasFutureScheduledFlights(viewModel.Id);
 
+            var hasCapacityChanged = viewModel.TotalExecutiveSeats != airplane.TotalExecutiveSeats
+                       || viewModel.TotalEconomySeats != airplane.TotalEconomySeats;
+
             if (hasFlights &&
-                (viewModel.TotalExecutiveSeats != airplane.TotalExecutiveSeats ||
-                 viewModel.TotalEconomySeats != airplane.TotalEconomySeats))
+                (hasCapacityChanged))
             {
                 ModelState.AddModelError("", "Cannot change seat capacity. This airplane has been used in flights.");
                 return View(viewModel);
             }
 
-            if (hasFutureFlights && viewModel.Status != airplane.Status)
+
+            if (viewModel.Status != airplane.Status)
             {
-                ModelState.AddModelError("", "Cannot change status. This airplane is assigned to future flights.");
-                return View(viewModel);
+                if (viewModel.Status == AirplaneStatus.Maintenance)
+                {
+                    var affectedFlights = await _flightRepository.GetFutureFlightsWithSoldTicketsAsync(airplane.Id);
+
+                    if (affectedFlights.Any())
+                    {
+
+                        var flightList = string.Join(
+                            "<br/>",affectedFlights.Select(f => $"- Flight {f.FlightNumber} (ID: {f.Id}) on {f.DepartureUtc:yyyy-MM-dd HH:mm}"));
+
+
+                        var employees = await _userHelper.GetUsersInRoleAsync(UserRoles.Employee);
+
+                        foreach (var employee in employees)
+                        {
+                            var subject = $"URGENT: Airplane {airplane.Model} Requires Maintenance";
+                            var body = $@"
+                                        <p>Hello {employee.FullName},</p>
+                                        <p>The airplane <strong>{airplane.Model}</strong> (ID: {airplane.Id}) 
+                                        has been marked for <strong>Maintenance</strong> but is still assigned to these future flights with sold tickets:</p>
+                                        <p>{flightList}</p>
+                                        <p>Please reassign those flights to another aircraft before taking this one offline for maintenance.</p>
+                                        <p>Thank you,<br/>Operations Team</p>
+                                    ";
+
+                            await _mailHelper.SendEmailAsync(employee.Email, subject, body);
+
+                        }
+
+                        ModelState.AddModelError("", "This airplane is assigned to future flights with sold tickets. Please reassign them before changing the status to Maintenance.");
+                        return View(viewModel);
+                    }
+                }
+                else if (viewModel.Status == AirplaneStatus.Inactive && hasFutureFlights)
+                {
+                    ModelState.AddModelError("", "Cannot inactivate airplane while it's assigned to future flights.");
+                    return View(viewModel);
+                }
             }
+
 
             airplane = _converterHelper.ToAirplane(viewModel, imageId, isNew: false);
             await _airplaneRepository.UpdateAsync(airplane);
 
-            var newSeats = _seatGeneratorHelper.GenerateSeats(
-                airplane.Id,
-                airplane.TotalExecutiveSeats,
-                airplane.TotalEconomySeats
-            );
-            await _airplaneRepository.ReplaceSeatsAsync(airplane.Id, newSeats);
+            if (hasCapacityChanged)
+            {
+                var newSeats = _seatGeneratorHelper.GenerateSeats(
+                       airplane.Id,
+                       airplane.TotalExecutiveSeats,
+                       airplane.TotalEconomySeats
+                   );
+                await _airplaneRepository.ReplaceSeatsAsync(airplane.Id, newSeats); 
+            }
 
             TempData["SuccessMessage"] = "Airplane updated successfully.";
             return RedirectToAction(nameof(Index));

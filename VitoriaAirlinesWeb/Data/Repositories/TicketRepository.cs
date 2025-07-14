@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Data.Enums;
-using VitoriaAirlinesWeb.Helpers;
 
 namespace VitoriaAirlinesWeb.Data.Repositories
 {
@@ -14,7 +13,7 @@ namespace VitoriaAirlinesWeb.Data.Repositories
             _context = context;
         }
 
-        
+
         public async Task<IEnumerable<Ticket>> GetTicketsByFlightAsync(int flightId)
         {
             return await _context.Tickets
@@ -47,6 +46,7 @@ namespace VitoriaAirlinesWeb.Data.Repositories
                 .ToListAsync();
         }
 
+
         public async Task<IEnumerable<Ticket>> GetUpcomingTicketsByUserAsync(string userId)
         {
             return await _context.Tickets
@@ -60,6 +60,7 @@ namespace VitoriaAirlinesWeb.Data.Repositories
                 .OrderBy(t => t.Flight.DepartureUtc)
                 .ToListAsync();
         }
+
         public async Task<Ticket?> GetTicketWithDetailsAsync(int ticketId)
         {
             return await _context.Tickets

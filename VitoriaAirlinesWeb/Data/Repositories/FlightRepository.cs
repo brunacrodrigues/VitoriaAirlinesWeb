@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.EntityFrameworkCore;
-using Stripe.Treasury;
-using System.ComponentModel;
+﻿using Microsoft.EntityFrameworkCore;
 using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Data.Enums;
 
@@ -195,6 +192,22 @@ namespace VitoriaAirlinesWeb.Data.Repositories
                 .ToListAsync();
         }
 
-
+        public async Task<IEnumerable<Flight>> GetFutureFlightsWithSoldTicketsAsync(int airplaneId)
+        {
+            return await _context.Flights
+                .Where(f =>
+                f.AirplaneId == airplaneId &&
+                f.DepartureUtc > DateTime.UtcNow &&
+                f.Status == FlightStatus.Scheduled &&
+                f.Tickets.Any())
+                .Select(f => new Flight
+                {
+                    Id = f.Id,
+                    FlightNumber = f.FlightNumber,
+                    DepartureUtc = f.DepartureUtc,
+                    AirplaneId = f.AirplaneId
+                })
+                .ToListAsync();
+        }
     }
 }

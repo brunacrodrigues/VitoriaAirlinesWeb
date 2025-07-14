@@ -62,5 +62,12 @@ namespace VitoriaAirlinesWeb.Services
             await _hubContext.Clients.Group("Admins").SendAsync("UpdatedFlight", flight);
             await _hubContext.Clients.Group("Employees").SendAsync("UpdatedFlight", flight);
         }
+
+
+        public async Task NotifyCustomerAsync(string userId, string message)
+        {
+            await _hubContext.Clients.User(userId)
+                .SendAsync("ReceiveNotification", message);
+        }
     }
 }

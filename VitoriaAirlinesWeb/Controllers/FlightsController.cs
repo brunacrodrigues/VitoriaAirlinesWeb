@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Data.Enums;
 using VitoriaAirlinesWeb.Data.Repositories;
 using VitoriaAirlinesWeb.Helpers;
@@ -17,6 +18,8 @@ namespace VitoriaAirlinesWeb.Controllers
         private readonly IAirportRepository _airportRepository;
         private readonly IFlightHelper _flightHelper;
         private readonly INotificationService _notificationService;
+        private readonly ITicketRepository _ticketRepository;
+        private readonly IMailHelper _mailHelper;
 
         public FlightsController(
             IFlightRepository flightRepository,
@@ -24,7 +27,9 @@ namespace VitoriaAirlinesWeb.Controllers
             IAirplaneRepository airplaneRepository,
             IAirportRepository airportRepository,
             IFlightHelper flightHelper,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            ITicketRepository ticketRepository,
+            IMailHelper mailHelper)
         {
             _flightRepository = flightRepository;
             _converterHelper = converterHelper;
@@ -32,6 +37,8 @@ namespace VitoriaAirlinesWeb.Controllers
             _airportRepository = airportRepository;
             _flightHelper = flightHelper;
             _notificationService = notificationService;
+            _ticketRepository = ticketRepository;
+            _mailHelper = mailHelper;
         }
 
 
@@ -201,6 +208,25 @@ namespace VitoriaAirlinesWeb.Controllers
             }
 
 
+
+            var soldTickets = (await _ticketRepository
+           .GetTicketsByFlightAsync(viewModel.Id))
+           .Count(t => !t.IsCanceled);
+
+            var newAirplane = await _airplaneRepository
+                .GetByIdWithSeatsAsync(viewModel.AirplaneId);
+            var newCapacity = newAirplane?.Seats.Count ?? 0;
+
+            if (newCapacity < soldTickets)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    $"Selected airplane has only {newCapacity} seats, but there are {soldTickets} tickets sold. " +
+                    "Please choose an aircraft with equal or greater capacity.");
+                return await LoadViewModelCombos(viewModel, returnUrl);
+            }
+
+
             var departureUtc = viewModel.DepartureDate!.Value.ToDateTime(viewModel.DepartureTime!.Value);
             var isAvailable = await _flightRepository.IsAirplaneAvailableAsync(
                 viewModel.AirplaneId,
@@ -217,8 +243,15 @@ namespace VitoriaAirlinesWeb.Controllers
             }
 
 
+
+            var oldAirplaneId = existingFlight.AirplaneId;
             _converterHelper.UpdateFlightFromViewModel(existingFlight, viewModel);
             await _flightRepository.UpdateAsync(existingFlight);
+
+            if (oldAirplaneId != existingFlight.AirplaneId)
+            {
+                await ReassignTicketsForFlightAsync(existingFlight.Id, existingFlight.FlightNumber);
+            }
 
 
             await _notificationService.NotifyAdminsAsync($"Flight {existingFlight.FlightNumber} has been updated.");
@@ -316,6 +349,88 @@ namespace VitoriaAirlinesWeb.Controllers
 
             ViewBag.ReturnUrl = returnUrl ?? Url.Action("Index", "Flights");
             return View(viewModel);
+        }
+
+
+
+
+        private async Task ReassignTicketsForFlightAsync(int flightId, string flightNumber)
+        {
+            // 1) Load flight with seats
+            var flight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(flightId);
+            if (flight == null) return;
+
+            // 2) Get all non-canceled tickets for this flight
+            var tickets = (await _ticketRepository.GetTicketsByFlightAsync(flightId))
+                .Where(t => !t.IsCanceled)
+                .OrderBy(t => t.Id)
+                .ToList();
+
+            // 3) Build two ordered seat lists
+            var execSeats = flight.Airplane.Seats
+                .Where(s => s.Class == SeatClass.Executive)
+                .OrderBy(s => s.Row).ThenBy(s => s.Letter)
+                .Select(s => s.Id)
+                .ToList();
+
+            var econSeats = flight.Airplane.Seats
+                .Where(s => s.Class == SeatClass.Economy)
+                .OrderBy(s => s.Row).ThenBy(s => s.Letter)
+                .Select(s => s.Id)
+                .ToList();
+
+            int execIndex = 0, econIndex = 0;
+
+            // 4) Reassign each ticket, preserving its original class
+            foreach (var ticket in tickets)
+            {
+                var originalClass = ticket.Seat.Class;
+                int? newSeatId = null;
+
+                if (originalClass == SeatClass.Executive && execIndex < execSeats.Count)
+                    newSeatId = execSeats[execIndex++];
+                if (originalClass == SeatClass.Economy && econIndex < econSeats.Count)
+                    newSeatId = econSeats[econIndex++];
+
+                // only update if we got a seat
+                if (newSeatId.HasValue)
+                {
+                    ticket.SeatId = newSeatId.Value;
+                    await _ticketRepository.UpdateAsync(ticket);
+
+                    var seatInfo = flight.Airplane.Seats
+                           .First(s => s.Id == newSeatId.Value);
+
+                    await NotifyPassengerAsync(ticket, flightNumber, seatInfo);
+                }
+            }
+        }
+
+
+
+        private async Task NotifyPassengerAsync(Ticket ticket, string flightNumber, Seat seatInfo)
+        {
+            var position = $"{seatInfo.Row}{seatInfo.Letter}";
+            var cls = seatInfo.Class;
+
+            
+            await _notificationService.NotifyCustomerAsync(
+                ticket.UserId,
+                $"Your seat on flight {flightNumber} has been changed to {position} (Class: {cls})."
+            );
+
+
+            var user = ticket.User;
+            var subject = $"Seat change on flight {flightNumber}";
+            var body = $@"
+                            Hello {user.FullName},<br/><br/>
+                            Due to an aircraft change, your seat on flight <strong>{flightNumber}</strong> 
+                            has been reassigned to <strong>{position}</strong> in <strong>{cls}</strong> class.<br/><br/>
+                            We apologize for any inconvenience.<br/>
+                            Safe travels!<br/>
+                            Vitoria Airlines
+                        ";
+            await _mailHelper.SendEmailAsync(user.Email, subject, body);
         }
 
     }

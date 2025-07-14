@@ -24,5 +24,8 @@ namespace VitoriaAirlinesWeb.Data.Repositories
             TimeSpan newDuration,
             int newFlightOriginAirportId,
             int? flightToEdit = null);
+
+
+        Task<IEnumerable<Flight>> GetFutureFlightsWithSoldTicketsAsync(int airplaneId);
     }
 }
