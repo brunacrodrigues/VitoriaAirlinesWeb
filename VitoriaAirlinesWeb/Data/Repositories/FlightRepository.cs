@@ -209,5 +209,13 @@ namespace VitoriaAirlinesWeb.Data.Repositories
                 })
                 .ToListAsync();
         }
+
+
+        public async Task<int> CountFlightsAsync()
+        {
+            return await _context.Flights.CountAsync();
+        }
+
+
     }
 }

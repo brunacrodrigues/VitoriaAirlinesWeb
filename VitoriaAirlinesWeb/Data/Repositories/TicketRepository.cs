@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Data.Enums;
+using VitoriaAirlinesWeb.Models.ViewModels.Dashboard;
 
 namespace VitoriaAirlinesWeb.Data.Repositories
 {
@@ -77,5 +78,63 @@ namespace VitoriaAirlinesWeb.Data.Repositories
                 AnyAsync(t => t.UserId == userId &&
                 t.FlightId == flightId);
         }
+
+        public async Task<int> CountTicketsAsync()
+        {
+            return await _context.Tickets.CountAsync();
+        }
+
+
+        public async Task<decimal> GetTotalRevenueAsync()
+        {
+            return await _context.Tickets.SumAsync(t => t.PricePaid);
+        }
+
+        public async Task<List<TicketSalesByDayViewModel>> GetTicketSalesLast7DaysAsync()
+        {
+            var today = DateTime.UtcNow.Date;
+
+            return await _context.Tickets
+                .Where(t => t.PurchaseDateUtc >= today.AddDays(-6))
+                .GroupBy(t => t.PurchaseDateUtc.Date)
+                .OrderBy(g => g.Key)
+                .Select(g => new TicketSalesByDayViewModel
+                {
+                    Date = g.Key.ToString("dd MMM"),
+                    TicketCount = g.Count()
+                })
+                .ToListAsync();
+        }
+
+        public async Task<List<TopDestinationViewModel>> GetTopDestinationsAsync()
+        {
+            var tickets = await _context.Tickets
+                .Include(t => t.Flight)
+                    .ThenInclude(f => f.DestinationAirport)
+                        .ThenInclude(a => a.Country)
+                .ToListAsync();
+
+            return tickets
+                .Where(t => t.Flight?.DestinationAirport?.Country != null)
+                .GroupBy(t => new
+                {
+                    City = t.Flight.DestinationAirport.City,
+                    AirportName = $"{t.Flight.DestinationAirport.IATA} - {t.Flight.DestinationAirport.Name}",
+                    CountryName = t.Flight.DestinationAirport.Country.Name,
+                    FlagUrl = t.Flight.DestinationAirport.Country.FlagImageUrl
+                })
+                .Select(g => new TopDestinationViewModel
+                {
+                    City = g.Key.City,
+                    AirportName = g.Key.AirportName,
+                    CountryName = g.Key.CountryName,
+                    CountryFlagUrl = g.Key.FlagUrl,
+                    TicketCount = g.Count()
+                })
+                .OrderByDescending(x => x.TicketCount)
+                .Take(3)
+                .ToList();
+        }
+
     }
 }

@@ -135,5 +135,11 @@ namespace VitoriaAirlinesWeb.Helpers
         {
             return await _userManager.GetUserAsync(user);
         }
+
+        public async Task<int> CountUsersInRoleAsync(string roleName)
+        {
+            var usersInRole = await _userManager.GetUsersInRoleAsync(roleName);
+            return usersInRole.Count;
+        }
     }
 }

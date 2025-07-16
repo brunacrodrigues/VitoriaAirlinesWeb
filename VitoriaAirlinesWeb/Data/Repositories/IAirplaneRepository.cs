@@ -1,5 +1,6 @@
 ﻿using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Models.ViewModels.Airplanes;
+using VitoriaAirlinesWeb.Models.ViewModels.Dashboard;
 
 namespace VitoriaAirlinesWeb.Data.Repositories
 {
@@ -22,5 +23,16 @@ namespace VitoriaAirlinesWeb.Data.Repositories
         bool HasFutureScheduledFlights(int id);
 
         IEnumerable<Airplane> GetActiveAirplanes();
+
+        Task<int> CountAirplanesAsync();
+
+        Task<List<AirplaneOccupancyViewModel>> GetAirplaneOccupancyStatsAsync();
+
+        Task<double> GetAverageOccupancyRateAsync();
+
+        Task<MostActiveAirplaneViewModel?> GetMostActiveAirplaneAsync();
+
+        Task<LeastOccupiedAirplaneViewModel?> GetLeastOccupiedModelAsync();
+
     }
 }

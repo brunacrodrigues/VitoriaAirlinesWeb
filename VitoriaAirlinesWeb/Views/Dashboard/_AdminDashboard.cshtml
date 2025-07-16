@@ -1,0 +1,319 @@
+﻿@model VitoriaAirlinesWeb.Models.ViewModels.Dashboard.AdminDashboardViewModel
+@using VitoriaAirlinesWeb.Helpers
+
+<div class="dashboard-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>Admin Dashboard</h2>
+            <p class="text-muted">Welcome, @User.Identity.Name</p>
+        </div>
+        <div class="d-flex justify-content-end gap-2 mb-4">
+            <a asp-controller="Employees" asp-action="Register" class="btn btn-sm btn-brand-primary">
+                <i class="fas fa-user-plus me-1"></i> Register Employee
+            </a>
+            <a asp-controller="Airplanes" asp-action="Create" class="btn btn-sm btn-brand-primary">
+                <i class="fas fa-plus-circle me-1"></i> Register Airplane
+            </a>
+            <a asp-controller="Airports" asp-action="Create" class="btn btn-sm btn-brand-primary">
+                <i class="fas fa-map-marker-alt me-1"></i> Add Destination
+            </a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-2">
+            <div class="dashboard-summary-card">
+                <h5>Flights</h5>
+                <h2 class="dashboard-text-maroon">@Model.TotalFlights</h2>
+                <span>Total</span>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="dashboard-summary-card">
+                <h5>Tickets</h5>
+                <h2 class="dashboard-text-gold">@Model.TotalTickets</h2>
+                <span>Sold</span>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="dashboard-summary-card">
+                <h5>Employees</h5>
+                <h2 class="dashboard-text-success">@Model.TotalEmployees</h2>
+                <span>Active</span>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="dashboard-summary-card">
+                <h5>Customers</h5>
+                <h2 class="dashboard-text-maroon">@Model.TotalCustomers</h2>
+                <span>Registered</span>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="dashboard-summary-card">
+                <h5>Airplanes</h5>
+                <h2 class="dashboard-text-danger">@Model.TotalAirplanes</h2>
+                <span>Available</span>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="dashboard-summary-card">
+                <h5>Revenue</h5>
+                <h2 class="dashboard-text-gold">@Model.TotalRevenue.ToString("C")</h2>
+                <span>Total Sales</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <h5 class="mb-3">Scheduled Flights (Live)</h5>
+
+        <div class="table-responsive">
+            <table class="table dashboard-table-custom table-sm align-middle" id="flightTable">
+                <thead>
+                    <tr>
+                        <th>Flight</th>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Departure</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.ScheduledFlights.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">No scheduled flights.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var flight in Model.ScheduledFlights)
+                        {
+                            <tr data-flight-id="@flight.Id">
+                                <td>@flight.FlightNumber</td>
+                                <td>
+                                    <img src="@flight.OriginAirport.Country?.FlagImageUrl" alt="flag" width="30" class="me-2" />
+                                    @flight.OriginAirport.FullName
+                                </td>
+                                <td>
+                                    <img src="@flight.DestinationAirport.Country?.FlagImageUrl" alt="flag" width="30" class="me-2" />
+                                    @flight.DestinationAirport.FullName
+                                </td>
+                                <td>@flight.DepartureUtc.ToLocalTime().ToString("HH:mm dd MMM")</td>
+                                <td class="status-cell">
+                                    <span class="badge dashboard-badge-warning">
+                                        <i class="fas fa-clock me-1"></i> Scheduled
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-md-6">
+                <h5 class="mb-3">Ticket Sales (Last 7 Days)</h5>
+                <ejs-chart id="ticketSalesChart">
+                    <e-chart-primaryxaxis valueType="Category" title="Date"></e-chart-primaryxaxis>
+                    <e-chart-primaryyaxis minimum="0" title="Tickets Sold"></e-chart-primaryyaxis>
+                    <e-series-collection>
+                        <e-series dataSource="@Model.TicketSalesLast7Days"
+                                  xName="Date"
+                                  yName="TicketCount"
+                                  name="Tickets"
+                                  type="Column"
+                                  fill="#4B0012">
+                        </e-series>
+                    </e-series-collection>
+                </ejs-chart>
+            </div>
+
+            <div class="col-md-6">
+                <h5 class="mb-3">Airplane Occupancy Rate</h5>
+                <ejs-chart id="airplaneOccupancyChart">
+                    <e-chart-primaryxaxis valueType="Category" title="Model"></e-chart-primaryxaxis>
+                    <e-chart-primaryyaxis minimum="0" maximum="100" title="Occupancy %"></e-chart-primaryyaxis>
+                    <e-series-collection>
+                        <e-series dataSource="@Model.AirplaneOccupancyStats"
+                                  xName="Model"
+                                  yName="OccupancyRate"
+                                  name="Occupancy"
+                                  type="Bar"
+                                  fill="#D4A437">
+                        </e-series>
+                    </e-series-collection>
+                </ejs-chart>
+            </div>
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-md-5">
+                <div class="dashboard-card h-100">
+                    <h5 class="mb-3">Top Destinations</h5>
+                    <ul class="list-unstyled">
+                        @foreach (var dest in Model.TopDestinations)
+                        {
+                            <li class="d-flex align-items-center justify-content-between mb-2 p-2 rounded bg-light-subtle">
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="@dest.CountryFlagUrl" alt="@dest.CountryName" width="30" class="rounded" />
+                                    <div>
+                                        <div class="fw-bold">@dest.AirportName</div>
+                                        <small class="text-muted">@dest.City, @dest.CountryName</small>
+                                    </div>
+                                </div>
+                                <span class="badge bg-warning text-dark">@dest.TicketCount</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-md-5 offset-md-1">
+                <div class="h-100 d-flex flex-column justify-content-between">
+                    <div class="dashboard-card text-center mb-3 flex-fill">
+                        <h6>Average Occupancy Rate</h6>
+                        <h2 class="dashboard-text-success">@Model.AverageOccupancyRate.ToString("0.0")%</h2>
+                        <small class="text-muted">Across all airplanes</small>
+                    </div>
+
+                    <div class="dashboard-card text-center mb-3 flex-fill">
+                        <h6>Most Active Model</h6>
+                        <h4 class="dashboard-text-maroon">@Model.MostActiveAirplane?.Model</h4>
+                        <small class="text-muted">@Model.MostActiveAirplane?.FlightCount flights</small>
+                    </div>
+
+                    <div class="dashboard-card text-center flex-fill">
+                        <h6>Least Occupied Model</h6>
+                        <h4 class="dashboard-text-danger">@Model.LeastOccupiedAirplane?.Model</h4>
+                        <small class="text-muted">@Model.LeastOccupiedAirplane?.OccupancyRate.ToString("0.0")% occupancy</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+            
+        </div>
+    </div>
+
+
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        async function setupFlightListeners() {
+            try {
+                if (!window.flightConnection) {
+                    console.warn("SignalR not initialized yet.");
+                    return;
+                }
+
+                await window.flightConnection.start();
+                const connection = window.flightConnection;
+
+                connection.on("FlightStatusChanged", function (flightId, newStatus) {
+                    const row = document.querySelector(`[data-flight-id="${flightId}"]`);
+                    const statusCell = row?.querySelector(".status-cell");
+                    if (!row || !statusCell) return;
+
+                    const badgeHtml = {
+                        "Departed": '<span class="badge dashboard-badge-primary"><i class="fas fa-plane-departure me-1"></i> Departed</span>',
+                        "Completed": '<span class="badge dashboard-badge-success"><i class="fas fa-plane-arrival me-1"></i> Completed</span>',
+                        "Canceled": '<span class="badge dashboard-badge-danger"><i class="fas fa-times-circle me-1"></i> Canceled</span>'
+                    };
+
+                    if (badgeHtml[newStatus]) {
+                        statusCell.innerHTML = badgeHtml[newStatus];
+                    }
+
+                    if (newStatus !== "Scheduled") {
+                        row.classList.add("fade-out");
+                        setTimeout(() => row.remove(), 1000);
+                    }
+                });
+
+                connection.on("NewFlightScheduled", function (flight) {
+                    const tbody = document.querySelector("#flightTable tbody");
+                    const newRow = document.createElement("tr");
+                    newRow.setAttribute("data-flight-id", flight.id);
+                    newRow.innerHTML = `
+                        <td>${flight.flightNumber}</td>
+                        <td><img src="${flight.originCountryFlagUrl}" width="30" class="me-2" />${flight.originAirportFullName}</td>
+                        <td><img src="${flight.destinationCountryFlagUrl}" width="30" class="me-2" />${flight.destinationAirportFullName}</td>
+                        <td>${flight.departureFormatted}</td>
+                        <td class="status-cell"><span class="badge dashboard-badge-warning"><i class="fas fa-clock me-1"></i> Scheduled</span></td>`;
+
+                    const departureDate = new Date(flight.departureFormatted);
+                    const rows = Array.from(tbody.querySelectorAll("tr"));
+                    let inserted = false;
+
+                    for (let i = 0; i < rows.length; i++) {
+                        if (rows[i].children.length < 4) continue;
+                        const rowDate = new Date(rows[i].children[3].textContent);
+                        if (departureDate < rowDate) {
+                            tbody.insertBefore(newRow, rows[i]);
+                            inserted = true;
+                            break;
+                        }
+                    }
+
+                    if (!inserted) tbody.appendChild(newRow);
+                    const emptyRow = tbody.querySelector("td[colspan='5']");
+                    if (emptyRow) emptyRow.parentElement.remove();
+                });
+
+                connection.on("UpdatedFlight", function (flight) {
+                    const tbody = document.querySelector("#flightTable tbody");
+                    const existingRow = tbody.querySelector(`[data-flight-id="${flight.id}"]`);
+                    if (existingRow) existingRow.remove();
+
+                    const newRow = document.createElement("tr");
+                    newRow.setAttribute("data-flight-id", flight.id);
+                    newRow.innerHTML = `
+                        <td>${flight.flightNumber}</td>
+                        <td><img src="${flight.originCountryFlagUrl}" width="30" class="me-2" />${flight.originAirportFullName}</td>
+                        <td><img src="${flight.destinationCountryFlagUrl}" width="30" class="me-2" />${flight.destinationAirportFullName}</td>
+                        <td>${flight.departureFormatted}</td>
+                        <td class="status-cell"><span class="badge dashboard-badge-warning"><i class="fas fa-clock me-1"></i> Scheduled</span></td>`;
+
+                    const departureDate = new Date(flight.departureFormatted);
+                    const rows = Array.from(tbody.querySelectorAll("tr"));
+                    let inserted = false;
+
+                    for (let i = 0; i < rows.length; i++) {
+                        if (rows[i].children.length < 4) continue;
+                        const rowDate = new Date(rows[i].children[3].textContent);
+                        if (departureDate < rowDate) {
+                            tbody.insertBefore(newRow, rows[i]);
+                            inserted = true;
+                            break;
+                        }
+                    }
+
+                    if (!inserted) tbody.appendChild(newRow);
+                    const emptyRow = tbody.querySelector("td[colspan='5']");
+                    if (emptyRow) emptyRow.parentElement.remove();
+
+                    newRow.classList.add("highlighted");
+                    setTimeout(() => newRow.classList.remove("highlighted"), 1000);
+                });
+
+                console.log("Flight dashboard listeners active.");
+            } catch (err) {
+                console.error("Error setting up SignalR listeners:", err);
+            }
+        }
+
+        setupFlightListeners();
+    </script>
+}
+
+  
+

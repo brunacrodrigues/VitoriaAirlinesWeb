@@ -1,4 +1,4 @@
-﻿@using Microsoft.AspNetCore.Identity
+﻿ @using Microsoft.AspNetCore.Identity
 @using VitoriaAirlinesWeb.Data.Entities
 @inject UserManager<User> UserManager
 
@@ -12,11 +12,11 @@
         <div class="sidebar-internal-container">
             <div class="sidebar-header"><div class="sidebar-title">Welcome, @firstName</div></div>
             <ul class="sidebar-menu">
-                <li><i class="e-icons e-home"></i><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
-                <li><i class="e-icons e-user"></i><a asp-controller="Employees" asp-action="Index">Manage Employees</a></li>
-                <li><i class="e-icons e-location"></i><a asp-controller="Airports" asp-action="Index">Manage Airports</a></li>
-                <li><i class="e-icons e-airplane"></i><a asp-controller="Airplanes" asp-action="Index">Manage Airplanes</a></li>
-                <li><i class="e-icons e-people"></i><a asp-controller="Customers" asp-action="Index">Manage Customers</a></li>
+                <li><i class="fas fa-home me-2"></i><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+                <li><i class="fas fa-users-cog me-2"></i><a asp-controller="Employees" asp-action="Index">Manage Employees</a></li>
+                <li><i class="fas fa-map-marker-alt me-2"></i><a asp-controller="Airports" asp-action="Index">Manage Airports</a></li>
+                <li><i class="fas fa-plane me-2"></i><a asp-controller="Airplanes" asp-action="Index">Manage Airplanes</a></li>
+                <li><i class="fas fa-user me-2"></i><a asp-controller="Customers" asp-action="Index">Manage Customers</a></li>
             </ul>
         </div>
     </e-content-template>

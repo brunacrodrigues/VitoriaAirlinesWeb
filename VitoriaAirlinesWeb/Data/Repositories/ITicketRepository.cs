@@ -1,4 +1,6 @@
-﻿using VitoriaAirlinesWeb.Data.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using VitoriaAirlinesWeb.Data.Entities;
+using VitoriaAirlinesWeb.Models.ViewModels.Dashboard;
 
 namespace VitoriaAirlinesWeb.Data.Repositories
 {
@@ -15,5 +17,16 @@ namespace VitoriaAirlinesWeb.Data.Repositories
         Task<Ticket?> GetTicketWithDetailsAsync(int ticketId);
 
         Task<bool> UserHasTicketForFlightAsync(string userId, int flightId);
+
+        Task<int> CountTicketsAsync();
+
+        Task<decimal> GetTotalRevenueAsync();
+
+        Task<List<TicketSalesByDayViewModel>> GetTicketSalesLast7DaysAsync();
+
+
+        Task<List<TopDestinationViewModel>> GetTopDestinationsAsync();
+
+
     }
 }

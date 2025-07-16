@@ -27,5 +27,8 @@ namespace VitoriaAirlinesWeb.Data.Repositories
 
 
         Task<IEnumerable<Flight>> GetFutureFlightsWithSoldTicketsAsync(int airplaneId);
+
+        Task<int> CountFlightsAsync();
+
     }
 }

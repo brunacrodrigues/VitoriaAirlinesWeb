@@ -1,10 +1,9 @@
-﻿
-@using Microsoft.AspNetCore.Identity
+﻿@using Microsoft.AspNetCore.Identity
 @using VitoriaAirlinesWeb.Data.Entities 
 @using VitoriaAirlinesWeb.Helpers
 @inject UserManager<User> UserManager
 
-    @{
+@{
     var user = await UserManager.GetUserAsync(User);
     string role = "";
 
@@ -50,8 +49,6 @@
 else if (role == "Employee") { <partial name="_EmployeeSidebar" /> }
 else if (role == "Customer") { <partial name="_CustomerSidebar" /> }
 
-
-
         <div class="page-container">
             <header>
                 <nav class="navbar navbar-expand-sm navbar-light border-bottom box-shadow">
@@ -62,12 +59,13 @@ else if (role == "Customer") { <partial name="_CustomerSidebar" /> }
                                 <span class="e-icons e-menu"></span>
                             </button>
                         }
-                        <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">VitoriaAirlinesWeb</a>
+                        <a class="navbar-brand d-flex align-items-center gap-2" asp-area="" asp-controller="Home" asp-action="Index">
+                            <img src="~/images/logoVA.png" alt="Vitoria Airlines" style="height: 65px;"/> 
+                        </a>
+
                         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"><span class="navbar-toggler-icon"></span></button>
                         <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                             <ul class="navbar-nav flex-grow-1">
-                                <li class="nav-item"><a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
-                                <li class="nav-item"><a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a></li>
                             </ul>
                             <ul class="navbar-nav">
                                 @if (User.Identity?.IsAuthenticated == true)
@@ -75,14 +73,11 @@ else if (role == "Customer") { <partial name="_CustomerSidebar" /> }
                                     user = await UserManager.GetUserAsync(User);
                                     var imagePath = user?.ImageFullPath ?? "https://brunablob.blob.core.windows.net/images/profilepic.png";
 
-
                                     <li class="nav-item dropdown">
                                         <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                             <div class="d-flex flex-column align-items-center">
-
                                                 <img src="@imagePath" class="rounded-circle mb-1" style="width: 35px; height: 35px; object-fit: cover;" alt="User Picture"/>
                                                 <span>@user?.FullName</span>
-
                                             </div>
                                         </a>
                                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
@@ -106,7 +101,6 @@ else if (role == "Customer") { <partial name="_CustomerSidebar" /> }
                                             <li><span class="dropdown-item-text text-muted">No notifications yet.</span></li>
                                         </ul>
                                     </li>
-
                                 }
                                 else
                                 {
@@ -121,37 +115,43 @@ else if (role == "Customer") { <partial name="_CustomerSidebar" /> }
             <main role="main" class="container-fluid py-3">
                 @RenderBody()
             </main>
-
-            <footer class="border-top footer text-muted">
-                <div class="container-fluid">
-                    © 2025 - VitoriaAirlinesWeb - <a asp-controller="Home" asp-action="Privacy">Privacy</a>
+            <footer class="border-top footer text-muted py-3">
+                <div class="container d-flex flex-column align-items-center">
+                    <div class="d-flex flex-column flex-md-row justify-content-between w-100">
+                        <div class="d-flex flex-column align-items-center align-items-md-start ps-2">
+                            <img src="~/images/logoVA.png" alt="Vitoria Airlines" style="height: 40px;" />
+                            <small class="mt-2">© 2025 - Vitoria Airlines - All rights reserved</small>
+                        </div>
+                        <div class="d-flex flex-column align-items-center align-items-md-start mt-3 mt-md-0" style="padding-left: 0.2rem; padding-top: 20px;">
+                            <div class="d-flex flex-column flex-md-row gap-2 gap-md-3 small">
+                                <a class="text-muted text-decoration-none" asp-controller="Home" asp-action="About">About</a>
+                                <a class="text-muted text-decoration-none" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                                <a class="text-muted text-decoration-none" asp-controller="Home" asp-action="Faq">FAQs</a>
+                                <a class="text-muted text-decoration-none" asp-controller="Home" asp-action="Contact">Contact</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </footer>
         </div>
     </div>
 
-<a asp-controller="AssistBot"
-   asp-action="Index"
-   id="chatToggle">
-    <i class="fas fa-comment-dots"></i>
-</a>
-
+    <a asp-controller="AssistBot" asp-action="Index" id="chatToggle">
+        <i class="fas fa-comment-dots"></i>
+    </a>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <ejs-scripts></ejs-scripts>
     
+   
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
 
-@if (!string.IsNullOrEmpty(role))
-{
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            
-            // Lógica do Hamburger Menu
             const sidebarInstance = document.getElementById('mainSidebar')?.ej2_instances?.[0];
             const hamburgerButton = document.getElementById('hamburger');
             if (sidebarInstance && hamburgerButton) {
@@ -164,11 +164,9 @@ else if (role == "Customer") { <partial name="_CustomerSidebar" /> }
             {
                 @:const menuItem = document.getElementById('manage-flights-menu-item');
                 @:const submenu = document.getElementById('flights-submenu');
-
                 @:if (menuItem && submenu) {
                     @:menuItem.addEventListener('click', function(event) {
                         @:event.preventDefault();
-            
                         @:submenu.classList.toggle('open');
                         @:menuItem.classList.toggle('open');
                     @:});
@@ -176,15 +174,18 @@ else if (role == "Customer") { <partial name="_CustomerSidebar" /> }
             }
         });
 
-           window.flightConnection = new signalR.HubConnectionBuilder()
-            .withUrl("/notificationHub")
-            .build();
+        if (!window.flightConnection) {
+            window.flightConnection = new signalR.HubConnectionBuilder()
+                .withUrl("/notificationHub")
+                .build();
 
+          
             toastr.options = {
                 "positionClass": "toast-bottom-right",
                 "timeOut": "5000"
             };
 
+           
             let notificationCount = 0;
             const notificationList = document.getElementById("notificationList");
             const notificationBadge = document.getElementById("notificationCount");
@@ -200,22 +201,21 @@ else if (role == "Customer") { <partial name="_CustomerSidebar" /> }
                     if (notificationCount === 1) {
                         notificationList.innerHTML = "";
                     }
-
                     const li = document.createElement("li");
                     li.innerHTML = `<span class="dropdown-item-text">${message}</span>`;
                     notificationList.prepend(li);
                 }
-
                 toastr.info(message, "✈️ Notification");
             });
 
             window.flightConnection.start()
-                .then(() => console.log("SignalR connected."))
-                .catch(err => console.error("SignalR connection error:", err.toString()));
-
+                .then(() => console.log("SignalR global connection established."))
+                .catch(err => console.error("SignalR global connection error:", err.toString()));
+        } else {
+            console.log("SignalR global connection already exists.");
+        }
     </script>
-}
- 
+    
     @RenderSection("Scripts", required: false)
 </body>
 </html>

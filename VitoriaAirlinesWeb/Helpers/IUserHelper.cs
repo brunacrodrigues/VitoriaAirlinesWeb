@@ -48,5 +48,9 @@ namespace VitoriaAirlinesWeb.Helpers
 
         Task<User?> GetUserAsync(ClaimsPrincipal user);
 
+
+        Task<int> CountUsersInRoleAsync(string roleName);
+
+
     }
 }

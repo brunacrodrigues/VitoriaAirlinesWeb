@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using VitoriaAirlinesWeb.Data.Repositories;
 using VitoriaAirlinesWeb.Helpers;
+using VitoriaAirlinesWeb.Models.ViewModels.Dashboard;
 
 namespace VitoriaAirlinesWeb.Controllers
 {
@@ -10,13 +11,19 @@ namespace VitoriaAirlinesWeb.Controllers
     {
         private readonly IUserHelper _userHelper;
         private readonly IFlightRepository _flightRepository;
+        private readonly ITicketRepository _ticketRepository;
+        private readonly IAirplaneRepository _airplaneRepository;
 
         public DashboardController(
             IUserHelper userHelper,
-            IFlightRepository flightRepository)
+            IFlightRepository flightRepository,
+            ITicketRepository ticketRepository,
+            IAirplaneRepository airplaneRepository)
         {
             _userHelper = userHelper;
             _flightRepository = flightRepository;
+            _ticketRepository = ticketRepository;
+            _airplaneRepository = airplaneRepository;
         }
 
         public async Task<IActionResult> Index()
@@ -32,20 +39,46 @@ namespace VitoriaAirlinesWeb.Controllers
                 return new NotFoundViewResult("Error404");
             }
 
-            if (User.IsInRole(UserRoles.Admin) || User.IsInRole(UserRoles.Employee))
+            if (User.IsInRole(UserRoles.Admin))
             {
-                ViewData["Role"] = User.IsInRole(UserRoles.Admin) ? "Admin" : "Employee";
+                ViewData["Role"] = UserRoles.Admin;
+
+                var model = new AdminDashboardViewModel
+                {
+                    TotalFlights = await _flightRepository.CountFlightsAsync(),
+                    TotalTickets = await _ticketRepository.CountTicketsAsync(),
+                    TotalEmployees = await _userHelper.CountUsersInRoleAsync(UserRoles.Employee),
+                    TotalCustomers = await _userHelper.CountUsersInRoleAsync(UserRoles.Customer),
+                    TotalAirplanes = await _airplaneRepository.CountAirplanesAsync(),
+                    TotalRevenue = await _ticketRepository.GetTotalRevenueAsync(),
+                    ScheduledFlights = await _flightRepository.GetScheduledFlightsAsync(),
+                    TicketSalesLast7Days = await _ticketRepository.GetTicketSalesLast7DaysAsync(),
+                    AirplaneOccupancyStats = await _airplaneRepository.GetAirplaneOccupancyStatsAsync(),
+                    AverageOccupancyRate = await _airplaneRepository.GetAverageOccupancyRateAsync(),
+                    MostActiveAirplane = await _airplaneRepository.GetMostActiveAirplaneAsync(),
+                    LeastOccupiedAirplane = await _airplaneRepository.GetLeastOccupiedModelAsync(),
+                    TopDestinations = await _ticketRepository.GetTopDestinationsAsync(),
+
+                };
+
+                return View("Index", model);
+            }
+
+            if (User.IsInRole(UserRoles.Employee))
+            {
+                ViewData["Role"] = UserRoles.Employee;
+
                 var flights = await _flightRepository.GetScheduledFlightsAsync();
                 return View("Index", flights);
             }
-            else if (User.IsInRole(UserRoles.Customer))
+
+            if (User.IsInRole(UserRoles.Customer))
             {
-                ViewData["Role"] = "Customer";
+                ViewData["Role"] = UserRoles.Customer;
                 return View("Index");
             }
 
             return RedirectToAction("Login", "Account");
-
         }
     }
 }
