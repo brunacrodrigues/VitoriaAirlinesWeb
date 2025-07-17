@@ -27,5 +27,15 @@ namespace VitoriaAirlinesWeb.Data.Repositories
         Task<List<TopDestinationViewModel>> GetTopDestinationsAsync();
 
         Task<int> CountTicketsLast7DaysAsync();
+
+        Task<int> CountUserBookedFlightsAsync(string userId);
+        Task<int> CountUserCompletedFlightsAsync(string userId);
+        Task<int> CountUserCanceledFlightsAsync(string userId);
+        Task<decimal> GetUserTotalSpentAsync(string userId);
+        Task<List<FlightInfoViewModel>> GetUserUpcomingFlightsAsync(string userId);
+        Task<List<FlightInfoViewModel>> GetUserPastFlightsAsync(string userId);
+
+        Task<FlightInfoViewModel?> GetUserLastCompletedFlightAsync(string userId);
+
     }
 }

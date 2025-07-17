@@ -147,5 +147,111 @@ namespace VitoriaAirlinesWeb.Data.Repositories
         }
 
 
+        public async Task<int> CountUserBookedFlightsAsync(string userId)
+        {
+            return await _context.Tickets
+                .Where(t => t.UserId == userId)
+                .CountAsync();
+        }
+
+
+        public async Task<int> CountUserCompletedFlightsAsync(string userId)
+        {
+            return await _context.Tickets
+                .Where(t => t.UserId == userId && t.Flight.Status == FlightStatus.Completed)
+                .CountAsync();
+        }
+
+        public async Task<int> CountUserCanceledFlightsAsync(string userId)
+        {
+            return await _context.Tickets
+                .Where(t => t.UserId == userId && t.Flight.Status == FlightStatus.Canceled)
+                .CountAsync();
+        }
+
+        public async Task<decimal> GetUserTotalSpentAsync(string userId)
+        {
+            return await _context.Tickets
+                .Where(t => t.UserId == userId)
+                .SumAsync(t => (decimal?)t.PricePaid) ?? 0;
+        }
+
+
+        public async Task<List<FlightInfoViewModel>> GetUserUpcomingFlightsAsync(string userId)
+        {
+            return await _context.Tickets
+                .Where(t => t.UserId == userId && t.Flight.DepartureUtc > DateTime.UtcNow)
+                .Include(t => t.Flight)
+                    .ThenInclude(f => f.OriginAirport)
+                        .ThenInclude(a => a.Country)
+                .Include(t => t.Flight)
+                    .ThenInclude(f => f.DestinationAirport)
+                        .ThenInclude(a => a.Country)
+                .OrderBy(t => t.Flight.DepartureUtc)
+                .Select(t => new FlightInfoViewModel
+                {
+                    FlightNumber = t.Flight.FlightNumber,
+                    OriginAirport = t.Flight.OriginAirport.FullName,
+                    OriginCountryFlagUrl = t.Flight.OriginAirport.Country.FlagImageUrl,
+                    DestinationAirport = t.Flight.DestinationAirport.FullName,
+                    DestinationCountryFlagUrl = t.Flight.DestinationAirport.Country.FlagImageUrl,
+                    DepartureTime = t.Flight.DepartureUtc,
+                    ArrivalTime = t.Flight.ArrivalUtc
+                })
+                .ToListAsync();
+        }
+
+
+        public async Task<List<FlightInfoViewModel>> GetUserPastFlightsAsync(string userId)
+        {
+            return await _context.Tickets
+                .Where(t => t.UserId == userId && t.Flight.DepartureUtc <= DateTime.UtcNow)
+                .Include(t => t.Flight)
+                    .ThenInclude(f => f.OriginAirport)
+                        .ThenInclude(a => a.Country)
+                .Include(t => t.Flight)
+                    .ThenInclude(f => f.DestinationAirport)
+                        .ThenInclude(a => a.Country)
+                .OrderByDescending(t => t.Flight.DepartureUtc)
+                .Select(t => new FlightInfoViewModel
+                {
+                    FlightNumber = t.Flight.FlightNumber,
+                    OriginAirport = t.Flight.OriginAirport.FullName,
+                    OriginCountryFlagUrl = t.Flight.OriginAirport.Country.FlagImageUrl,
+                    DestinationAirport = t.Flight.DestinationAirport.FullName,
+                    DestinationCountryFlagUrl = t.Flight.DestinationAirport.Country.FlagImageUrl,
+                    DepartureTime = t.Flight.DepartureUtc,
+                    ArrivalTime = t.Flight.ArrivalUtc
+                })
+                .ToListAsync();
+        }
+
+        public async Task<FlightInfoViewModel?> GetUserLastCompletedFlightAsync(string userId)
+        {
+            return await Task.Run(() =>
+                _context.Tickets
+                    .Include(t => t.Flight)
+                        .ThenInclude(f => f.OriginAirport)
+                            .ThenInclude(a => a.Country)
+                    .Include(t => t.Flight)
+                        .ThenInclude(f => f.DestinationAirport)
+                            .ThenInclude(a => a.Country)
+                    .Where(t => t.UserId == userId && t.Flight.Status == FlightStatus.Completed)
+                    .AsEnumerable()
+                    .OrderByDescending(t => t.Flight.ArrivalUtc)
+                    .Select(t => new FlightInfoViewModel
+                    {
+                        FlightNumber = t.Flight.FlightNumber,
+                        OriginAirport = t.Flight.OriginAirport.FullName,
+                        OriginCountryFlagUrl = t.Flight.OriginAirport.Country.FlagImageUrl,
+                        DestinationAirport = t.Flight.DestinationAirport.FullName,
+                        DestinationCountryFlagUrl = t.Flight.DestinationAirport.Country.FlagImageUrl,
+                        DepartureTime = t.Flight.DepartureUtc,
+                        ArrivalTime = t.Flight.ArrivalUtc
+                    })
+                    .FirstOrDefault()
+            );
+        }
+
     }
 }

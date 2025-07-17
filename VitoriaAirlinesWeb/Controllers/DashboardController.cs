@@ -13,17 +13,20 @@ namespace VitoriaAirlinesWeb.Controllers
         private readonly IFlightRepository _flightRepository;
         private readonly ITicketRepository _ticketRepository;
         private readonly IAirplaneRepository _airplaneRepository;
+        private readonly ICustomerProfileRepository _customerRepository;
 
         public DashboardController(
             IUserHelper userHelper,
             IFlightRepository flightRepository,
             ITicketRepository ticketRepository,
-            IAirplaneRepository airplaneRepository)
+            IAirplaneRepository airplaneRepository,
+            ICustomerProfileRepository customerRepository)
         {
             _userHelper = userHelper;
             _flightRepository = flightRepository;
             _ticketRepository = ticketRepository;
             _airplaneRepository = airplaneRepository;
+            _customerRepository = customerRepository;
         }
 
         public async Task<IActionResult> Index()
@@ -85,7 +88,30 @@ namespace VitoriaAirlinesWeb.Controllers
             if (User.IsInRole(UserRoles.Customer))
             {
                 ViewData["Role"] = UserRoles.Customer;
-                return View("Index");
+
+                var customer = await _customerRepository.GetByUserIdAsync(user.Id);
+
+                var model = new CustomerDashboardViewModel
+                {
+                    FlightsBooked = await _ticketRepository.CountUserBookedFlightsAsync(user.Id),
+                    FlightsCompleted = await _ticketRepository.CountUserCompletedFlightsAsync(user.Id),
+                    FlightsCanceled = await _ticketRepository.CountUserCanceledFlightsAsync(user.Id),
+                    TotalSpent = await _ticketRepository.GetUserTotalSpentAsync(user.Id),
+                    FullName = user.FullName,
+                    Email = user.Email,
+                    PassportNumber = customer?.PassportNumber,
+                    Country = customer?.Country?.Name ?? "Not specified",
+                    CountryFlagUrl = customer?.Country?.FlagImageUrl,
+                    ProfilePictureUrl = user.ImageFullPath,
+                    UpcomingFlights = await _ticketRepository.GetUserUpcomingFlightsAsync(user.Id),
+                    PastFlights = await _ticketRepository.GetUserPastFlightsAsync(user.Id),
+                    LastCompletedFlight = await _ticketRepository.GetUserLastCompletedFlightAsync(user.Id),
+
+
+                };
+
+
+                return View("Index", model);
             }
 
             return RedirectToAction("Login", "Account");

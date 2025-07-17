@@ -18,6 +18,7 @@ namespace VitoriaAirlinesWeb.Data.Repositories
         {
             return await _context.CustomerProfiles
                 .Include(cp => cp.User)
+                .Include(cp => cp.Country)
                 .FirstOrDefaultAsync(cp => cp.UserId == userId);
         }
 

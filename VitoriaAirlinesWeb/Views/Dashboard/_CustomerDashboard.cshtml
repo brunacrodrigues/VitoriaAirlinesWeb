@@ -1,0 +1,224 @@
+﻿@model VitoriaAirlinesWeb.Models.ViewModels.Dashboard.CustomerDashboardViewModel
+
+<div class="dashboard-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>Customer Dashboard</h2>
+            <p class="text-muted">Welcome, @User.Identity.Name</p>
+        </div>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="dashboard-summary-card">
+                <h5>Flights Booked</h5>
+                <h2 class="dashboard-text-maroon">@Model.FlightsBooked</h2>
+                <span>Total</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dashboard-summary-card">
+                <h5>Flights Completed</h5>
+                <h2 class="dashboard-text-success">@Model.FlightsCompleted</h2>
+                <span>Done</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dashboard-summary-card">
+                <h5>Flights Canceled</h5>
+                <h2 class="dashboard-text-danger">@Model.FlightsCanceled</h2>
+                <span>Total</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dashboard-summary-card">
+                <h5>Total Spent</h5>
+                <h2 class="dashboard-text-gold">@Model.TotalSpent.ToString("C")</h2>
+                <span>Across all flights</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile + Last Flight -->
+    <div class="row mb-4">
+        <div class="col-md-5">
+            <div class="dashboard-card h-100">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="d-flex align-items-center">
+                        <img src="@Model.ProfilePictureUrl" alt="Profile Picture" class="rounded-circle me-3" width="70" height="70" />
+                        <div>
+                            <h5 class="mb-0">@Model.FullName</h5>
+                            <small class="text-muted">@Model.Email</small>
+
+                            <p class="mb-1 mt-2">
+                                <strong>Nationality:</strong>
+                                @if (!string.IsNullOrEmpty(Model.CountryFlagUrl))
+                                {
+                                    <img src="@Model.CountryFlagUrl" alt="flag" width="25" class="me-1 rounded" />
+                                }
+                                @(string.IsNullOrEmpty(Model.Country) ? "Not specified" : Model.Country)
+                            </p>
+
+                            <p class="mb-1">
+                                <strong>Passport:</strong>
+                                @(string.IsNullOrEmpty(Model.PassportNumber) ? "Not provided" : Model.PassportNumber)
+                            </p>
+                        </div>
+                    </div>
+                    <a asp-controller="Customers" asp-action="EditTravellerProfile" class="btn btn-sm btn-outline-dark" title="Edit Profile">
+                        <i class="fas fa-pen"></i>
+                    </a>
+                </div>
+
+                <div class="d-grid mt-3">
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-gold btn-lg">
+                        <i class="fas fa-search me-1"></i> Search Flights
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div class="dashboard-card h-100">
+                <h5 class="mb-3">Last Flight</h5>
+                @if (Model.LastCompletedFlight != null)
+                {
+                    var last = Model.LastCompletedFlight;
+                    <p class="mb-1"><strong>@last.FlightNumber</strong></p>
+                    <p class="mb-1">
+                        <img src="@last.OriginCountryFlagUrl" width="25" class="me-2 rounded" />
+                        @last.OriginAirport →
+                        <img src="@last.DestinationCountryFlagUrl" width="25" class="mx-2 rounded" />
+                        @last.DestinationAirport
+                    </p>
+                    <p class="mb-1">
+                        <i class="far fa-calendar-alt me-1"></i>
+                        @last.DepartureTime.ToLocalTime().ToString("dd MMM yyyy")
+                    </p>
+                    <p class="mb-1">
+                        <i class="far fa-clock me-1"></i>
+                        @last.DepartureTime.ToLocalTime().ToString("HH:mm") → @last.ArrivalTime.ToLocalTime().ToString("HH:mm")
+                    </p>
+                    <span class="badge dashboard-badge-success">
+                        <i class="fas fa-check-circle me-1"></i> Completed
+                    </span>
+                }
+                else
+                {
+                    <p class="text-muted">No completed flights yet.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="dashboard-card">
+                <ul class="nav nav-tabs" id="flightTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="upcoming-tab" data-bs-toggle="tab" data-bs-target="#upcoming" type="button" role="tab">
+                            Upcoming Flights
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">
+                            Flight History
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content mt-3" id="flightTabsContent">
+                    <!-- Upcoming Flights -->
+                    <div class="tab-pane fade show active" id="upcoming" role="tabpanel">
+                        @if (!Model.UpcomingFlights?.Any() ?? true)
+                        {
+                            <div class="text-muted">No upcoming flights.</div>
+                        }
+                        else
+                        {
+                            <div class="table-responsive">
+                                <table class="table dashboard-table-custom table-sm align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Flight</th>
+                                            <th>From</th>
+                                            <th>To</th>
+                                            <th>Departure</th>
+                                            <th>Arrival</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var flight in Model.UpcomingFlights)
+                                        {
+                                            <tr>
+                                                <td>@flight.FlightNumber</td>
+                                                <td>
+                                                    <img src="@flight.OriginCountryFlagUrl" width="30" class="me-2" />
+                                                    @flight.OriginAirport
+                                                </td>
+                                                <td>
+                                                    <img src="@flight.DestinationCountryFlagUrl" width="30" class="me-2" />
+                                                    @flight.DestinationAirport
+                                                </td>
+                                                <td>@flight.DepartureTime.ToLocalTime().ToString("dd MMM HH:mm")</td>
+                                                <td>@flight.ArrivalTime.ToLocalTime().ToString("dd MMM HH:mm")</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Flight History -->
+                    <div class="tab-pane fade" id="history" role="tabpanel">
+                        @if (!Model.PastFlights?.Any() ?? true)
+                        {
+                            <div class="text-muted">No past flights.</div>
+                        }
+                        else
+                        {
+                            <div class="table-responsive">
+                                <table class="table dashboard-table-custom table-sm align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Flight</th>
+                                            <th>From</th>
+                                            <th>To</th>
+                                            <th>Date</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var flight in Model.PastFlights)
+                                        {
+                                            <tr>
+                                                <td>@flight.FlightNumber</td>
+                                                <td>
+                                                    <img src="@flight.OriginCountryFlagUrl" width="30" class="me-2" />
+                                                    @flight.OriginAirport
+                                                </td>
+                                                <td>
+                                                    <img src="@flight.DestinationCountryFlagUrl" width="30" class="me-2" />
+                                                    @flight.DestinationAirport
+                                                </td>
+                                                <td>@flight.DepartureTime.ToString("dd MMM yyyy")</td>
+                                                <td>
+                                                    <span class="badge dashboard-badge-success">
+                                                        <i class="fas fa-check-circle me-1"></i> Completed
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -16,5 +16,5 @@ else if (role == UserRoles.Employee)
 }
 else if (role == UserRoles.Customer)
 {
-    @await Html.PartialAsync("_CustomerDashboard")
+    @await Html.PartialAsync("_CustomerDashboard", (VitoriaAirlinesWeb.Models.ViewModels.Dashboard.CustomerDashboardViewModel)Model)
 }
