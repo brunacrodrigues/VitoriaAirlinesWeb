@@ -1,12 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
-using VitoriaAirlinesWeb.Data.Entities;
+﻿using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Models.ViewModels.Dashboard;
 
 namespace VitoriaAirlinesWeb.Data.Repositories
 {
     public interface ITicketRepository : IGenericRepository<Ticket>
     {
-        Task <IEnumerable<Ticket>> GetTicketsByUserAsync(string userId);
+        Task<IEnumerable<Ticket>> GetTicketsByUserAsync(string userId);
 
         Task<IEnumerable<Ticket>> GetTicketsByFlightAsync(int flightId);
 
@@ -27,6 +26,6 @@ namespace VitoriaAirlinesWeb.Data.Repositories
 
         Task<List<TopDestinationViewModel>> GetTopDestinationsAsync();
 
-
+        Task<int> CountTicketsLast7DaysAsync();
     }
 }

@@ -68,8 +68,18 @@ namespace VitoriaAirlinesWeb.Controllers
             {
                 ViewData["Role"] = UserRoles.Employee;
 
-                var flights = await _flightRepository.GetScheduledFlightsAsync();
-                return View("Index", flights);
+                var model = new EmployeeDashboardViewModel
+                {
+                    TotalScheduledFlights = await _flightRepository.CountScheduledFlightsAsync(),
+                    TotalCompletedFlights = await _flightRepository.CountCompletedFlightsAsync(),
+                    TotalTicketsSold = await _ticketRepository.CountTicketsLast7DaysAsync(),
+                    AverageOccupancy = await _airplaneRepository.GetAverageOccupancyRateAsync(),
+                    ScheduledFlights = await _flightRepository.GetScheduledFlightsAsync(),
+                    RecentFlights = await _flightRepository.GetRecentFlightsAsync(10),
+                    LowOccupancyFlights = await _flightRepository.GetLowOccupancyUpcomingFlightsAsync(),
+                };
+
+                return View("Index", model);
             }
 
             if (User.IsInRole(UserRoles.Customer))

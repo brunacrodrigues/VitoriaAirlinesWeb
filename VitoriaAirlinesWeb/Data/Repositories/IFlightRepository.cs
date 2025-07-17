@@ -1,4 +1,5 @@
 ﻿using VitoriaAirlinesWeb.Data.Entities;
+using VitoriaAirlinesWeb.Models.ViewModels.Dashboard.VitoriaAirlinesWeb.Models.ViewModels.Dashboard;
 
 namespace VitoriaAirlinesWeb.Data.Repositories
 {
@@ -30,5 +31,13 @@ namespace VitoriaAirlinesWeb.Data.Repositories
 
         Task<int> CountFlightsAsync();
 
+        Task<int> CountScheduledFlightsAsync();
+
+        Task<int> CountCompletedFlightsAsync();
+
+
+        Task<List<Flight>> GetRecentFlightsAsync(int count);
+
+        Task<List<LowOccupancyFlightViewModel>> GetLowOccupancyUpcomingFlightsAsync(double threshold = 50.0, int maxResults = 5);
     }
 }

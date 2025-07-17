@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Data.Enums;
+using VitoriaAirlinesWeb.Models.ViewModels.Dashboard.VitoriaAirlinesWeb.Models.ViewModels.Dashboard;
 
 namespace VitoriaAirlinesWeb.Data.Repositories
 {
@@ -180,7 +181,7 @@ namespace VitoriaAirlinesWeb.Data.Repositories
             return false;
         }
 
-       
+
         private async Task<List<Flight>> GetFlightsWithThisAirplane(int airplaneId, int? flightToEdit)
         {
             return await _context.Flights.
@@ -215,6 +216,75 @@ namespace VitoriaAirlinesWeb.Data.Repositories
         {
             return await _context.Flights.CountAsync();
         }
+
+
+        public async Task<int> CountScheduledFlightsAsync()
+        {
+            return await _context.Flights
+                .Where(f => f.DepartureUtc > DateTime.UtcNow && f.Status == FlightStatus.Scheduled)
+                .CountAsync();
+        }
+
+
+        public async Task<int> CountCompletedFlightsAsync()
+        {
+            return await _context.Flights
+                .Where(f => f.Status == FlightStatus.Completed)
+                .CountAsync();
+        }
+
+
+        public async Task<List<Flight>> GetRecentFlightsAsync(int count)
+        {
+            return await _context.Flights
+                .Include(f => f.OriginAirport).ThenInclude(a => a.Country)
+                .Include(f => f.DestinationAirport).ThenInclude(a => a.Country)
+                .Include(f => f.Airplane)
+                .OrderByDescending(f => f.Id)
+                .Take(count)
+                .ToListAsync();
+        }
+
+
+        public async Task<List<LowOccupancyFlightViewModel>> GetLowOccupancyUpcomingFlightsAsync(double threshold = 50.0, int maxResults = 5)
+        {
+            var now = DateTime.UtcNow;
+
+            var flights = await _context.Flights
+                .Where(f => f.Status == FlightStatus.Scheduled && f.DepartureUtc > now)
+                .Include(f => f.OriginAirport).ThenInclude(a => a.Country)
+                .Include(f => f.DestinationAirport).ThenInclude(a => a.Country)
+                .Include(f => f.Tickets)
+                .Include(f => f.Airplane)
+                .OrderBy(f => f.DepartureUtc)
+                .ToListAsync();
+
+            return flights
+                .Select(f => new
+                {
+                    Flight = f,
+                    Capacity = f.Airplane.TotalEconomySeats + f.Airplane.TotalExecutiveSeats,
+                    Sold = f.Tickets.Count
+                })
+                .Where(x => x.Capacity > 0 && (x.Sold * 100.0 / x.Capacity) < threshold)
+                .OrderBy(x => x.Flight.DepartureUtc)
+                .Take(maxResults)
+                .Select(x => new LowOccupancyFlightViewModel
+                {
+                    Id = x.Flight.Id,
+                    FlightNumber = x.Flight.FlightNumber,
+                    OriginAirportFullName = x.Flight.OriginAirport.FullName,
+                    OriginCountryFlagUrl = x.Flight.OriginAirport.Country.FlagImageUrl,
+                    DestinationAirportFullName = x.Flight.DestinationAirport.FullName,
+                    DestinationCountryFlagUrl = x.Flight.DestinationAirport.Country.FlagImageUrl,
+                    DepartureFormatted = x.Flight.DepartureUtc.ToLocalTime().ToString("HH:mm dd MMM"),
+                    OccupancyRate = Math.Round(x.Sold * 100.0 / x.Capacity, 1)
+                })
+                .ToList();
+        }
+
+
+
 
 
     }

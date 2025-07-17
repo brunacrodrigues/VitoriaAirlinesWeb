@@ -136,5 +136,16 @@ namespace VitoriaAirlinesWeb.Data.Repositories
                 .ToList();
         }
 
+
+        public async Task<int> CountTicketsLast7DaysAsync()
+        {
+            var today = DateTime.UtcNow.Date;
+
+            return await _context.Tickets
+                .Where(t => t.PurchaseDateUtc >= today.AddDays(-6))
+                .CountAsync();
+        }
+
+
     }
 }

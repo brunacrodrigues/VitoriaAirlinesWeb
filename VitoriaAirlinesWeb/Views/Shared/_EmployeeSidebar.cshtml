@@ -21,10 +21,14 @@
                 </li>
 
                 <li id="manage-flights-menu-item" class="has-submenu">
-                    <i class="fas fa-plane"></i>
-                    <a href="#">Manage Flights</a>
-                    <i class="fas fa-chevron-down submenu-arrow"></i>
+                    <div class="submenu-toggle d-flex align-items-center">
+                        <i class="fas fa-plane"></i>
+                        <span class="submenu-label">Manage Flights</span>
+                        <i class="fas fa-chevron-down submenu-arrow"></i>
+                    </div>
                 </li>
+
+
 
                 <ul id="flights-submenu" class="sidebar-submenu">
                     <li><i class="fas fa-list-ul"></i><a asp-controller="Flights" asp-action="Index">All Flights</a></li>

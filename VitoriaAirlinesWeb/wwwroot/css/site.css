@@ -221,9 +221,11 @@ main {
     }
 
 .sidebar-menu .submenu-arrow {
-    margin-left: auto;
+    margin-left: 1rem; /* afasta a seta do texto */
+    margin-right: 0.25rem;
     transition: transform 0.3s ease;
 }
+
 
 .sidebar-menu .has-submenu.open .submenu-arrow {
     transform: rotate(180deg);
@@ -250,6 +252,23 @@ main {
     padding: 0.6rem 1rem;
 }
 
+.submenu-toggle {
+    white-space: nowrap;
+}
+
+.submenu-label {
+    display: inline-block;
+    white-space: nowrap;
+}
+
+
+.submenu-arrow {
+    margin-left: 12px;
+    font-size: 0.85rem; /* opcional para reduzir um pouco a seta */
+    margin-top: 2px;
+}
+
+
 
 /* Header and footer */
 header .navbar {
@@ -274,6 +293,9 @@ header .nav-link:hover {
 .footer a {
     color: #f0b400;
 }
+
+
+
 
 /* hamburger icon */
 

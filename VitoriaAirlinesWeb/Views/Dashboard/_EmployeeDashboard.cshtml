@@ -1,74 +1,52 @@
-﻿@model VitoriaAirlinesWeb.Models.ViewModels.Dashboard.AdminDashboardViewModel
+﻿@model VitoriaAirlinesWeb.Models.ViewModels.Dashboard.EmployeeDashboardViewModel
 @using VitoriaAirlinesWeb.Helpers
 
 <div class="dashboard-container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2>Admin Dashboard</h2>
+            <h2>Employee Dashboard</h2>
             <p class="text-muted">Welcome, @User.Identity.Name</p>
         </div>
         <div class="d-flex justify-content-end gap-2 mb-4">
-            <a asp-controller="Employees" asp-action="Register" class="btn btn-sm btn-brand-primary">
-                <i class="fas fa-user-plus me-1"></i> Register Employee
-            </a>
-            <a asp-controller="Airplanes" asp-action="Create" class="btn btn-sm btn-brand-primary">
-                <i class="fas fa-plus-circle me-1"></i> Register Airplane
-            </a>
-            <a asp-controller="Airports" asp-action="Create" class="btn btn-sm btn-brand-primary">
-                <i class="fas fa-map-marker-alt me-1"></i> Add Destination
+            <a asp-controller="Flights" asp-action="Create" class="btn btn-sm btn-brand-primary">
+                <i class="fas fa-plus-circle me-1"></i> Schedule New Flight
             </a>
         </div>
     </div>
 
     <div class="row mb-4">
-        <div class="col-md-2">
+        <div class="col-md-3">
             <div class="dashboard-summary-card">
-                <h5>Flights</h5>
-                <h2 class="dashboard-text-maroon">@Model.TotalFlights</h2>
-                <span>Total</span>
+                <h5>Scheduled Flights</h5>
+                <h2 class="dashboard-text-maroon">@Model.TotalScheduledFlights</h2>
+                <span>Upcoming</span>
             </div>
         </div>
-        <div class="col-md-2">
+        <div class="col-md-3">
             <div class="dashboard-summary-card">
-                <h5>Tickets</h5>
-                <h2 class="dashboard-text-gold">@Model.TotalTickets</h2>
-                <span>Sold</span>
+                <h5>Completed Flights</h5>
+                <h2 class="dashboard-text-success">@Model.TotalCompletedFlights</h2>
+                <span>Finished</span>
             </div>
         </div>
-        <div class="col-md-2">
+        <div class="col-md-3">
             <div class="dashboard-summary-card">
-                <h5>Employees</h5>
-                <h2 class="dashboard-text-success">@Model.TotalEmployees</h2>
-                <span>Active</span>
+                <h5>Tickets Sold</h5>
+                <h2 class="dashboard-text-gold">@Model.TotalTicketsSold</h2>
+                <span>Last 7 Days</span>
             </div>
         </div>
-
-        <div class="col-md-2">
+        <div class="col-md-3">
             <div class="dashboard-summary-card">
-                <h5>Customers</h5>
-                <h2 class="dashboard-text-maroon">@Model.TotalCustomers</h2>
-                <span>Registered</span>
-            </div>
-        </div>
-
-        <div class="col-md-2">
-            <div class="dashboard-summary-card">
-                <h5>Airplanes</h5>
-                <h2 class="dashboard-text-danger">@Model.TotalAirplanes</h2>
-                <span>Available</span>
-            </div>
-        </div>
-        <div class="col-md-2">
-            <div class="dashboard-summary-card">
-                <h5>Revenue</h5>
-                <h2 class="dashboard-text-gold">@Model.TotalRevenue.ToString("C")</h2>
-                <span>Total Sales</span>
+                <h5>Average Occupancy</h5>
+                <h2 class="dashboard-text-warning">@Model.AverageOccupancy.ToString("0.0")%</h2>
+                <span>Across All Flights</span>
             </div>
         </div>
     </div>
 
     <div class="mt-4">
-        <h5 class="mb-3">Scheduled Flights (Live)</h5>
+        <h5 class="mb-3">Live Scheduled Flights</h5>
 
         <div class="table-responsive">
             <table class="table dashboard-table-custom table-sm align-middle" id="flightTable">
@@ -114,93 +92,74 @@
                 </tbody>
             </table>
         </div>
+    </div>
 
-        <div class="row mt-5">
-            <div class="col-md-6">
-                <h5 class="mb-3">Ticket Sales (Last 7 Days)</h5>
-                <ejs-chart id="ticketSalesChart">
-                    <e-chart-primaryxaxis valueType="Category" title="Date"></e-chart-primaryxaxis>
-                    <e-chart-primaryyaxis minimum="0" title="Tickets Sold"></e-chart-primaryyaxis>
-                    <e-series-collection>
-                        <e-series dataSource="@Model.TicketSalesLast7Days"
-                                  xName="Date"
-                                  yName="TicketCount"
-                                  name="Tickets"
-                                  type="Column"
-                                  fill="#4B0012">
-                        </e-series>
-                    </e-series-collection>
-                </ejs-chart>
-            </div>
-
-            <div class="col-md-6">
-                <h5 class="mb-3">Airplane Occupancy Rate</h5>
-                <ejs-chart id="airplaneOccupancyChart">
-                    <e-chart-primaryxaxis valueType="Category" title="Model"></e-chart-primaryxaxis>
-                    <e-chart-primaryyaxis minimum="0" maximum="100" title="Occupancy %"></e-chart-primaryyaxis>
-                    <e-series-collection>
-                        <e-series dataSource="@Model.AirplaneOccupancyStats"
-                                  xName="Model"
-                                  yName="OccupancyRate"
-                                  name="Occupancy"
-                                  type="Bar"
-                                  fill="#D4A437">
-                        </e-series>
-                    </e-series-collection>
-                </ejs-chart>
-            </div>
-        </div>
-
-        <div class="row mt-5">
-            <div class="col-md-5">
-                <div class="dashboard-card h-100">
-                    <h5 class="mb-3">Top Destinations</h5>
+    <div class="row mt-5">
+        <div class="col-md-6">
+            <div class="dashboard-card h-100">
+                <h5 class="mb-3">Low Occupancy Flights</h5>
+                @if (!Model.LowOccupancyFlights.Any())
+                {
+                    <div class="text-muted">No low occupancy flights.</div>
+                }
+                else
+                {
                     <ul class="list-unstyled">
-                        @foreach (var dest in Model.TopDestinations)
+                        @foreach (var flight in Model.LowOccupancyFlights)
                         {
-                            <li class="d-flex align-items-center justify-content-between mb-2 p-2 rounded bg-light-subtle">
+                            <li class="d-flex justify-content-between align-items-center mb-2 p-2 rounded bg-light-subtle">
                                 <div class="d-flex align-items-center gap-2">
-                                    <img src="@dest.CountryFlagUrl" alt="@dest.CountryName" width="30" class="rounded" />
+                                    <img src="@flight.OriginCountryFlagUrl" alt="flag" width="25" class="rounded" />
+                                    <img src="@flight.DestinationCountryFlagUrl" alt="flag" width="25" class="rounded" />
                                     <div>
-                                        <div class="fw-bold">@dest.AirportName</div>
-                                        <small class="text-muted">@dest.City, @dest.CountryName</small>
+                                        <div class="fw-bold">@flight.FlightNumber</div>
+                                        <small class="text-muted">@flight.OriginAirportFullName → @flight.DestinationAirportFullName</small><br />
+                                        <small>@flight.DepartureFormatted</small>
                                     </div>
                                 </div>
-                                <span class="badge bg-warning text-dark">@dest.TicketCount</span>
+                                <span class="badge bg-warning text-dark">@flight.OccupancyRate.ToString("0.0")%</span>
                             </li>
                         }
                     </ul>
-                </div>
-            </div>
-
-            <div class="col-md-5 offset-md-1">
-                <div class="h-100 d-flex flex-column justify-content-between">
-                    <div class="dashboard-card text-center mb-3 flex-fill">
-                        <h6>Average Occupancy Rate</h6>
-                        <h2 class="dashboard-text-success">@Model.AverageOccupancyRate.ToString("0.0")%</h2>
-                        <small class="text-muted">Across all airplanes</small>
-                    </div>
-
-                    <div class="dashboard-card text-center mb-3 flex-fill">
-                        <h6>Most Active Model</h6>
-                        <h4 class="dashboard-text-maroon">@Model.MostActiveAirplane?.Model</h4>
-                        <small class="text-muted">@Model.MostActiveAirplane?.FlightCount flights</small>
-                    </div>
-
-                    <div class="dashboard-card text-center flex-fill">
-                        <h6>Least Occupied Model</h6>
-                        <h4 class="dashboard-text-danger">@Model.LeastOccupiedAirplane?.Model</h4>
-                        <small class="text-muted">@Model.LeastOccupiedAirplane?.OccupancyRate.ToString("0.0")% occupancy</small>
-                    </div>
-                </div>
+                }
             </div>
         </div>
 
-
-
-            
+        <div class="col-md-6">
+            <div class="dashboard-card h-100">
+                <h5 class="mb-3">Recently Created Flights</h5>
+                <table class="table table-bordered table-sm">
+                    <thead>
+                        <tr>
+                            <th>Flight</th>
+                            <th>Departure</th>
+                            <th>From</th>
+                            <th>To</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var flight in Model.RecentFlights)
+                        {
+                            <tr>
+                                <td>@flight.FlightNumber</td>
+                                <td>@flight.DepartureUtc.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                                <td>
+                                    <img src="@flight.OriginAirport.Country?.FlagImageUrl" alt="flag" width="30" class="me-2" />
+                                    @flight.OriginAirport.FullName
+                                </td>
+                                <td>
+                                    <img src="@flight.DestinationAirport.Country?.FlagImageUrl" alt="flag" width="30" class="me-2" />
+                                    @flight.DestinationAirport.FullName
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
+
+
 
 
 
@@ -313,6 +272,3 @@
         setupFlightListeners();
     </script>
 }
-
-  
-

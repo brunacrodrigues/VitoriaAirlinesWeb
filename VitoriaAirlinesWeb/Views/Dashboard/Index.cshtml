@@ -12,7 +12,7 @@
 }
 else if (role == UserRoles.Employee)
 {
-    @await Html.PartialAsync("_EmployeeDashboard", (IEnumerable<VitoriaAirlinesWeb.Data.Entities.Flight>)Model)
+    @await Html.PartialAsync("_EmployeeDashboard", (VitoriaAirlinesWeb.Models.ViewModels.Dashboard.EmployeeDashboardViewModel)Model)
 }
 else if (role == UserRoles.Customer)
 {
