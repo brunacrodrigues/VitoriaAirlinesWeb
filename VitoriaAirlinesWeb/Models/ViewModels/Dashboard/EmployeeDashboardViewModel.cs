@@ -10,7 +10,7 @@ namespace VitoriaAirlinesWeb.Models.ViewModels.Dashboard
         public int TotalTicketsSold { get; set; }
         public double AverageOccupancy { get; set; }
 
-        public IEnumerable<Flight> ScheduledFlights { get; set; }
+        public IEnumerable<FlightDashboardViewModel> ScheduledFlights { get; set; }
         public List<Flight> RecentFlights { get; set; }
         public List<LowOccupancyFlightViewModel> LowOccupancyFlights { get; set; }
 

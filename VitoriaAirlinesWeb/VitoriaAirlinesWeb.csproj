@@ -29,8 +29,6 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.4" />
     <PackageReference Include="Syncfusion.EJ2.AspNet.Core" Version="29.1.33" />
     <PackageReference Include="Syncfusion.Licensing" Version="29.2.9" />
-    <PackageReference Include="X.PagedList" Version="10.5.7" />
-    <PackageReference Include="X.PagedList.Mvc.Core" Version="10.5.7" />
   </ItemGroup>
 
 </Project>

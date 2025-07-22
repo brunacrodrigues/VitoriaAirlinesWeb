@@ -14,19 +14,22 @@ namespace VitoriaAirlinesWeb.Controllers
         private readonly ITicketRepository _ticketRepository;
         private readonly IAirplaneRepository _airplaneRepository;
         private readonly ICustomerProfileRepository _customerRepository;
+        private readonly IConverterHelper _converterHelper;
 
         public DashboardController(
             IUserHelper userHelper,
             IFlightRepository flightRepository,
             ITicketRepository ticketRepository,
             IAirplaneRepository airplaneRepository,
-            ICustomerProfileRepository customerRepository)
+            ICustomerProfileRepository customerRepository,
+            IConverterHelper converterHelper)
         {
             _userHelper = userHelper;
             _flightRepository = flightRepository;
             _ticketRepository = ticketRepository;
             _airplaneRepository = airplaneRepository;
             _customerRepository = customerRepository;
+            _converterHelper = converterHelper;
         }
 
         public async Task<IActionResult> Index()
@@ -54,7 +57,8 @@ namespace VitoriaAirlinesWeb.Controllers
                     TotalCustomers = await _userHelper.CountUsersInRoleAsync(UserRoles.Customer),
                     TotalAirplanes = await _airplaneRepository.CountAirplanesAsync(),
                     TotalRevenue = await _ticketRepository.GetTotalRevenueAsync(),
-                    ScheduledFlights = await _flightRepository.GetScheduledFlightsAsync(),
+                    ScheduledFlights = (await _flightRepository.GetScheduledFlightsAsync())
+                        .Select(f => _converterHelper.ToFlightDashboardViewModel(f)).ToList(),
                     TicketSalesLast7Days = await _ticketRepository.GetTicketSalesLast7DaysAsync(),
                     AirplaneOccupancyStats = await _airplaneRepository.GetAirplaneOccupancyStatsAsync(),
                     AverageOccupancyRate = await _airplaneRepository.GetAverageOccupancyRateAsync(),
@@ -77,7 +81,8 @@ namespace VitoriaAirlinesWeb.Controllers
                     TotalCompletedFlights = await _flightRepository.CountCompletedFlightsAsync(),
                     TotalTicketsSold = await _ticketRepository.CountTicketsLast7DaysAsync(),
                     AverageOccupancy = await _airplaneRepository.GetAverageOccupancyRateAsync(),
-                    ScheduledFlights = await _flightRepository.GetScheduledFlightsAsync(),
+                    ScheduledFlights = (await _flightRepository.GetScheduledFlightsAsync())
+                        .Select(f => _converterHelper.ToFlightDashboardViewModel(f)).ToList(),
                     RecentFlights = await _flightRepository.GetRecentFlightsAsync(10),
                     LowOccupancyFlights = await _flightRepository.GetLowOccupancyUpcomingFlightsAsync(),
                 };

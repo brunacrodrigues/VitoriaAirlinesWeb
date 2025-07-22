@@ -217,7 +217,7 @@ else if (role == "Customer") { <partial name="_CustomerSidebar" /> }
                     li.innerHTML = `<span class="dropdown-item-text">${message}</span>`;
                     notificationList.prepend(li);
                 }
-                toastr.info(message, "✈️ Notification");
+                toastr.info(message, "Notification");
             });
 
             window.flightConnection.start()

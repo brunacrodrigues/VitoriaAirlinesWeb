@@ -1,6 +1,4 @@
-﻿using VitoriaAirlinesWeb.Data.Entities;
-
-namespace VitoriaAirlinesWeb.Models.ViewModels.Dashboard
+﻿namespace VitoriaAirlinesWeb.Models.ViewModels.Dashboard
 {
     public class AdminDashboardViewModel
     {
@@ -14,8 +12,7 @@ namespace VitoriaAirlinesWeb.Models.ViewModels.Dashboard
 
         public double AverageOccupancyRate { get; set; }
 
-
-        public IEnumerable<Flight> ScheduledFlights { get; set; }
+        public IEnumerable<FlightDashboardViewModel> ScheduledFlights { get; set; }
 
         public List<TicketSalesByDayViewModel> TicketSalesLast7Days { get; set; }
         public List<AirplaneOccupancyViewModel> AirplaneOccupancyStats { get; set; }

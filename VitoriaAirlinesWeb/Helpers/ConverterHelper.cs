@@ -224,7 +224,8 @@ namespace VitoriaAirlinesWeb.Helpers
                 DestinationAirportFullName = entity.DestinationAirport.FullName,
                 DestinationCountryFlagUrl = entity.DestinationAirport.Country?.FlagImageUrl ?? "",
 
-                DepartureFormatted = entity.DepartureUtc.ToLocalTime().ToString("HH:mm dd MMM")
+                DepartureFormatted = entity.DepartureUtc.ToLocalTime().ToString("HH:mm dd MMM"),
+                DepartureIso = entity.DepartureUtc.ToLocalTime().ToString("o")
             };
         }
 

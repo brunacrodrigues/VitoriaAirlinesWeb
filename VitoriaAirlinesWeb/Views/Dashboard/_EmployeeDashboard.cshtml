@@ -48,7 +48,7 @@
     <div class="mt-4">
         <h5 class="mb-3">Live Scheduled Flights</h5>
 
-        <div class="table-responsive">
+        <div class="table-responsive scrollable-table">
             <table class="table dashboard-table-custom table-sm align-middle" id="flightTable">
                 <thead>
                     <tr>
@@ -70,17 +70,17 @@
                     {
                         foreach (var flight in Model.ScheduledFlights)
                         {
-                            <tr data-flight-id="@flight.Id">
+                            <tr data-flight-id="@flight.Id" data-departure-iso="@flight.DepartureIso">
                                 <td>@flight.FlightNumber</td>
                                 <td>
-                                    <img src="@flight.OriginAirport.Country?.FlagImageUrl" alt="flag" width="30" class="me-2" />
-                                    @flight.OriginAirport.FullName
+                                    <img src="@flight.OriginCountryFlagUrl" alt="flag" width="30" class="me-2" />
+                                    @flight.OriginAirportFullName
                                 </td>
                                 <td>
-                                    <img src="@flight.DestinationAirport.Country?.FlagImageUrl" alt="flag" width="30" class="me-2" />
-                                    @flight.DestinationAirport.FullName
+                                    <img src="@flight.DestinationCountryFlagUrl" alt="flag" width="30" class="me-2" />
+                                    @flight.DestinationAirportFullName
                                 </td>
-                                <td>@flight.DepartureUtc.ToLocalTime().ToString("HH:mm dd MMM")</td>
+                                <td>@flight.DepartureFormatted</td>
                                 <td class="status-cell">
                                     <span class="badge dashboard-badge-warning">
                                         <i class="fas fa-clock me-1"></i> Scheduled
@@ -159,117 +159,3 @@
         </div>
     </div>
 </div>
-
-
-
-
-
-@section Scripts {
-
-    <script>
-        async function setupFlightListeners() {
-            try {
-                if (!window.flightConnection) {
-                    console.warn("SignalR not initialized yet.");
-                    return;
-                }
-
-                await window.flightConnection.start();
-                const connection = window.flightConnection;
-
-                connection.on("FlightStatusChanged", function (flightId, newStatus) {
-                    const row = document.querySelector(`[data-flight-id="${flightId}"]`);
-                    const statusCell = row?.querySelector(".status-cell");
-                    if (!row || !statusCell) return;
-
-                    const badgeHtml = {
-                        "Departed": '<span class="badge dashboard-badge-primary"><i class="fas fa-plane-departure me-1"></i> Departed</span>',
-                        "Completed": '<span class="badge dashboard-badge-success"><i class="fas fa-plane-arrival me-1"></i> Completed</span>',
-                        "Canceled": '<span class="badge dashboard-badge-danger"><i class="fas fa-times-circle me-1"></i> Canceled</span>'
-                    };
-
-                    if (badgeHtml[newStatus]) {
-                        statusCell.innerHTML = badgeHtml[newStatus];
-                    }
-
-                    if (newStatus !== "Scheduled") {
-                        row.classList.add("fade-out");
-                        setTimeout(() => row.remove(), 1000);
-                    }
-                });
-
-                connection.on("NewFlightScheduled", function (flight) {
-                    const tbody = document.querySelector("#flightTable tbody");
-                    const newRow = document.createElement("tr");
-                    newRow.setAttribute("data-flight-id", flight.id);
-                    newRow.innerHTML = `
-                        <td>${flight.flightNumber}</td>
-                        <td><img src="${flight.originCountryFlagUrl}" width="30" class="me-2" />${flight.originAirportFullName}</td>
-                        <td><img src="${flight.destinationCountryFlagUrl}" width="30" class="me-2" />${flight.destinationAirportFullName}</td>
-                        <td>${flight.departureFormatted}</td>
-                        <td class="status-cell"><span class="badge dashboard-badge-warning"><i class="fas fa-clock me-1"></i> Scheduled</span></td>`;
-
-                    const departureDate = new Date(flight.departureFormatted);
-                    const rows = Array.from(tbody.querySelectorAll("tr"));
-                    let inserted = false;
-
-                    for (let i = 0; i < rows.length; i++) {
-                        if (rows[i].children.length < 4) continue;
-                        const rowDate = new Date(rows[i].children[3].textContent);
-                        if (departureDate < rowDate) {
-                            tbody.insertBefore(newRow, rows[i]);
-                            inserted = true;
-                            break;
-                        }
-                    }
-
-                    if (!inserted) tbody.appendChild(newRow);
-                    const emptyRow = tbody.querySelector("td[colspan='5']");
-                    if (emptyRow) emptyRow.parentElement.remove();
-                });
-
-                connection.on("UpdatedFlight", function (flight) {
-                    const tbody = document.querySelector("#flightTable tbody");
-                    const existingRow = tbody.querySelector(`[data-flight-id="${flight.id}"]`);
-                    if (existingRow) existingRow.remove();
-
-                    const newRow = document.createElement("tr");
-                    newRow.setAttribute("data-flight-id", flight.id);
-                    newRow.innerHTML = `
-                        <td>${flight.flightNumber}</td>
-                        <td><img src="${flight.originCountryFlagUrl}" width="30" class="me-2" />${flight.originAirportFullName}</td>
-                        <td><img src="${flight.destinationCountryFlagUrl}" width="30" class="me-2" />${flight.destinationAirportFullName}</td>
-                        <td>${flight.departureFormatted}</td>
-                        <td class="status-cell"><span class="badge dashboard-badge-warning"><i class="fas fa-clock me-1"></i> Scheduled</span></td>`;
-
-                    const departureDate = new Date(flight.departureFormatted);
-                    const rows = Array.from(tbody.querySelectorAll("tr"));
-                    let inserted = false;
-
-                    for (let i = 0; i < rows.length; i++) {
-                        if (rows[i].children.length < 4) continue;
-                        const rowDate = new Date(rows[i].children[3].textContent);
-                        if (departureDate < rowDate) {
-                            tbody.insertBefore(newRow, rows[i]);
-                            inserted = true;
-                            break;
-                        }
-                    }
-
-                    if (!inserted) tbody.appendChild(newRow);
-                    const emptyRow = tbody.querySelector("td[colspan='5']");
-                    if (emptyRow) emptyRow.parentElement.remove();
-
-                    newRow.classList.add("highlighted");
-                    setTimeout(() => newRow.classList.remove("highlighted"), 1000);
-                });
-
-                console.log("Flight dashboard listeners active.");
-            } catch (err) {
-                console.error("Error setting up SignalR listeners:", err);
-            }
-        }
-
-        setupFlightListeners();
-    </script>
-}

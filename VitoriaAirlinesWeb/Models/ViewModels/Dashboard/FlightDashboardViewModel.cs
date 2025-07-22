@@ -13,5 +13,7 @@
 
         public string DepartureFormatted { get; set; } = null!;
 
+        public string DepartureIso { get; set; } = null!;
+
     }
 }

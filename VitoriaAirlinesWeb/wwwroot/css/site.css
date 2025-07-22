@@ -2805,24 +2805,20 @@ section {
     box-shadow: none;
 }
 
-/* Estilos para igualar a altura e a fonte dos componentes Syncfusion */
 
-/* Aplica a fonte a todos os elementos de input e seleção que usam .custom-input ou .custom-select */
 .custom-select,
 .custom-input,
-/* Adicione aqui quaisquer outras classes de input que você queira que usem a fonte Outfit */
 input[type="text"],
 input[type="number"],
 .form-control {
     font-family: 'Outfit', sans-serif !important;
-    /* Mantenha suas outras propriedades (background-color, color, border, etc.) aqui */
     background-color: #ffffff;
     color: #000000;
     border: 1px solid #ccc;
     border-radius: 6px;
     padding: 0.75rem 1rem !important;
     font-size: 1rem;
-    height: 42px !important; /* Garante que os inputs HTML também tenham a altura correta */
+    height: 42px !important; 
 }
 
 
@@ -2833,7 +2829,7 @@ input[type="number"],
     height: 42px !important;
     line-height: 42px !important;
     box-sizing: border-box;
-    font-family: 'Outfit', sans-serif !important; /* APLICA A FONTE AQUI */
+    font-family: 'Outfit', sans-serif !important; 
 }
 
 /* Classe para o ComboBox */
@@ -2843,7 +2839,7 @@ input[type="number"],
     height: 42px !important;
     line-height: 42px !important;
     box-sizing: border-box;
-    font-family: 'Outfit', sans-serif !important; /* APLICA A FONTE AQUI */
+    font-family: 'Outfit', sans-serif !important;
 }
 
 /* Ajustes para os ícones dentro dos campos (seta para baixo) */
@@ -2879,7 +2875,6 @@ input[type="number"],
         padding: 0.5rem 1rem !important;
     }
 
-/* Força altura e fonte no valor visível após seleção */
 .custom-ddl-height.e-dropdownlist .e-input-group,
 .custom-ddl-height.e-dropdownlist .e-control,
 .custom-ddl-height.e-dropdownlist input.e-input,
@@ -2893,7 +2888,7 @@ input[type="number"],
 }
 
 .modal-backdrop.show {
-    background-color: rgba(0, 0, 0, 0.3); /* ou 0.2 ou 0.1 conforme preferires */
+    background-color: rgba(0, 0, 0, 0.3);
 }
 
 .modal {
@@ -2928,7 +2923,6 @@ input[type="number"],
     padding-bottom: 1rem; /* para o input nunca sobrepor */
 }
 
-/* Aplica fundo escuro e fonte Outfit ao AI Assistant completo */
 #aiAssistView {
     background-color: #0e0e0e;
     font-family: 'Outfit', sans-serif;
@@ -2990,3 +2984,19 @@ input[type="number"],
     }
 
 
+.toast-info {
+    background-color: #D4A437 !important;
+    color: #000000 !important;
+    border-left: 5px solid #4B0012;
+}
+
+.scrollable-table {
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+table thead.sticky-top th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
