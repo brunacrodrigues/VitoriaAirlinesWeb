@@ -127,12 +127,16 @@ namespace VitoriaAirlinesWeb.Controllers
             var airport = await _airportRepository.GetByIdAsync(id);
             if (airport == null) return new NotFoundViewResult("Error404");
 
+            if (await _airportRepository.HasAssociatedFlightsAsync(id))
+            {
+                TempData["ErrorMessage"] = "Cannot delete airport because it is associated with existing flights.";
+                return RedirectToAction(nameof(Index));
+            }
+
             await _airportRepository.DeleteAsync(airport);
 
             TempData["SuccessMessage"] = "Airplane deleted successfully.";
             return RedirectToAction(nameof(Index));
         }
-
-        // TODO - impedir que seja eliminado se ja tiver voos 
     }
 }

@@ -10,5 +10,7 @@ namespace VitoriaAirlinesWeb.Data.Repositories
         Task<Airport?> GetByIdWithCountryAsync(int id);
 
         Task<IEnumerable<AirportDropdownViewModel>> GetComboAirportsWithFlagsAsync();
+
+        Task<bool> HasAssociatedFlightsAsync(int id);
     }
 }

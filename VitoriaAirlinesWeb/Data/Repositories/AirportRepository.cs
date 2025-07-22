@@ -45,5 +45,14 @@ namespace VitoriaAirlinesWeb.Data.Repositories
 
             return list;
         }
+
+
+        public async Task<bool> HasAssociatedFlightsAsync(int id)
+        {
+            return await _context.Flights
+                .AnyAsync(f => f.OriginAirportId == id || f.DestinationAirportId == id);
+        }
+
+
     }
 }
