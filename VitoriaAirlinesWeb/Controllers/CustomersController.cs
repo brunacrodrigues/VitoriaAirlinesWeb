@@ -14,17 +14,20 @@ namespace VitoriaAirlinesWeb.Controllers
         private readonly ICustomerProfileRepository _customerRepository;
         private readonly IConverterHelper _converterHelper;
         private readonly ICountryRepository _countryRepository;
+        private readonly IBlobHelper _blobHelper;
 
         public CustomersController(
             IUserHelper userHelper,
             ICustomerProfileRepository customerRepository,
             IConverterHelper converterHelper,
-            ICountryRepository countryRepository)
+            ICountryRepository countryRepository,
+            IBlobHelper blobHelper)
         {
             _userHelper = userHelper;
             _customerRepository = customerRepository;
             _converterHelper = converterHelper;
             _countryRepository = countryRepository;
+            _blobHelper = blobHelper;
         }
 
 
@@ -32,23 +35,59 @@ namespace VitoriaAirlinesWeb.Controllers
         [Authorize(Roles = UserRoles.Admin)]
         public IActionResult Index()
         {
-            return View(_customerRepository.GetAll()
+            var customers = _customerRepository.GetAll()
                 .Include(c => c.User)
                 .Include(c => c.Country)
                 .OrderBy(c => c.User.FirstName)
-                .ThenBy(c => c.User.LastName));
+                .ThenBy(c => c.User.LastName)
+                .Select(c => new CustomerViewModel
+                {
+                    Id = c.Id,
+                    FullName = c.User.FullName,
+                    Email = c.User.Email,
+                    PassportNumber = c.PassportNumber,
+                    CountryName = c.Country != null ? c.Country.Name : null,
+                    CountryFlagUrl = c.Country != null ? c.Country.FlagImageUrl : null
+                })
+                .ToList();
+
+            return View(customers);
         }
 
         // GET: CustomersController/Details/5
         [Authorize(Roles = UserRoles.Admin)]
         public async Task<IActionResult> Details(int id)
         {
-
-            var customer = await _customerRepository.GetByIdWithUserAsync(id);
+            var customer = await _customerRepository.GetProfileWithUserAndFlightsAsync(id);
 
             if (customer == null) return new NotFoundViewResult("Error404");
 
-            return View(customer);
+            var now = DateTime.UtcNow;
+
+            var flights = customer.User.Tickets?
+                .Where(t => t.Flight != null)
+                .Select(t => t.Flight!)
+                .ToList();
+
+            var lastFlight = flights
+                .Where(f => f.DepartureUtc < now)
+                .OrderByDescending(f => f.DepartureUtc)
+                .FirstOrDefault();
+
+            var nextFlight = flights
+                .Where(f => f.DepartureUtc >= now)
+                .OrderBy(f => f.DepartureUtc)
+                .FirstOrDefault();
+
+            var viewModel = new CustomerDetailsViewModel
+            {
+                Customer = customer,
+                TotalFlights = customer.User.Tickets?.Count() ?? 0,
+                LastFlight = lastFlight,
+                NextFlight = nextFlight
+            };
+
+            return View(viewModel);
         }
 
 
@@ -98,7 +137,7 @@ namespace VitoriaAirlinesWeb.Controllers
             var profile = await _customerRepository.GetByUserIdAsync(user.Id);
             if (profile == null) return new NotFoundViewResult("Error404");
 
-            var model = _converterHelper.ToCustomerProfileViewModel(profile);
+            var model = _converterHelper.ToCustomerProfileViewModel(profile, user);
             model.Countries = _countryRepository.GetComboCountries();
 
             return View(model);
@@ -110,41 +149,53 @@ namespace VitoriaAirlinesWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditTravellerProfile(CustomerProfileViewModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                model.Countries = _countryRepository.GetComboCountries();
-                return View(model);
-            }
-
             var user = await _userHelper.GetUserByEmailAsync(User.Identity.Name);
             if (user == null) return new NotFoundViewResult("Error404");
 
             var profile = await _customerRepository.GetByUserIdAsync(user.Id);
             if (profile == null) return new NotFoundViewResult("Error404");
 
-            _converterHelper.UpdateCustomerProfile(profile, model);
+            if (!ModelState.IsValid)
+            {
+                model.Countries = _countryRepository.GetComboCountries();
+                model.CurrentProfileImagePath = user.ImageFullPath;
+                return View(model);
+            }
+
+            // Atualiza dados do utilizador
+            user.FirstName = model.FirstName;
+            user.LastName = model.LastName;
+
+            if (model.ImageFile != null && model.ImageFile.Length > 0)
+            {
+                var imageId = await _blobHelper.UploadBlobAsync(model.ImageFile, "images");
+                user.ProfileImageId = imageId;
+            }
+
+            var response = await _userHelper.UpdateUserAsync(user);
+            if (!response.Succeeded)
+            {
+                ModelState.AddModelError(string.Empty, response.Errors.FirstOrDefault()?.Description ?? "An error occurred.");
+                model.Countries = _countryRepository.GetComboCountries();
+                model.CurrentProfileImagePath = user.ImageFullPath;
+                return View(model);
+            }
+
+            // Atualiza dados do perfil de cliente
+            profile.CountryId = model.CountryId;
+            profile.PassportNumber = model.PassportNumber;
             await _customerRepository.UpdateAsync(profile);
 
-            TempData["SuccessMessage"] = "Your profile has been updated.";
+            TempData["SuccessMessage"] = "Profile updated successfully!";
             return RedirectToAction(nameof(EditTravellerProfile));
-        }
-
-        // GET: CustomersController/Delete/5
-        [Authorize(Roles = UserRoles.Admin)]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var customer = await _customerRepository.GetByIdWithUserAsync(id);
-            if (customer == null) return new NotFoundViewResult("Error404");
-
-            return View(customer);
         }
 
 
         // POST: CustomersController/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = UserRoles.Admin)]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             var customer = await _customerRepository.GetByIdWithUserAsync(id);
             if (customer == null) return new NotFoundViewResult("Error404");

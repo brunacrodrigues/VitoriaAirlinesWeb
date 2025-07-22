@@ -120,20 +120,9 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
-        // GET: AirportsController/Delete/5
-        public async Task<IActionResult> Delete(int id)
-        {
-            var airport = await _airportRepository.GetByIdWithCountryAsync(id);
-            if (airport == null) return new NotFoundViewResult("Error404");
-
-            return View(airport);
-        }
-
-
-        // POST: AirportsController/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             var airport = await _airportRepository.GetByIdAsync(id);
             if (airport == null) return new NotFoundViewResult("Error404");
@@ -143,5 +132,7 @@ namespace VitoriaAirlinesWeb.Controllers
             TempData["SuccessMessage"] = "Airplane deleted successfully.";
             return RedirectToAction(nameof(Index));
         }
+
+        // TODO - impedir que seja eliminado se ja tiver voos 
     }
 }

@@ -45,8 +45,15 @@ namespace VitoriaAirlinesWeb.Controllers
         // GET: FlightsController
         public IActionResult Index()
         {
-            return View(_flightRepository.GetAllWithDetailsAsync());
+            var timeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Lisbon");
+
+            var flights = _flightRepository.GetAllWithDetailsAsync();
+
+            var model = _converterHelper.ToFlightDisplayViewModel(flights);
+
+            return View(model);
         }
+
 
         // GET: FlightsController/Details/5
         public async Task<IActionResult> Details(int id, string? returnUrl = null)
@@ -267,30 +274,10 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
-
-        // GET: FlightsController/Delete/5
-        public async Task<IActionResult> Cancel(int id, string? returnUrl = null)
-        {
-            var flight = await _flightRepository.GetByIdWithDetailsAsync(id);
-            if (flight == null) return new NotFoundViewResult("Error404");
-
-            if (flight.Status != FlightStatus.Scheduled)
-            {
-                TempData["WarningMessage"] = "Only scheduled flights can be canceled.";
-                return Redirect(returnUrl ?? Url.Action("Index", "Flights"));
-            }
-
-            ViewBag.ReturnUrl = returnUrl ?? Url.Action("Index", "Flights");
-
-            return View(flight);
-        }
-
-
-
         // POST: FlightsController/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CancelConfirmed(int id, string? returnUrl)
+        public async Task<IActionResult> Cancel(int id, string? returnUrl)
         {
             var flight = await _flightRepository.GetByIdWithDetailsAsync(id);
             if (flight == null)
@@ -322,12 +309,12 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
-
         [HttpGet]
         public async Task<IActionResult> History()
         {
             var flights = await _flightRepository.GetFlightsHistoryAsync();
-            return View(flights);
+            var model = _converterHelper.ToFlightDisplayViewModel(flights);
+            return View(model);
         }
 
 
@@ -336,7 +323,8 @@ namespace VitoriaAirlinesWeb.Controllers
         public async Task<IActionResult> Scheduled()
         {
             var flights = await _flightRepository.GetScheduledFlightsAsync();
-            return View(flights);
+            var model = _converterHelper.ToFlightDisplayViewModel(flights);
+            return View(model);
         }
 
 
@@ -413,7 +401,7 @@ namespace VitoriaAirlinesWeb.Controllers
             var position = $"{seatInfo.Row}{seatInfo.Letter}";
             var cls = seatInfo.Class;
 
-            
+
             await _notificationService.NotifyCustomerAsync(
                 ticket.UserId,
                 $"Your seat on flight {flightNumber} has been changed to {position} (Class: {cls})."

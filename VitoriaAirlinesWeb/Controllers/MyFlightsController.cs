@@ -1,10 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Data.Repositories;
 using VitoriaAirlinesWeb.Helpers;
-using X.PagedList;
-using X.PagedList.Extensions;
 
 namespace VitoriaAirlinesWeb.Controllers
 {
@@ -14,19 +11,22 @@ namespace VitoriaAirlinesWeb.Controllers
         private readonly IUserHelper _userHelper;
         private readonly ITicketRepository _ticketRepository;
         private readonly IMailHelper _mailHelper;
+        private readonly IConverterHelper _converterHelper;
 
         public MyFlightsController(
             IUserHelper userHelper,
             ITicketRepository ticketRepository,
-            IMailHelper mailHelper)
+            IMailHelper mailHelper,
+            IConverterHelper converterHelper)
         {
             _userHelper = userHelper;
             _ticketRepository = ticketRepository;
             _mailHelper = mailHelper;
+            _converterHelper = converterHelper;
         }
 
         [HttpGet]
-        public async Task<IActionResult> History(int page = 1)
+        public async Task<IActionResult> History()
         {
             var email = User.Identity?.Name;
             var user = await _userHelper.GetUserByEmailAsync(email);
@@ -34,16 +34,14 @@ namespace VitoriaAirlinesWeb.Controllers
 
             var tickets = await _ticketRepository.GetTicketsHistoryByUserAsync(user.Id);
 
-            const int pageSize = 10;
-            IPagedList<Ticket> model = tickets.ToPagedList(page, pageSize);
-
+            var model = _converterHelper.ToTicketDisplayViewModel(tickets);
 
             return View(model);
         }
 
 
         [HttpGet]
-        public async Task<IActionResult> Upcoming(int page = 1)
+        public async Task<IActionResult> Upcoming()
         {
             var email = User.Identity?.Name;
             var user = await _userHelper.GetUserByEmailAsync(email);
@@ -51,11 +49,10 @@ namespace VitoriaAirlinesWeb.Controllers
 
             var tickets = await _ticketRepository.GetUpcomingTicketsByUserAsync(user.Id);
 
-            const int pageSize = 10;
-            IPagedList<Ticket> model = tickets.ToPagedList(page, pageSize);
+            //var model = _converterHelper.ToTicketDisplayViewModel(tickets);
 
-
-            return View(model);
+            //return View(model);
+            return View(tickets);
         }
 
 
@@ -107,7 +104,7 @@ namespace VitoriaAirlinesWeb.Controllers
                 TempData["Success"] = "Ticket successfully canceled. You will be issued with a refund.";
             }
 
-            
+
             return RedirectToAction("Upcoming");
 
         }

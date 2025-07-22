@@ -1,42 +1,68 @@
-﻿@using VitoriaAirlinesWeb.Models.ViewModels.Employees
-@model EditEmployeeViewModel
+﻿@model VitoriaAirlinesWeb.Models.ViewModels.Employees.EditEmployeeViewModel
 
 @{
     ViewData["Title"] = "Edit Employee";
+    var returnUrl = Context.Request.Query["returnUrl"].ToString();
+    var safeReturnUrl = string.IsNullOrEmpty(returnUrl) ? Url.Action("Index", "Employees") : returnUrl;
 }
 
-<div class="login-background">
-    <div class="login-card" style="max-width: 500px;">
-        <h3 class="text-center text-light mb-4">Edit Employee</h3>
-
-        <form asp-action="Edit" method="post">
-            <input type="hidden" asp-for="Email" />
-
-            <div asp-validation-summary="ModelOnly" class="login-error-message"></div>
-
-            <div class="mb-3">
-                <label asp-for="FirstName" class="form-label text-light"></label>
-                <input asp-for="FirstName" class="form-control bg-dark text-light border-secondary" />
-                <span asp-validation-for="FirstName" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="LastName" class="form-label text-light"></label>
-                <input asp-for="LastName" class="form-control bg-dark text-light border-secondary" />
-                <span asp-validation-for="LastName" class="text-danger"></span>
-            </div>
-
-            <div class="mb-4">
-                <label asp-for="Email" class="form-label text-light"></label>
-                <input asp-for="Email" class="form-control bg-dark text-light border-secondary" readonly />
-            </div>
-
-            <button type="submit" class="btn w-100 login-button">Save Changes</button>
-            <div class="mt-3 text-center">
-                <a asp-action="Index" class="btn btn-outline-light">Back to List</a>
-            </div>
-        </form>
+<div class="container-fluid py-4" style="background-color: #0e0e0e;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="dark-title m-0">
+            <i class="fas fa-user-edit me-2"></i>@ViewData["Title"]: @Model.FirstName @Model.LastName
+        </h2>
+        <a href="@safeReturnUrl" class="btn btn-brand-primary">
+            <i class="fas fa-arrow-left me-1"></i> Back to List
+        </a>
     </div>
+
+    <form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="Email" />
+        <input type="hidden" name="returnUrl" value="@safeReturnUrl" />
+
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card flight-card">
+                    <div class="card-header">
+                        <i class="fas fa-user me-2"></i> Employee Information
+                    </div>
+                    <div class="card-body">
+                        <p class="text-white-50 mb-4 text-center">
+                            Update the details of the employee.
+                        </p>
+
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3 text-center"></div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FirstName" class="form-label custom-label">First Name</label>
+                                <input asp-for="FirstName" class="form-control custom-input" placeholder="e.g. Ana" />
+                                <span asp-validation-for="FirstName" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="LastName" class="form-label custom-label">Last Name</label>
+                                <input asp-for="LastName" class="form-control custom-input" placeholder="e.g. Costa" />
+                                <span asp-validation-for="LastName" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label custom-label">Email</label>
+                            <input asp-for="Email" class="form-control custom-input" readonly />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-gold w-50 py-3 fs-5 rounded-pill shadow">
+                        <i class="fas fa-save me-2"></i>Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
 </div>
 
 @section Scripts {

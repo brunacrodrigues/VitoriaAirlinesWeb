@@ -1,6 +1,5 @@
-﻿@model FlightViewModel
+﻿@model VitoriaAirlinesWeb.Models.ViewModels.Flights.FlightViewModel
 @using Syncfusion.EJ2.DropDowns
-@using VitoriaAirlinesWeb.Models.ViewModels.Flights
 
 @{
     ViewData["Title"] = "Edit Flight";
@@ -22,24 +21,35 @@
         <div><strong>${Model}</strong></div>";
 }
 
-<div class="container mt-5">
-    <div class="card bg-dark text-light shadow-lg p-4 rounded">
-        <h2 class="text-white bg-maroon px-3 py-2 rounded-top scheduler-title">
-            <i class="fas fa-edit me-2"></i>@ViewData["Title"]
+<div class="container-fluid py-4" style="background-color: #0e0e0e;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="dark-title m-0">
+            <i class="fas fa-edit me-2"></i>@Model.FlightNumber
         </h2>
+        <a href="@safeReturnUrl" class="btn btn-brand-primary">
+            <i class="fas fa-arrow-left me-1"></i> Back to List
+        </a>
+    </div>
 
-        <form asp-action="Edit" method="post">
-            <input type="hidden" asp-for="Id" />
-            <input type="hidden" asp-for="FlightNumber" />
-            <input type="hidden" name="returnUrl" value="@safeReturnUrl" />
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="FlightNumber" />
+        <input type="hidden" name="returnUrl" value="@safeReturnUrl" />
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3 text-center"></div>
 
-            <div class="row">
-                <div class="col-md-7">
+        <div class="row g-4">
+            <div class="col-md-7">
+                <div class="card flight-card h-100">
+                    <div class="card-header">
+                        <i class="fas fa-info-circle me-2"></i> Flight Information
+                    </div>
+                    <div class="card-body">
+                        <p class="text-white-50 mb-4 text-center">
+                            Edit the airplane and route details for this flight.
+                        </p>
 
-                    <div class="form-group row align-items-center mb-3">
-                        <label asp-for="AirplaneId" class="col-sm-3 form-label custom-label"></label>
-                        <div class="col-sm-9">
+                        <div class="mb-3">
+                            <label asp-for="AirplaneId" class="form-label custom-label">Airplane</label>
                             <ejs-combobox id="AirplaneId"
                                           name="AirplaneId"
                                           dataSource="@Model.Airplanes"
@@ -47,17 +57,15 @@
                                           itemTemplate="@airplaneItemTemplate"
                                           valueTemplate="@airplaneValueTemplate"
                                           popupHeight="300px"
-                                          value="@Model.AirplaneId"
+                                          value="@Model.AirplaneId.ToString()"
                                           allowCustom="false">
                                 <e-combobox-fields text="Model" value="Id"></e-combobox-fields>
                             </ejs-combobox>
                             <span asp-validation-for="AirplaneId" class="text-danger"></span>
                         </div>
-                    </div>
 
-                    <div class="form-group row align-items-center mb-3">
-                        <label asp-for="OriginAirportId" class="col-sm-3 form-label custom-label">Origin</label>
-                        <div class="col-sm-9">
+                        <div class="mb-3">
+                            <label asp-for="OriginAirportId" class="form-label custom-label">Origin</label>
                             <ejs-dropdownlist id="OriginAirportId"
                                               name="OriginAirportId"
                                               dataSource="@Model.OriginAirports"
@@ -70,11 +78,9 @@
                             </ejs-dropdownlist>
                             <span asp-validation-for="OriginAirportId" class="text-danger"></span>
                         </div>
-                    </div>
 
-                    <div class="form-group row align-items-center mb-3">
-                        <label asp-for="DestinationAirportId" class="col-sm-3 form-label custom-label">Destination</label>
-                        <div class="col-sm-9">
+                        <div>
+                            <label asp-for="DestinationAirportId" class="form-label custom-label">Destination</label>
                             <ejs-dropdownlist id="DestinationAirportId"
                                               name="DestinationAirportId"
                                               dataSource="@Model.DestinationAirports"
@@ -89,64 +95,90 @@
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="col-md-5">
-                    <div class="p-3 bg-maroon-subtle rounded">
-                        <h4 class="text-white mb-3">
-                            <i class="fas fa-euro-sign me-2"></i>Set Prices
-                        </h4>
-
-                        <div class="form-group row align-items-center mb-3">
-                            <label asp-for="ExecutiveClassPrice" class="col-sm-4 form-label custom-label">Executive</label>
-                            <div class="col-sm-8">
-                                <div class="input-group">
-                                    <input asp-for="ExecutiveClassPrice" type="number" step="0.01" class="form-control custom-input" />
-                                    <span class="input-group-text">€</span>
-                                </div>
-                                <span asp-validation-for="ExecutiveClassPrice" class="text-danger"></span>
+            <div class="col-md-5">
+                <div class="card flight-card h-100">
+                    <div class="card-header">
+                        <i class="fas fa-euro-sign me-2"></i> Set Prices
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label asp-for="ExecutiveClassPrice" class="form-label custom-label">Executive</label>
+                            <div class="input-group">
+                                <input asp-for="ExecutiveClassPrice" type="number" step="0.01" class="form-control custom-input" placeholder="e.g. 199.99" />
+                                <span class="input-group-text">€</span>
                             </div>
+                            <span asp-validation-for="ExecutiveClassPrice" class="text-danger"></span>
                         </div>
 
-                        <div class="form-group row align-items-center mb-3">
-                            <label asp-for="EconomyClassPrice" class="col-sm-4 form-label custom-label">Economic</label>
-                            <div class="col-sm-8">
-                                <div class="input-group">
-                                    <input asp-for="EconomyClassPrice" type="number" step="0.01" class="form-control custom-input" />
-                                    <span class="input-group-text">€</span>
-                                </div>
-                                <span asp-validation-for="EconomyClassPrice" class="text-danger"></span>
+                        <div>
+                            <label asp-for="EconomyClassPrice" class="form-label custom-label">Economy</label>
+                            <div class="input-group">
+                                <input asp-for="EconomyClassPrice" type="number" step="0.01" class="form-control custom-input" placeholder="e.g. 89.99" />
+                                <span class="input-group-text">€</span>
                             </div>
+                            <span asp-validation-for="EconomyClassPrice" class="text-danger"></span>
                         </div>
+
+                        <p class="text-muted small mt-3">
+                            <i class="fas fa-info-circle me-1"></i>
+                            These prices will be used for ticket generation and purchase.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mt-4">
+            <div class="col-md-4">
+                <div class="card flight-card">
+                    <div class="card-header">
+                        <i class="fas fa-calendar-day me-2"></i> Departure Date
+                    </div>
+                    <div class="card-body">
+                        <input asp-for="DepartureDate" class="form-control custom-input" type="date" />
+                        <span asp-validation-for="DepartureDate" class="text-danger"></span>
                     </div>
                 </div>
             </div>
 
-            <div class="row mt-4">
-                <div class="col-md-4">
-                    <label asp-for="DepartureDate" class="form-label custom-label"></label>
-                    <input asp-for="DepartureDate" class="form-control custom-input" type="date" />
-                    <span asp-validation-for="DepartureDate" class="text-danger"></span>
-                </div>
-                <div class="col-md-4">
-                    <label asp-for="DepartureTime" class="form-label custom-label"></label>
-                    <input asp-for="DepartureTime" class="form-control custom-input" type="time" />
-                    <span asp-validation-for="DepartureTime" class="text-danger"></span>
-                </div>
-                <div class="col-md-4">
-                    <label asp-for="Duration" class="form-label custom-label"></label>
-                    <input asp-for="Duration" class="form-control custom-input" type="time" />
-                    <span asp-validation-for="Duration" class="text-danger"></span>
+            <div class="col-md-4">
+                <div class="card flight-card">
+                    <div class="card-header">
+                        <i class="fas fa-clock me-2"></i> Departure Time
+                    </div>
+                    <div class="card-body">
+                        <input asp-for="DepartureTime" class="form-control custom-input" type="time" />
+                        <span asp-validation-for="DepartureTime" class="text-danger"></span>
+                    </div>
                 </div>
             </div>
 
-            <div class="text-center mt-5">
-                <button type="submit" class="btn btn-schedule-flight px-5 py-2 rounded-pill">
-                    <i class="fas fa-save me-2"></i>Save Changes
-                </button>
-                <a href="@safeReturnUrl" class="btn btn-secondary ms-2">Back</a>
+            <div class="col-md-4">
+                <div class="card flight-card">
+                    <div class="card-header">
+                        <i class="fas fa-hourglass-half me-2"></i> Duration
+                    </div>
+                    <div class="card-body">
+                        <input asp-for="Duration" class="form-control custom-input" type="time" />
+                        <span asp-validation-for="Duration" class="text-danger"></span>
+
+                        <p class="text-muted small mt-2">
+                            <i class="fas fa-info-circle me-1"></i>
+                            This defines the total flight time.
+                        </p>
+                    </div>
+                </div>
             </div>
-        </form>
-    </div>
+        </div>
+
+        <div class="text-center mt-5">
+            <button type="submit" class="btn btn-gold w-50 py-3 fs-5 rounded-pill shadow">
+                <i class="fas fa-save me-2"></i>Save Changes
+            </button>
+        </div>
+    </form>
 </div>
 
 @section Scripts {
@@ -159,51 +191,22 @@
             var originDropdown = document.getElementById('OriginAirportId')?.ej2_instances[0];
             var destinationDropdown = document.getElementById('DestinationAirportId')?.ej2_instances[0];
 
-            if (!originDropdown || !destinationDropdown) {
-                return;
+            if (!originDropdown || !destinationDropdown) return;
+
+            function syncDropdowns(source, target) {
+                var value = source.value;
+                if (target.value === value) target.value = null;
+
+                var query = value ? new ej.data.Query().where('Value', 'notequal', value) : new ej.data.Query();
+                target.query = query;
+                target.dataBind();
             }
 
-            function onOriginChange() {
-                var selectedOriginValue = originDropdown.value;
+            originDropdown.addEventListener('change', () => syncDropdowns(originDropdown, destinationDropdown));
+            destinationDropdown.addEventListener('change', () => syncDropdowns(destinationDropdown, originDropdown));
 
-                if (destinationDropdown.value === selectedOriginValue) {
-                    destinationDropdown.value = null;
-                }
-
-                var query = new ej.data.Query();
-                if (selectedOriginValue) {
-                    query = new ej.data.Query().where('Value', 'notequal', selectedOriginValue);
-                }
-
-                destinationDropdown.query = query;
-                destinationDropdown.dataBind();
-            }
-
-            function onDestinationChange() {
-                var selectedDestinationValue = destinationDropdown.value;
-
-                if (originDropdown.value === selectedDestinationValue) {
-                    originDropdown.value = null;
-                }
-
-                var query = new ej.data.Query();
-                if (selectedDestinationValue) {
-                    query = new ej.data.Query().where('Value', 'notequal', selectedDestinationValue);
-                }
-
-                originDropdown.query = query;
-                originDropdown.dataBind();
-            }
-
-            originDropdown.addEventListener('change', onOriginChange);
-            destinationDropdown.addEventListener('change', onDestinationChange);
-
-            if (originDropdown.value) {
-                onOriginChange();
-            }
-            if (destinationDropdown.value) {
-                onDestinationChange();
-            }
+            if (originDropdown.value) syncDropdowns(originDropdown, destinationDropdown);
+            if (destinationDropdown.value) syncDropdowns(destinationDropdown, originDropdown);
         });
     </script>
 }

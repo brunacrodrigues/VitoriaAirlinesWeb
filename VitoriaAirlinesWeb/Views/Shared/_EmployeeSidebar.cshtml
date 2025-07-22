@@ -36,6 +36,13 @@
                     <li><i class="far fa-calendar-alt"></i><a asp-controller="Flights" asp-action="Scheduled" asp-route-filter="scheduled">Scheduled Flights</a></li>
                 </ul>
 
+                <li>
+                    <i class="fas fa-user-edit"></i>
+                    <a asp-controller="Account" asp-action="EditProfile">Edit Profile</a>
+                </li>
+
+                <li><i class="fas fa-sign-out-alt"></i><a asp-controller="Account" asp-action="Logout">Logout</a></li>
+
             </ul>
         </div>
     </e-content-template>

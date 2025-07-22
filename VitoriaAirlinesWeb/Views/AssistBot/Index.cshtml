@@ -4,22 +4,21 @@
     ViewData["Title"] = "AI Assistant";
     var suggestions = ViewBag.Suggestions as string[] ?? Array.Empty<string>();
 }
-<div class="aiassist-container" style="
-    position: fixed;
-    top: 100px;       /* altura navbar */
-    bottom: 30px;    /* altura footer */
-    left: 50px;
-    right: 50px;
-    margin: 0 auto;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    overflow: auto;  /* para scroll interno se necessário */
-">    <ejs-aiassistview id="aiAssistView"
-                      promptSuggestions="@suggestions"
-                      promptRequest="onPromptRequest"
-                      created="onCreated">
-    </ejs-aiassistview>
+
+
+
+
+<div class="chat-inner-container">
+    <div id="chatHistory" class="chat-history">
+        <ejs-aiassistview id="aiAssistView"
+                          promptSuggestions="@suggestions"
+                          promptRequest="onPromptRequest"
+                          created="onCreated">
+        </ejs-aiassistview>
+    </div>
 </div>
+
+
 
 <script>
     var assistObj;

@@ -1,36 +1,49 @@
-﻿@using VitoriaAirlinesWeb.Models.ViewModels.Account
-@model LoginViewModel
+﻿@model VitoriaAirlinesWeb.Models.ViewModels.Account.LoginViewModel
+
 @{
+    Layout = null;
     ViewData["Title"] = "Login";
 }
 
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success fade-out-alert">
-        @TempData["SuccessMessage"]
-    </div>
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Login - Vitoria Airlines</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet" />
 
-<div class="login-background">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+</head>
+<body class="login-background">
     <div class="login-card">
-        <h3 class="text-center text-light mb-4">Login</h3>
+        <h3 class="login-title text-center mb-1">Welcome back!</h3>
+        <p class="login-subtitle text-center mb-4">Your next destination is just one step away.</p>
+
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="fade-out-alert">
+                @TempData["SuccessMessage"]
+            </div>
+        }
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="login-error-message">
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <div>@error.ErrorMessage</div>
+                }
+            </div>
+        }
 
         <form asp-action="Login" method="post">
-            @if (!ViewData.ModelState.IsValid)
-            {
-                <div class="login-error-message">
-                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-                    {
-                        <div>@error.ErrorMessage</div>
-                    }
-                </div>
-            }
-
             <div class="mb-3">
-                <div class="d-flex justify-content-between">
-                    <label asp-for="Username" class="form-label text-light">Email</label>
-                    <a asp-action="Register" class="login-register-link">Need an account?</a>
-                </div>
+                <label asp-for="Username" class="form-label text-light">Email</label>
                 <input asp-for="Username" class="form-control bg-dark text-light border-secondary" />
                 <span asp-validation-for="Username" class="text-danger"></span>
             </div>
@@ -40,9 +53,15 @@
                     <label asp-for="Password" class="form-label text-light">Password</label>
                     <a asp-action="RecoverPassword" class="login-register-link">Forgot Password?</a>
                 </div>
-                <input asp-for="Password" class="form-control bg-dark text-light border-secondary" />
+                <div class="input-group">
+                    <input asp-for="Password" class="form-control bg-dark text-light border-secondary" id="passwordInput" type="password" />
+                    <button type="button" class="toggle-password" onclick="togglePassword('passwordInput', this)">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
+                </div>
                 <span asp-validation-for="Password" class="text-danger"></span>
             </div>
+
 
             <div class="form-check mb-3">
                 <input asp-for="RememberMe" class="form-check-input" />
@@ -51,22 +70,44 @@
 
             <button type="submit" class="btn w-100 mb-3 login-button">Login</button>
         </form>
+
+        <div class="login-bottom-links">
+            <a asp-action="Register">Need an account? Register</a>
+            <span class="text-muted">or</span>
+            <a asp-controller="Home" asp-action="Index">Continue as Guest</a>
+        </div>
     </div>
-</div>
 
-@section Scripts {
-    @{
-        <script>
-            setTimeout(function () {
-                const alerts = document.querySelectorAll('.fade-out-alert');
-                alerts.forEach(alert => {
-                    alert.style.transition = "opacity 0.5s ease-out";
-                    alert.style.opacity = '0';
-                    setTimeout(() => alert.remove(), 500);
-                });
-            }, 4000);
-        </script>
+    <script>
+        setTimeout(function () {
+            const alerts = document.querySelectorAll('.fade-out-alert');
+            alerts.forEach(alert => {
+                alert.style.transition = "opacity 0.5s ease-out";
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 500);
+            });
+        }, 4000);
 
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-}
+        function togglePassword(id, btn) {
+            const input = document.getElementById(id);
+            const icon = btn.querySelector('i');
+
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove("fa-eye");
+                icon.classList.add("fa-eye-slash");
+            } else {
+                input.type = "password";
+                icon.classList.remove("fa-eye-slash");
+                icon.classList.add("fa-eye");
+            }
+        }
+
+    </script>
+
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+</body>
+</html>
+
+
+

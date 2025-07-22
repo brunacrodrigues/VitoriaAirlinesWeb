@@ -1,4 +1,4 @@
-html {
+/*html {
   font-size: 14px;
 }
 
@@ -18,12 +18,12 @@ body {
     background-color: #0e0e0e;
     color: #ffffff;
     overflow-y: hidden; 
-}
+}*/
 
 
 
 /* LOGIN AND REGISTRATION */
-.login-background {
+/*.login-background {
     min-height: 100vh; 
     background-color: #0e0e0e; 
     display: flex; 
@@ -123,10 +123,10 @@ body {
 
 main {
     flex-grow: 1; 
-}
+}*/
 
 /* Sidebar  */
-#mainSidebar.e-sidebar {
+/*#mainSidebar.e-sidebar {
     background-color: #4B0012 !important;
     color: white;
     border: none;
@@ -207,12 +207,12 @@ main {
 .e-sidebar.e-dock .sidebar-menu li i {
     margin-right: 0;
     font-size: 1.2em;
-}
+}*/
 
 
 /* sidebar submenu */
 
-.sidebar-menu .has-submenu {
+/*.sidebar-menu .has-submenu {
     cursor: pointer;
 }
 
@@ -221,8 +221,8 @@ main {
     }
 
 .sidebar-menu .submenu-arrow {
-    margin-left: 1rem; /* afasta a seta do texto */
-    margin-right: 0.25rem;
+    margin-left: 1rem;*/ /* afasta a seta do texto */
+    /*margin-right: 0.25rem;
     transition: transform 0.3s ease;
 }
 
@@ -264,14 +264,14 @@ main {
 
 .submenu-arrow {
     margin-left: 12px;
-    font-size: 0.85rem; /* opcional para reduzir um pouco a seta */
-    margin-top: 2px;
-}
+    font-size: 0.85rem;*/ /* opcional para reduzir um pouco a seta */
+    /*margin-top: 2px;
+}*/
 
 
 
 /* Header and footer */
-header .navbar {
+/*header .navbar {
     background-color: #4B0012 !important;
     border-bottom: 1px solid #333 !important;
 }
@@ -292,14 +292,14 @@ header .nav-link:hover {
 
 .footer a {
     color: #f0b400;
-}
+}*/
 
 
 
 
 /* hamburger icon */
 
-.hamburger-button {
+/*.hamburger-button {
     border: none;
     background-color: transparent;
     color: #ffffff;
@@ -315,11 +315,11 @@ header .nav-link:hover {
 
 .hamburger-button .e-icons.e-menu {
     vertical-align: middle;
-}
+}*/
 
 
 /* Register Employee */
-.btn-gold {
+/*.btn-gold {
     background-color: #D4A437;
     color: black;
     font-weight: bold;
@@ -354,7 +354,7 @@ header .nav-link:hover {
     border: 2px solid #4B0012;
     border-radius: 8px;
     max-width: 440px;
-}
+}*/
 
 /*.airplane-layout {
     display: flex;
@@ -393,7 +393,7 @@ header .nav-link:hover {
 }
 */
 
-.airplane-layout {
+/*.airplane-layout {
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -517,12 +517,12 @@ header .nav-link:hover {
     border-color: #3a000e;
     color: #ffffff;
     box-shadow: none;
-}
+}*/
 
 
 /* Booking Seat Layout */
 
-.seat-row {
+/*.seat-row {
     display: grid;
     grid-template-columns: 40px 40px 40px 40px 20px 40px 40px 40px;
     justify-content: center;
@@ -868,6 +868,1327 @@ header .nav-link:hover {
 .chat-box-hidden {
     visibility: hidden;
     opacity: 0;
+}*/
+
+/* Estilos para o botão que abre o Chat */
+/*#chatToggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    background: #800000;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 55px;
+    height: 55px;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    #chatToggle:hover {
+        transform: scale(1.1);
+    }*/
+
+
+
+/* animação para o atualizações no dashboard */
+/*.highlighted {
+    animation: flashHighlight 1s ease-in-out;
+}
+
+@keyframes flashHighlight {
+    0% {
+        background-color: #fff3cd;
+    }
+
+    50% {
+        background-color: #ffeeba;
+    }
+
+    100% {
+        background-color: transparent;
+    }
+}*/
+
+
+
+/* dashboard */
+
+/* === LIGHT THEME DASHBOARD === */
+
+/*.dashboard-container {
+    background-color: #f9f9f9;
+    color: #111;
+    padding: 2rem;
+    font-family: 'Outfit', sans-serif;
+}
+
+.dashboard-summary-card {
+    border: none;
+    border-radius: 1rem;
+    background-color: #ffffff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    text-align: center;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+    .dashboard-summary-card h5 {
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .dashboard-summary-card h2 {
+        font-size: 2rem;
+        margin: 0;
+    }
+
+    .dashboard-summary-card span {
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+.dashboard-text-maroon {
+    color: #800000;
+}
+
+.dashboard-text-gold {
+    color: #D4A437;
+}
+
+.dashboard-text-success {
+    color: #2e7d32;
+}
+
+.dashboard-text-danger {
+    color: #c62828;
+}
+
+.dashboard-table-custom thead {
+    background-color: #4B0012;
+    color: #f0b400;
+}
+
+.dashboard-table-custom tbody tr {
+    background-color: #ffffff;
+    color: #333;
+}
+
+    .dashboard-table-custom tbody tr:nth-child(even) {
+        background-color: #f0f0f0;
+    }
+
+    .dashboard-table-custom tbody tr:hover {
+        background-color: #e8e8e8;
+    }
+
+.dashboard-table-custom th,
+.dashboard-table-custom td {
+    padding: 0.75rem 1rem;
+    border-color: #ddd;
+}
+
+.dashboard-badge-warning {
+    background-color: #D4A437;
+    color: black;
+}
+
+.dashboard-badge-primary {
+    background-color: #4B0012;
+    color: white;
+}
+
+.dashboard-badge-success {
+    background-color: #66BB6A;
+    color: white;
+}
+
+.dashboard-badge-danger {
+    background-color: #D32F2F;
+    color: white;
+}
+
+.e-chart text {
+    font-family: 'Outfit' !important;
+    fill: black;
+}
+
+
+.dashboard-card {
+    background-color: #ffffff;
+    border: 2px solid #4B0012;
+    border-radius: 12px;
+    padding: 1.2rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+    color: #212529;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+    .dashboard-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+
+    .dashboard-card h6 {
+        font-weight: 600;
+        color: #4B0012;
+    }
+
+    .dashboard-card small,
+    .dashboard-card .text-muted {
+        color: #6c757d !important;
+    }
+
+    .dashboard-card i {
+        color: #D4A437;
+    }*/
+
+/* === HERO SECTION === */
+/*.hero-section {
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    min-height: 500px;
+    color: white;
+    font-family: 'Outfit', sans-serif;
+}
+
+    .hero-section .overlay {
+        background-color: rgba(0, 0, 0, 0.65);
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+    }
+
+    .hero-section .container {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        padding: 3rem 1rem;
+    }
+
+    .hero-section h1 {
+        font-size: 2.5rem;
+        color: #ffffff;
+    }
+
+    .hero-section p {
+        font-size: 1.2rem;
+        color: #f0b400;
+    }
+
+.search-form-container {
+    background-color: rgba(0, 0, 0, 0.6);
+    border: 2px solid #D4A437;
+    border-radius: 12px;
+    backdrop-filter: blur(8px);
+}
+
+.custom-input {
+    background-color: #ffffff;
+    color: #000000;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+}*/
+
+
+/* === DESTINATIONS SECTION === */
+/*section.bg-dark {
+    background-color: #0d0d0d;
+}
+
+.card.bg-maroon {
+    background-color: #4B0012;
+    border: none;
+    border-radius: 12px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+    .card.bg-maroon:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    }
+
+    .card.bg-maroon .card-title {
+        color: #D4A437;
+    }
+
+    .card.bg-maroon .card-text {
+        color: #f8f8f8;
+    }*/
+
+/* === SEARCH FORM INSIDE HERO === */
+/*.bg-maroon-subtle {
+    background-color: #1a1a1a;
+    border-radius: 12px;
+}
+
+.btn-gold {
+    background-color: #D4A437;
+    color: black;
+    font-weight: bold;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+    .btn-gold:hover {
+        background-color: #A67C26;
+        color: white;
+    }
+
+.custom-input {
+    background-color: #f8f9fa;
+    color: black;
+}*/
+
+/* === FLIGHT CARDS === */
+/*.flight-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+    .flight-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15) !important;
+    }
+
+    .flight-card .card-header {
+        background-color: #4B0012;
+        color: #ffffff;
+    }
+
+    .flight-card .card-body {
+        background-color: #A67C26;
+        color: #ffffff;
+    }
+
+    .flight-card .card-footer {
+        background-color: #A67C26;
+        border-top: none;
+    }
+
+    .flight-card .card-body i {
+        color: #ffffff;
+    }
+
+.btn-brand-primary {
+    background-color: #4B0012;
+    border-color: #4B0012;
+    color: #ffffff;
+    transition: all 0.3s ease;
+}
+
+    .btn-brand-primary:hover,
+    .btn-brand-primary:focus {
+        background-color: #3a000e;
+        border-color: #3a000e;
+        color: #ffffff;
+        box-shadow: none;
+    }*/
+
+/* === SECTION TITLES === */
+/*section h2 {
+    font-weight: bold;
+    margin-bottom: 2rem;
+    color: #f0b400;
+    text-align: center;
+}*/
+
+
+html {
+    font-size: 14px;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+body {
+    font-family: 'Outfit', sans-serif;
+    background-color: #0e0e0e; /* Ajustado para um tom mais escuro */
+    color: #ffffff;
+    overflow-y: auto; /* Mantido como auto para permitir scroll se o conteúdo exceder */
+}
+
+
+
+/* LOGIN AND REGISTRATION */
+/*.login-background {
+    min-height: 100vh;
+    background-color: #0e0e0e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}*/
+
+.login-background {
+    min-height: 100vh;
+    background: linear-gradient(to bottom, #0e0e0e, #1a1a1a);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+}
+
+/*.login-card {
+    width: 100%;
+    max-width: 400px;
+    background-color: #1a1a1a;
+    border: none;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}*/
+
+.login-card {
+    width: 100%;
+    max-width: 800px;
+    background-color: #1a1a1a;
+    border: none;
+    border-radius: 12px;
+    padding: 2.5rem;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+
+.login-button {
+    background-color: #4B0012;
+    color: white;
+}
+
+.login-register-link {
+    color: #f0b400;
+    text-decoration: none;
+}
+
+    .login-register-link:hover {
+        text-decoration: underline;
+        color: #ffd700;
+    }
+
+.login-error-message {
+    background-color: #850d1c;
+    color: #f8f8f8;
+    padding: 0.75rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+}
+
+.fade-out-alert {
+    background-color: #198754;
+    color: white;
+    padding: 0.75rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.login-bottom-links {
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+
+    .login-bottom-links a {
+        color: #f0b400;
+        text-decoration: none;
+        margin: 0 0.4rem;
+    }
+
+        .login-bottom-links a:hover {
+            text-decoration: underline;
+            color: #ffd700;
+        }
+
+    .login-bottom-links .text-muted {
+        color: #ccc;
+    }
+
+
+.login-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #D4A437;
+}
+
+.login-subtitle {
+    font-size: 0.95rem;
+    color: #cccccc;
+    margin-bottom: 1rem;
+}
+
+
+.toggle-password {
+    background: none;
+    border: none;
+    padding: 0 0.75rem;
+    font-size: 1rem;
+    color: #f0b400;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+    .toggle-password:hover {
+        color: #ffd700;
+        background: none;
+    }
+
+    .toggle-password i {
+        pointer-events: none;
+    }
+
+
+.email-confirmation-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 90vh;
+    background-color: #0e0e0e;
+}
+
+.email-confirmation-card {
+    background-color: #1a1a1a;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+}
+
+.email-confirmation-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 1rem auto;
+    border-radius: 50%;
+    background-color: #4B0012;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.email-confirmation-card h3 {
+    color: white;
+    margin-bottom: 1.5rem;
+}
+
+.btn-confirmation {
+    display: inline-block;
+    padding: 0.6rem 1.2rem;
+    background-color: #4B0012;
+    color: white;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+    .btn-confirmation:hover {
+        background-color: #D32F2F;
+        color: white
+    }
+
+
+.app-container {
+    display: flex;
+    height: 100vh;
+}
+
+.page-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    background-color: #0d0d0d;
+}
+
+main {
+    flex-grow: 1;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.form-col {
+    display: flex;
+    flex-direction: column;
+}
+
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* Sidebar  */
+#mainSidebar.e-sidebar {
+    background-color: #4B0012 !important;
+    color: white;
+    border: none;
+    flex-shrink: 0;
+    transition: width 0.35s ease;
+    font-family: 'Outfit', sans-serif;
+}
+
+.sidebar-internal-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.sidebar-header {
+    padding: 1rem;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.sidebar-title {
+    font-size: 14px;
+    font-weight: bold;
+    padding-top: 35px;
+}
+
+.sidebar-menu {
+    list-style: none;
+    font-size: 13px;
+    padding: 0 1rem;
+    margin-top: 1rem;
+    flex-grow: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+    .sidebar-menu li {
+        margin: 0.5rem 0;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        transition: background-color 0.3s;
+        display: flex;
+        align-items: center;
+    }
+
+    .sidebar-menu a {
+        color: white;
+        text-decoration: none;
+        flex-grow: 1;
+    }
+
+    .sidebar-menu li:hover {
+        background-color: #A67C26;
+        cursor: pointer;
+    }
+
+    .sidebar-menu li i {
+        margin-right: 2rem;
+        font-size: 1rem;
+    }
+
+
+.e-sidebar.e-dock .sidebar-title,
+.e-sidebar.e-dock .sidebar-menu a {
+    display: none;
+}
+
+.e-sidebar.e-dock .sidebar-menu {
+    padding: 0;
+}
+
+    .e-sidebar.e-dock .sidebar-menu li {
+        justify-content: center;
+        padding: 0.75rem 0;
+    }
+
+        .e-sidebar.e-dock .sidebar-menu li i {
+            margin-right: 0;
+            font-size: 1.2em;
+        }
+
+
+/* sidebar submenu */
+
+.sidebar-menu .has-submenu {
+    cursor: pointer;
+}
+
+    .sidebar-menu .has-submenu > a {
+        pointer-events: none;
+    }
+
+.sidebar-menu .submenu-arrow {
+    margin-left: 1rem; /* afasta a seta do texto */
+    margin-right: 0.25rem;
+    transition: transform 0.3s ease;
+}
+
+
+.sidebar-menu .has-submenu.open .submenu-arrow {
+    transform: rotate(180deg);
+}
+
+.sidebar-submenu {
+    list-style: none;
+    padding-left: 1.5rem;
+    margin: 0;
+    visibility: hidden;
+    opacity: 0;
+    max-height: 0;
+    transition: visibility 0s 0.4s, opacity 0.4s ease, max-height 0.4s ease-in-out;
+}
+
+    .sidebar-submenu.open {
+        visibility: visible;
+        opacity: 1;
+        max-height: 500px;
+        transition: visibility 0s, opacity 0.4s ease, max-height 0.4s ease-in-out;
+    }
+
+    .sidebar-submenu li {
+        padding: 0.6rem 1rem;
+    }
+
+.submenu-toggle {
+    white-space: nowrap;
+}
+
+.submenu-label {
+    display: inline-block;
+    white-space: nowrap;
+}
+
+
+.submenu-arrow {
+    margin-left: 12px;
+    font-size: 0.85rem; /* opcional para reduzir um pouco a seta */
+    margin-top: 2px;
+}
+
+
+
+/* Header and footer */
+header .navbar {
+    background-color: #4B0012 !important;
+    border-bottom: 1px solid #333 !important;
+}
+
+header .navbar-brand, header .nav-link {
+    color: #ffffff !important;
+}
+
+    header .nav-link:hover {
+        color: #f0b400 !important;
+    }
+
+.footer {
+    background-color: #4B0012;
+    border-top: 1px solid #333 !important;
+    color: #888;
+}
+
+    .footer a {
+        color: #f0b400;
+    }
+
+
+
+
+/* hamburger icon */
+
+.hamburger-button {
+    border: none;
+    background-color: transparent;
+    color: #ffffff;
+    font-size: 20px;
+    cursor: pointer;
+    margin-right: 15px;
+    padding: 5px;
+}
+
+    .hamburger-button:hover {
+        color: #f0b400;
+    }
+
+    .hamburger-button .e-icons.e-menu {
+        vertical-align: middle;
+    }
+
+
+/* Register Employee */
+.btn-gold {
+    background-color: #D4A437;
+    color: black;
+    font-weight: bold;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+}
+
+    .btn-gold:hover {
+        background-color: #A67C26;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .btn-gold i {
+        margin-right: 8px;
+    }
+
+.table-custom th,
+.table-custom td {
+    color: white;
+}
+
+.table-custom thead {
+    color: white;
+    background-color: #4B0012;
+}
+
+.table-custom tbody tr {
+    background-color: transparent;
+}
+
+.airplane-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    background-color: #1a1a1a;
+    border: 2px solid #4B0012;
+    border-radius: 8px;
+    max-width: 440px;
+}
+
+.airplane-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px;
+    background-color: #1a1a1a;
+    border: 2px solid #4B0012;
+    border-radius: 8px;
+    max-width: 300px;
+}
+
+.small-seat-layout .seat {
+    padding: 6px 10px;
+    font-size: 0.9rem;
+    width: 40px;
+}
+
+.seat-row {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.seat {
+    background-color: #333;
+    color: white;
+    border-radius: 6px;
+    text-align: center;
+    border: 1px solid #555;
+    font-family: monospace;
+}
+
+.seat-gap {
+    width: 20px;
+}
+
+.bg-maroon {
+    background-color: #660000 !important;
+}
+
+.bg-maroon-subtle {
+    background-color: #4d0000 !important;
+}
+
+.btn-schedule-flight {
+    background-color: #d89c00;
+    color: black;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+    .btn-schedule-flight:hover {
+        background-color: #bf8500;
+        color: white;
+    }
+
+.custom-label {
+    font-weight: 600;
+    color: white;
+}
+
+.scheduler-title {
+    font-size: 1.6rem;
+}
+
+.custom-select,
+.custom-input {
+    background-color: #ffffff;
+    color: #000000;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+}
+
+    .custom-input::placeholder {
+        color: #888;
+    }
+
+
+.available-seats-text {
+    font-size: 0.9rem;
+    color: #ccc;
+}
+
+.bg-maroon-subtle .text-danger {
+    color: white !important;
+}
+
+.flight-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 12px;
+}
+
+    .flight-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 30px rgba(75, 0, 18, 0.4) !important; /* Adicionado maroon na sombra */
+        border: 1px solid #4B0012; /* Borda maroon no hover */
+    }
+
+
+    .flight-card .card-header {
+        background-color: #4B0012; /* Mantido forte */
+        color: #ffffff;
+        font-size: 1.1rem;
+        border-bottom: 1px solid #660000;
+        border-radius: 11px 11px 0 0;
+    }
+
+
+    .flight-card .card-body {
+        background-color: #1a1a1a;
+        color: #e0e0e0;
+        padding-top: 1.5rem;
+        padding-bottom: 1.5rem;
+    }
+
+        .flight-card .card-body strong {
+            color: #D4A437;
+        }
+
+        .flight-card .card-body i {
+            color: #D4A437;
+        }
+
+
+    .flight-card .card-footer {
+        background-color: #2a2a2a;
+        border-top: 1px solid #4B0012; /* Borda superior do footer maroon */
+        border-radius: 0 0 11px 11px;
+    }
+
+.flight-price .price-label {
+    color: #e0e0e0;
+    font-size: 0.9rem;
+    display: block;
+}
+
+.flight-price .fs-5 {
+    color: #D4A437;
+    font-weight: 700;
+}
+
+.btn-brand-primary {
+    background-color: #4B0012;
+    border-color: #4B0012;
+    color: #ffffff;
+    transition: all 0.3s ease;
+    font-weight: bold;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+}
+
+    .btn-brand-primary:hover,
+    .btn-brand-primary:focus {
+        background-color: #660000;
+        border-color: #660000;
+        color: #ffffff;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        transform: translateY(-2px);
+    }
+
+    .btn-brand-primary i {
+        margin-right: 5px;
+    }
+
+
+/* Booking Seat Layout */
+
+.seat-row {
+    display: grid;
+    grid-template-columns: 40px 40px 40px 40px 20px 40px 40px 40px;
+    justify-content: center;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+
+.row-label {
+    font-weight: bold;
+    color: #ccc;
+    text-align: center;
+}
+
+.booking-seat {
+    background-color: #333;
+    color: white;
+    border-radius: 6px;
+    text-align: center;
+    border: 1px solid #555;
+    font-family: monospace;
+    padding: 10px;
+    width: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.2s ease;
+}
+
+    .booking-seat:hover {
+        transform: scale(1.05);
+    }
+
+    .booking-seat.available {
+        border-color: transparent;
+        cursor: pointer;
+        opacity: 1;
+    }
+
+    .booking-seat.occupied {
+        background-color: #888;
+        color: #ccc;
+        cursor: not-allowed;
+        pointer-events: none;
+        opacity: 0.5;
+    }
+
+    .booking-seat.executive {
+        background-color: #D4A437;
+        color: black;
+        font-weight: bold;
+    }
+
+    .booking-seat.economy {
+        background-color: #4B0012;
+        color: white;
+    }
+
+.legend-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: #ccc;
+}
+
+.seat-sample {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 1px solid #999;
+}
+
+    .seat-sample.executive {
+        background-color: #D4A437;
+    }
+
+    .seat-sample.economy {
+        background-color: #4B0012;
+    }
+
+    .seat-sample.occupied {
+        background-color: #888;
+        opacity: 0.5;
+    }
+
+.cockpit {
+    text-align: center;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #ccc;
+}
+
+.exit-row {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 0.9rem;
+    color: #ffcc00;
+}
+
+.aisle {
+    width: 20px;
+    height: 100%;
+}
+
+.selectable-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    border: 2px solid transparent;
+}
+
+    .selectable-card:hover {
+        transform: scale(1.01);
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+        cursor: pointer;
+    }
+
+    .selectable-card.selected {
+        border-color: #fff;
+    }
+
+.card-economy {
+    background-color: #4B0012;
+    color: white;
+    border-radius: 12px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+    .card-economy i,
+    .card-economy h4,
+    .card-economy p {
+        color: #D4A437;
+    }
+
+.card-executive {
+    background-color: #D4A437;
+    color: black;
+    border-radius: 12px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+    .card-executive i,
+    .card-executive h4,
+    .card-executive p {
+        color: #4B0012;
+    }
+
+
+    .card-economy:hover,
+    .card-executive:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        cursor: pointer;
+    }
+
+
+.btn-economy {
+    background-color: #D4A437;
+    color: black;
+    font-weight: bold;
+    border: none;
+}
+
+    .btn-economy:hover {
+        background-color: #A67C26;
+        color: white;
+    }
+
+
+.btn-executive {
+    background-color: #4B0012;
+    color: white;
+    font-weight: bold;
+    border: none;
+}
+
+    .btn-executive:hover {
+        background-color: #3a000e;
+        color: white;
+    }
+
+.selected-seat {
+    outline: 3px solid #007bff;
+    border-radius: 4px;
+}
+
+.payment-card {
+    max-width: 450px;
+    width: 100%;
+}
+
+.payment-card-header {
+    background-color: #660000;
+    border-radius: 12px 12px 0 0;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+    .payment-card-header i {
+        font-size: 3rem;
+        color: #fff;
+    }
+
+    .payment-card-header h2 {
+        color: #fff;
+        margin-top: 1rem;
+        margin-bottom: 0;
+    }
+
+.payment-card-body {
+    background-color: #1a1a1a;
+    color: white;
+    padding: 2rem;
+    text-align: center;
+}
+
+.table-custom thead {
+    background-color: #4B0012;
+    color: #f0b400;
+    border-bottom: 2px solid #660000;
+}
+
+.table-custom tbody tr {
+    background-color: transparent;
+    color: #ffffff;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+
+    .table-custom tbody tr:nth-child(even) {
+        background-color: #1a1a1a;
+    }
+
+    .table-custom tbody tr:hover {
+        background-color: #2a2a2a;
+    }
+
+
+.table-custom th,
+.table-custom td {
+    padding: 0.75rem 1rem;
+    border-color: #660000;
+}
+
+
+.table-custom .badge.bg-primary {
+    background-color: #f0b400 !important;
+    color: #000000 !important;
+}
+
+.table-custom .badge.bg-danger {
+    background-color: #D32F2F !important;
+    color: #ffffff !important;
+}
+
+.table-custom .badge.bg-warning {
+    background-color: #A67C26 !important;
+    color: #000000 !important;
+}
+
+.table-custom .badge.bg-success {
+    background-color: #66BB6A !important;
+    color: #ffffff !important;
+}
+
+
+.d-flex.justify-content-center .pagination {
+    margin: 1.5rem 0;
+}
+
+.pagination li a,
+.pagination li span {
+    color: black;
+    background-color: #f0b400;
+    border: 1px solid #4B0012;
+    margin: 0 4px;
+    padding: 0.4rem 0.75rem;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+
+    .pagination li a:hover {
+        background-color: #4B0012;
+        color: #ffffff;
+        border-color: #D32F2F;
+    }
+
+.pagination li.active span {
+    background-color: #f0b400;
+    color: black;
+    border-color: #f0b400;
+}
+
+.pagination li.disabled span {
+    color: black;
+    border-color: #444444;
+}
+
+.pagination li.disabled {
+    color: black;
+}
+
+    .pagination li.disabled a:hover {
+        color: white;
+    }
+
+
+.card-header {
+    background-color: #660000;
+    border-radius: 12px 12px 0 0;
+    padding: 1rem
+}
+
+.card-body {
+    background-color: #1a1a1a;
+    color: white;
+    padding: 2rem
+}
+
+.fade-out {
+    background-color: #8b0000 !important;
+    transition: opacity 0.5s ease, background-color 0.3s ease;
+    opacity: 0;
+}
+
+#chatBox {
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    visibility: visible;
+    opacity: 1;
+}
+
+.chat-box-hidden {
+    visibility: hidden;
+    opacity: 0;
 }
 
 /* Estilos para o botão que abre o Chat */
@@ -921,6 +2242,7 @@ header .nav-link:hover {
 
 .dashboard-container {
     background-color: #f9f9f9;
+    /*background-color: #0e0e0e; escuro*/
     color: #111;
     padding: 2rem;
     font-family: 'Outfit', sans-serif;
@@ -1048,7 +2370,623 @@ header .nav-link:hover {
         color: #D4A437;
     }
 
+/* === HERO SECTION === */
+.hero-section {
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    min-height: 550px;
+    color: white;
+    font-family: 'Outfit', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .hero-section .overlay {
+        background-color: rgba(0, 0, 0, 0.7);
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+    }
+
+    .hero-section .container {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        padding: 3rem 1rem;
+        width: 100%;
+        max-width: none; /* REMOVIDO O MAX-WIDTH para permitir expansão total */
+        padding-left: 5%; /* Espaçamento lateral, ajuste conforme a preferência */
+        padding-right: 5%; /* Espaçamento lateral, ajuste conforme a preferência */
+    }
+
+    .hero-section h1 {
+        font-size: 3.2rem;
+        color: #ffffff;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        font-family: 'Outfit', sans-serif; /* Explicitamente definido */
+    }
+
+    .hero-section p {
+        font-size: 1.4rem;
+        color: #f0b400;
+        margin-bottom: 2rem;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+        font-family: 'Outfit', sans-serif; /* Explicitamente definido */
+    }
+
+.search-form-container {
+    background-color: rgba(0, 0, 0, 0.95); /* PRETO QUASE SÓLIDO E OPACO para a seção de pesquisa */
+    border: 2px solid #D4A437; /* Borda dourada forte */
+    border-radius: 16px; /* Borda mais arredondada */
+    backdrop-filter: blur(10px); /* Blur ligeiramente mais forte */
+    padding: 4rem !important; /* MANTIDO PADDING AUMENTADO */
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9); /* Sombra mais intensa e escura, quase preta */
+    width: 100%; /* Garante que ele ocupe toda a largura disponível pelo seu pai (.hero-section .container) */
+    max-width: none; /* Removendo qualquer limite adicional que possa estar aqui */
+}
+
+/* Estilos para os botões de Trip Type (Tabs) */
+.trip-type-tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    background-color: rgba(75, 0, 18, 0.3); /* Fundo maroon sutil para o container dos tabs */
+    border-radius: 8px;
+    padding: 5px;
+    border: 1px solid rgba(75, 0, 18, 0.5); /* Borda maroon */
+}
+
+.trip-type-btn {
+    flex-grow: 1;
+    border: none;
+    background-color: rgba(75, 0, 18, 0.15); /* Maroon levemente visível para tabs inativos */
+    color: #ffffff;
+    padding: 10px 15px;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+    .trip-type-btn:hover {
+        background-color: rgba(75, 0, 18, 0.5); /* Maroon mais visível no hover */
+        color: #f0b400;
+    }
+
+    .trip-type-btn.active {
+        background-color: #D4A437;
+        color: #000000;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
 
 
+/* === DESTINATIONS SECTION === */
+section.bg-dark {
+    background-color: #0d0d0d;
+}
+
+.card.bg-maroon {
+    background-color: #4B0012;
+    border: 1px solid #660000;
+    border-radius: 12px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+}
+
+    .card.bg-maroon:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 30px rgba(75, 0, 18, 0.4); /* Sombra com toque de maroon */
+        border: 1px solid #D4A437; /* Mantido dourado na borda para um realce de hover */
+    }
+
+    .card.bg-maroon .card-img-top {
+        height: 180px;
+        object-fit: cover;
+    }
+
+    .card.bg-maroon .card-title {
+        color: #D4A437;
+        font-size: 1.3rem;
+        font-weight: 600;
+    }
+
+    .card.bg-maroon .card-text {
+        color: #f8f8f8;
+        font-size: 0.95rem;
+    }
+
+/* === Nova Seção: Why Choose Us === */
+.bg-light-dark {
+    background-color: #151515;
+    color: #ffffff;
+}
+
+.feature-card {
+    background-color: #4B0012;
+    border: 1px solid #3a3a3a;
+    border-radius: 12px;
+    padding: 2rem !important;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+    .feature-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 30px rgba(75, 0, 18, 0.4);
+        background-color: #D4A437;
+        border-color: #4B0012;
+    }
+
+        .feature-card:hover .feature-icon {
+            color: #4B0012;
+            transform: scale(1.15);
+        }
+
+        .feature-card:hover .feature-title {
+            color: #4B0012;
+        }
+
+        .feature-card:hover .feature-text { 
+            color: #4B0012;
+        }
+
+.feature-icon {
+    font-size: 3.5rem;
+    color: #D4A437;
+    margin-bottom: 1rem;
+}
+
+
+.feature-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #f0b400;
+    margin-bottom: 0.75rem;
+}
+
+.feature-text {
+    font-size: 1rem;
+    color: #ccc;
+}
+
+/* === Nova Seção: Latest Deals === */
+
+.deal-card {
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+    .deal-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 30px rgba(75, 0, 18, 0.4); /* Sombra com toque de maroon */
+        border-color: #4B0012; /* Borda maroon no hover */
+    }
+
+    .deal-card .card-img-top {
+        height: 200px;
+        object-fit: cover;
+    }
+
+    .deal-card .card-body {
+        background-color: #4B0012;
+        color: #ffffff;
+        padding: 1.5rem;
+    }
+
+    .deal-card .card-title {
+        color: #D4A437;
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+
+    .deal-card .card-text {
+        color: #ccc;
+        font-size: 0.95rem;
+    }
+
+    .deal-card .btn-gold {
+        padding: 0.6rem 1rem;
+        font-size: 1rem;
+    }
+
+/* === SECTION TITLES === */
+section h2 {
+    font-weight: bold;
+    margin-bottom: 2.5rem;
+    color: #D4A437;
+    text-align: center;
+    font-size: 2.2rem;
+    /*text-transform: uppercase;*/
+    letter-spacing: 1px;
+    font-family: 'Outfit', sans-serif; /* Explicitamente definido para títulos de seção */
+}
+
+/* Ajustes gerais de espaçamento */
+section {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+/* === ESTILO DA GRID COMO .table-custom === */
+
+/* === FONTE & TEXTO === */
+.e-grid .e-row,
+.e-grid .e-headercell,
+.e-grid .e-content td,
+.e-grid .e-gridcontent {
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 0.95rem !important;
+    color: #ffffff !important;
+}
+
+/* === FUNDO DA GRID === */
+.e-grid,
+.e-grid .e-content,
+.e-grid .e-gridcontent,
+.e-grid .e-toolbar {
+    background-color: #0e0e0e !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+    /* === REMOVER TODAS AS BORDAS VISUAIS EXTERNAS === */
+    .e-grid .e-row td,
+    .e-grid .e-headercell,
+    .e-grid .e-headercell div,
+    .e-grid .e-table,
+    .e-grid .e-gridheader,
+    .e-grid .e-gridfooter {
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    /* === GARANTIR QUE A TABELA NÃO COLAPSA BORDAS === */
+    .e-grid .e-table {
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+    }
+
+        /* === LINHAS HORIZONTAIS EM VERMELHO TINTO === */
+        .e-grid .e-table tr,
+        .e-grid .e-row td {
+            border-bottom: 1px solid #4B0012 !important;
+        }
+
+    /* === LINHA NORMAL === */
+    .e-grid .e-row {
+        background-color: #0e0e0e !important;
+    }
+
+        /* === HOVER DA LINHA === */
+        .e-grid .e-content .e-row:hover:not(.e-selectionbackground),
+        .e-grid .e-row:hover:not(.e-selectionbackground),
+        .e-grid .e-row:hover td:not(.e-selectionbackground) {
+            background-color: #1f1f1f !important;
+            color: #ffffff !important;
+            cursor: pointer;
+        }
+
+        .e-grid .e-row:hover td * {
+            color: #ffffff !important;
+        }
+
+        /* === LINHA SELECIONADA === */
+        .e-grid .e-row.e-selectionbackground,
+        .e-grid .e-selectionbackground.e-active {
+            background-color: #D4A437 !important;
+            color: #000000 !important;
+            font-weight: bold;
+        }
+
+    /* === CABEÇALHO DAS COLUNAS === */
+    .e-gridheader,
+    .e-grid .e-headercontent,
+    .e-grid .e-headercell {
+        background-color: #4B0012 !important;
+        color: #ffffff !important;
+        font-weight: bold;
+        font-family: 'Outfit', sans-serif !important;
+        border-right: 1px solid #800000;
+    }
+
+    /* === TOOLBAR / PESQUISA === */
+    .e-grid .e-toolbar .e-input-group input {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        font-family: 'Outfit', sans-serif !important;
+        border-radius: 6px;
+    }
+
+        .e-grid .e-toolbar .e-input-group input::placeholder {
+            color: #666666 !important;
+        }
+
+    /* === FOOTER / PAGINAÇÃO (SEM ALTERAÇÕES) === */
+    .e-grid .e-gridfooter,
+    .e-grid .e-pager {
+        background-color: #4B0012 !important;
+        border-top: 2px solid #800000;
+        color: #D4A437 !important;
+    }
+
+        .e-grid .e-pager .e-pagercontainer {
+            background-color: transparent !important;
+            box-shadow: none !important;
+        }
+
+        .e-grid .e-pager .e-numericitem,
+        .e-grid .e-pager .e-prev,
+        .e-grid .e-pager .e-next,
+        .e-grid .e-pager .e-last,
+        .e-grid .e-pager .e-first {
+            color: #D4A437 !important;
+            font-weight: bold;
+            font-family: 'Outfit', sans-serif !important;
+            background-color: transparent !important;
+            border: none !important;
+        }
+
+            .e-grid .e-pager .e-numericitem.e-currentitem {
+                background-color: #D4A437 !important;
+                color: #4B0012 !important;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+
+    /* === QUANDO A GRID ESTÁ VAZIA === */
+.e-grid .e-emptyrow td {
+    background-color: #0e0e0e !important;
+    color: #6c757d !important;
+    font-weight: 500;
+    padding: 1rem;
+    font-family: 'Outfit', sans-serif !important;
+}
+
+
+/* === ÍCONES FUNCIONAIS === */
+.e-icons,
+.e-pager .e-prev::before,
+.e-pager .e-next::before,
+.e-pager .e-first::before,
+.e-pager .e-last::before {
+    font-family: 'e-icons' !important;
+}
+
+
+
+
+/* === TITULOS DE SEÇÕES GERAIS === */
+.section-title {
+    color: #4B0012;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+}
+
+.text-darkt {
+    color: #D4A437;
+}
+
+.text-grey {
+    color: #6c757d;
+}
+
+
+/* Cores por status */
+/* Cores base por status */
+.status-active {
+    background-color: #66BB6A;
+    color: white;
+}
+
+.status-maintenance {
+    background-color: #D4A437;
+    color: black;
+}
+
+.status-inactive {
+    background-color: #D32F2F;
+    color: white;
+}
+
+.selectable-card.selected {
+    border: 2px solid #fff;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Estilos para igualar a altura e a fonte dos componentes Syncfusion */
+
+/* Aplica a fonte a todos os elementos de input e seleção que usam .custom-input ou .custom-select */
+.custom-select,
+.custom-input,
+/* Adicione aqui quaisquer outras classes de input que você queira que usem a fonte Outfit */
+input[type="text"],
+input[type="number"],
+.form-control {
+    font-family: 'Outfit', sans-serif !important;
+    /* Mantenha suas outras propriedades (background-color, color, border, etc.) aqui */
+    background-color: #ffffff;
+    color: #000000;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem;
+    height: 42px !important; /* Garante que os inputs HTML também tenham a altura correta */
+}
+
+
+/* Classe para o DropDownList */
+.custom-ddl-height.e-dropdownlist .e-input-group,
+.custom-ddl-height.e-dropdownlist .e-input,
+.custom-ddl-height.e-dropdownlist.e-ddl {
+    height: 42px !important;
+    line-height: 42px !important;
+    box-sizing: border-box;
+    font-family: 'Outfit', sans-serif !important; /* APLICA A FONTE AQUI */
+}
+
+/* Classe para o ComboBox */
+.custom-cb-height.e-combobox .e-input-group,
+.custom-cb-height.e-combobox .e-input,
+.custom-cb-height.e-combobox.e-cb {
+    height: 42px !important;
+    line-height: 42px !important;
+    box-sizing: border-box;
+    font-family: 'Outfit', sans-serif !important; /* APLICA A FONTE AQUI */
+}
+
+/* Ajustes para os ícones dentro dos campos (seta para baixo) */
+.custom-ddl-height.e-dropdownlist .e-ddl-icon,
+.custom-cb-height.e-combobox .e-ddl-icon {
+    height: 100% !important;
+    display: flex;
+    align-items: center;
+}
+
+/* Opcional: Ajustar o padding interno se o texto não parecer centralizado */
+.custom-ddl-height.e-dropdownlist .e-input,
+.custom-cb-height.e-combobox .e-input {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Garante a fonte e altura no valor visível após seleção */
+.custom-cb-height.e-combobox .e-input-group,
+.custom-cb-height.e-combobox .e-input,
+.custom-cb-height.e-combobox.e-control,
+.custom-cb-height.e-combobox input.e-input,
+.custom-cb-height.e-combobox span.e-input,
+.custom-cb-height.e-combobox .e-control {
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 1rem !important;
+    height: 42px !important;
+    line-height: 42px !important;
+}
+
+    /* Para o item visível depois de seleção */
+    .custom-cb-height.e-combobox .e-input-group input.e-input {
+        padding: 0.5rem 1rem !important;
+    }
+
+/* Força altura e fonte no valor visível após seleção */
+.custom-ddl-height.e-dropdownlist .e-input-group,
+.custom-ddl-height.e-dropdownlist .e-control,
+.custom-ddl-height.e-dropdownlist input.e-input,
+.custom-ddl-height.e-dropdownlist span.e-input,
+.custom-ddl-height.e-dropdownlist .e-input-value,
+.custom-ddl-height.e-dropdownlist .e-input-value span {
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 1rem !important;
+    height: 42px !important;
+    line-height: 42px !important;
+}
+
+.modal-backdrop.show {
+    background-color: rgba(0, 0, 0, 0.3); /* ou 0.2 ou 0.1 conforme preferires */
+}
+
+.modal {
+    z-index: 1055 !important;
+}
+
+.modal-backdrop {
+    z-index: 1050 !important;
+}
+
+.modal-dialog {
+    pointer-events: auto !important;
+}
+
+
+.alert-danger {
+    background-color: darkred !important;
+    color: white !important;
+    border: none !important;
+}
+
+
+.chat-inner-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.chat-history {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-bottom: 1rem; /* para o input nunca sobrepor */
+}
+
+/* Aplica fundo escuro e fonte Outfit ao AI Assistant completo */
+#aiAssistView {
+    background-color: #0e0e0e;
+    font-family: 'Outfit', sans-serif;
+}
+
+    /* Zona do histórico de mensagens */
+    #aiAssistView .e-aiassist__chat-container {
+        background-color: #0e0e0e;
+        font-family: 'Outfit', sans-serif;
+        color: white;
+    }
+
+    /* Zona de input */
+    #aiAssistView .e-aiassist__input-area {
+        background-color: #0e0e0e;
+        font-family: 'Outfit', sans-serif;
+        border-top: 1px solid #333;
+    }
+
+    /* Input real do controlo */
+    #aiAssistView input[type="text"] {
+        font-family: 'Outfit', sans-serif;
+    }
+
+    /* Botão enviar */
+    #aiAssistView button {
+        font-family: 'Outfit', sans-serif;
+    }
+
+#aiAssistView {
+    border: none !important;
+    box-shadow: none !important;
+}
+
+    #aiAssistView .e-view-header {
+        display: none !important;
+    }
+
+
+    #aiAssistView .e-suggestion-list li {
+        color: black !important;
+        transition: background-color 0.2s ease;
+        background-color: #D4A437 !important;
+    }
+
+        #aiAssistView .e-suggestion-list li:hover {
+            background-color: darkred !important;
+            color: white !important;
+            cursor: pointer;
+        }
+
+    #aiAssistView .e-content-body {
+        color: white !important; 
+        background-color: #0e0e0e !important;
+    }
+
+    #aiAssistView .e-content-footer {
+        display: none !important;
+    }
 
 

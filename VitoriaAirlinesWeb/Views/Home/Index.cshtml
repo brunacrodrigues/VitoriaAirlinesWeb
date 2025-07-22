@@ -1,4 +1,4 @@
-﻿@model SearchFlightViewModel
+﻿@* @* @* @model SearchFlightViewModel
 @using Syncfusion.EJ2.DropDowns
 @using VitoriaAirlinesWeb.Data.Enums
 @using VitoriaAirlinesWeb.Helpers
@@ -170,4 +170,364 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+} *@
+
+@model VitoriaAirlinesWeb.Models.ViewModels.FlightSearch.SearchFlightViewModel
+@using Syncfusion.EJ2.DropDowns
+@using VitoriaAirlinesWeb.Data.Enums
+@using VitoriaAirlinesWeb.Helpers
+@using VitoriaAirlinesWeb.Models.ViewModels.FlightSearch
+
+
+@{
+    ViewData["Title"] = "Home Page";
+
+    var airportItemTemplate = "<div><span class='flag-icon flag-icon-${Icon} me-2'></span><span>${Text}</span></div>";
+    var airportValueTemplate = "<div><span class='flag-icon flag-icon-${Icon} me-2'></span><span>${Text}</span></div>";
+
+    if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+}
+
+<!-- Hero Section + Formulário -->
+<div class="hero-section" style="background: url('/images/hero-airplane.jpg') center/cover no-repeat;">
+    <div class="overlay"></div>
+    <div class="container d-flex flex-column justify-content-center align-items-center h-100">
+        <h1 class="display-4 fw-bold">Fly with Comfort, Fly with Vitoria Airlines</h1>
+        <p class="lead">Book your next journey with elegance and confidence</p>
+
+        @if (!User.IsInRole(UserRoles.Admin))
+        {
+            <form asp-action="Index" method="get" class="search-form-container p-4 rounded shadow mt-4 mb-5">
+                <div class="trip-type-tabs mb-3">
+                    <button type="button" class="btn trip-type-btn @(Model.TripType == TripType.RoundTrip ? "active" : "")" data-trip-type="@((int)TripType.RoundTrip)">Round Trip</button>
+                    <button type="button" class="btn trip-type-btn @(Model.TripType == TripType.OneWay ? "active" : "")" data-trip-type="@((int)TripType.OneWay)">One-way</button>
+                    <button type="button" class="btn trip-type-btn @(Model.TripType == TripType.MultiCity ? "active" : "")" data-trip-type="@((int)TripType.MultiCity)">Multi-city</button>
+                    <input type="hidden" id="TripType" name="TripType" value="@((int)Model.TripType)" />
+                </div>
+
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label asp-for="OriginAirportId" class="form-label text-light">Origin</label>
+                        <ejs-dropdownlist id="OriginAirportId"
+                                          name="OriginAirportId"
+                                          dataSource="@Model.Airports"
+                                          placeholder="Select origin..."
+                                          popupHeight="250px"
+                                          itemTemplate="@airportItemTemplate"
+                                          valueTemplate="@airportValueTemplate"
+                                          CssClass="custom-ddl-height"
+                                          value="@(Model.OriginAirportId?.ToString())">
+                            <e-dropdownlist-fields text="Text" value="Value" iconCss="Icon"></e-dropdownlist-fields>
+                        </ejs-dropdownlist>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label asp-for="DestinationAirportId" class="form-label text-light">Destination</label>
+                        <ejs-dropdownlist id="DestinationAirportId"
+                                          name="DestinationAirportId"
+                                          dataSource="@Model.Airports"
+                                          placeholder="Select destination..."
+                                          popupHeight="250px"
+                                          itemTemplate="@airportItemTemplate"
+                                          valueTemplate="@airportValueTemplate"
+                                          CssClass="custom-ddl-height"
+                                          value="@(Model.DestinationAirportId?.ToString())">
+                            <e-dropdownlist-fields text="Text" value="Value" iconCss="Icon"></e-dropdownlist-fields>
+                        </ejs-dropdownlist>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label asp-for="DepartureDate" class="form-label text-light">Departure Date</label>
+                        <input asp-for="DepartureDate" class="form-control custom-input" type="date" />
+                    </div>
+
+                    <div class="col-md-2" id="returnDateContainer" style="@(Model.TripType == TripType.RoundTrip ? "" : "display: none;")">
+                        <label asp-for="ReturnDate" class="form-label text-light">Return Date</label>
+                        <input asp-for="ReturnDate" class="form-control custom-input" type="date" />
+                    </div>
+
+                    <div class="col-md-1">
+                        <!-- Alterado para col-md-2 para preencher a linha -->
+                        <label asp-for="NumPassengers" class="form-label text-light">Passengers</label>
+                        <input asp-for="NumPassengers" type="number" min="1" value="@(Model.NumPassengers > 0 ? Model.NumPassengers : 1)" class="form-control custom-input" />
+                    </div>
+                </div>
+
+
+                <div class="row mt-4">
+                    <div class="col-md-7 mx-auto">
+                        <br /><br />
+                        <!-- ALTERADO AQUI: de col-md-6 para col-md-7 -->
+                        <button type="submit" class="btn btn-gold btn-lg fw-bold w-100"><i class="fas fa-search"></i> Search Flights</button>
+                    </div>
+                </div>
+            </form>
+        }
+    </div>
+</div>
+
+<!-- Voos Disponíveis (Hidden by default, shown after search with results) -->
+@if (Model.Flights != null && Model.Flights.Any())
+{
+    <section class="py-5 flight-results-section" id="availableFlightsSection">
+        <div class="container">
+            <h2>Available Flights</h2>
+
+            <div class="row">
+                @foreach (var flight in Model.Flights)
+                {
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100 shadow-sm flight-card">
+                            <div class="card-header fw-bold text-light">
+                                @flight.FlightNumber
+                            </div>
+
+                            <div class="card-body text-light">
+                                <p class="card-text mb-2">
+                                    <strong>From:</strong>
+                                    <img src="@flight.OriginAirport.Country.FlagImageUrl" alt="@flight.OriginAirport.Country.CountryCode" width="20" class="me-1" />
+                                    @flight.OriginAirport.Name
+                                </p>
+                                <p class="card-text mb-2">
+                                    <strong>To:</strong>
+                                    <img src="@flight.DestinationAirport.Country.FlagImageUrl" alt="@flight.DestinationAirport.Country.CountryCode" width="20" class="me-1" />
+                                    @flight.DestinationAirport.Name
+                                </p>
+                                <p class="card-text mb-2">
+                                    <i class="far fa-calendar-alt me-1"></i>
+                                    <strong>Date:</strong> @flight.DepartureUtc.ToLocalTime().ToString("dd MMM yyyy")
+                                </p>
+                                <p class="card-text mb-2">
+                                    <i class="far fa-clock me-1"></i>
+                                    <strong>Time:</strong> @flight.DepartureUtc.ToLocalTime().ToString("HH:mm") → @flight.ArrivalUtc.ToLocalTime().ToString("HH:mm")
+                                </p>
+
+                                @if (User.IsInRole(UserRoles.Admin) || User.IsInRole(UserRoles.Employee))
+                                {
+                                    <p class="card-text mb-2">
+                                        <i class="fas fa-plane me-1"></i>
+                                        <strong>Airplane:</strong> @flight.Airplane.Model
+                                    </p>
+                                }
+
+                                <p class="card-text">
+                                    <strong>Status:</strong>
+                                    <span class="badge bg-primary ms-1">
+                                        <i class="fas fa-plane-departure me-1"></i> Scheduled
+                                    </span>
+                                </p>
+                            </div>
+
+                            <div class="card-footer d-flex justify-content-between align-items-center">
+                                <div class="flight-price">
+                                    <span class="price-label text-light">From</span>
+                                    <span class="fw-bold fs-5 text-light">@flight.EconomyClassPrice.ToString("C2")</span>
+                                </div>
+                                <div class="d-flex">
+                                    @if (User.IsInRole(UserRoles.Employee))
+                                    {
+                                        <a asp-controller="Flights" asp-action="Details" asp-route-id="@flight.Id" class="btn btn-outline-light btn-sm" title="View operational details">Details</a>
+                                    }
+                                    @if (!User.IsInRole(UserRoles.Admin) && !User.IsInRole(UserRoles.Employee))
+                                    {
+                                        if (Model.BookedFlightIds != null && Model.BookedFlightIds.Contains(flight.Id))
+                                        {
+                                            <button class="btn btn-secondary fw-bold" disabled>
+                                                <i class="fas fa-check-circle me-1"></i> Already Booked
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <a asp-controller="Booking" asp-action="SelectSeat" asp-route-flightId="@flight.Id" class="btn btn-brand-primary fw-bold">
+                                                <i class="fas fa-ticket-alt me-1"></i> Book Now
+                                            </a>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+else if (Model.Flights != null)
+{
+    <section class="py-5 flight-results-section" id="noFlightsFoundSection">
+        <div class="container">
+            <div class="alert alert-info mt-4">
+                @if (User.IsInRole("Admin"))
+                {
+                    <p>There are currently no scheduled flights available in the system.</p>
+                }
+                else
+                {
+                    <p>No flights found for your search criteria. Please try different dates or destinations.</p>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+@* <!-- Destinos Populares -->
+<section class="py-5 bg-dark text-light">
+    <div class="container">
+        <h2>Top Destinations</h2>
+        <div class="row justify-content-center">
+            <div class="col-md-3 mb-4">
+                <div class="card h-100 bg-maroon text-light shadow">
+                    <img src="/images/destinations/lisbon.jpg" class="card-img-top" alt="Lisbon">
+                    <div class="card-body">
+                        <h5 class="card-title">Lisbon, Portugal</h5>
+                        <p class="card-text">Enjoy the sunny capital full of charm and history.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card h-100 bg-maroon text-light shadow">
+                    <img src="/images/destinations/newyork.jpg" class="card-img-top" alt="New York">
+                    <div class="card-body">
+                        <h5 class="card-title">New York, USA</h5>
+                        <p class="card-text">Fly directly to the city that never sleeps.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card h-100 bg-maroon text-light shadow">
+                    <img src="/images/destinations/tokyo.jpg" class="card-img-top" alt="Tokyo">
+                    <div class="card-body">
+                        <h5 class="card-title">Tokyo, Japan</h5>
+                        <p class="card-text">Experience modernity and tradition in one place.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section> *@
+
+<!-- Why Choose Us Section -->
+<section class="py-5 bg-light-dark text-light">
+    <div class="container">
+        <h2>Why Choose Vitoria Airlines?</h2>
+        <div class="row text-center justify-content-center">
+            <div class="col-md-4 mb-4">
+                <div class="feature-card p-4 rounded shadow h-100">
+                    <i class="fas fa-plane-departure feature-icon mb-3"></i>
+                    <h5 class="feature-title">Global Network</h5>
+                    <p class="feature-text">Connecting you to the world with extensive routes and seamless transfers.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card p-4 rounded shadow h-100">
+                    <i class="fas fa-couch feature-icon mb-3"></i>
+                    <h5 class="feature-title">Unrivaled Comfort</h5>
+                    <p class="feature-text">Experience spacious seating, gourmet meals, and in-flight entertainment.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card p-4 rounded shadow h-100">
+                    <i class="fas fa-award feature-icon mb-3"></i>
+                    <h5 class="feature-title">Loyalty Rewards</h5>
+                    <p class="feature-text">Earn and redeem miles with our rewarding loyalty program and exclusive benefits.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Latest Deals Section (Example) -->
+<section class="py-5 bg-dark text-light">
+    <div class="container">
+        <h2>Discover Our Latest Deals</h2>
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 deal-card shadow">
+                    <img src="/images/destinations/newyork.jpg" class="card-img-top" alt="Deal to Paris">
+                    <div class="card-body">
+                        <h5 class="card-title">Flights to Paris from $499</h5>
+                        <p class="card-text">Explore the City of Lights with our special limited-time offer.</p>
+                        <a href="#" class="btn btn-gold w-100 mt-2">Book Now</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 deal-card shadow">
+                    <img src="/images/deals/rio.jpg" class="card-img-top" alt="Deal to Rio de Janeiro">
+                    <div class="card-body">
+                        <h5 class="card-title">Rio de Janeiro Getaway from $699</h5>
+                        <p class="card-text">Sun, samba, and stunning beaches await you in Brazil.</p>
+                        <a href="#" class="btn btn-gold w-100 mt-2">Book Now</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 deal-card shadow">
+                    <img src="/images/deals/dubai.jpg" class="card-img-top" alt="Deal to Dubai">
+                    <div class="card-body">
+                        <h5 class="card-title">Experience Dubai from $799</h5>
+                        <p class="card-text">Luxury and adventure in the dazzling desert metropolis.</p>
+                        <a href="#" class="btn btn-gold w-100 mt-2">Book Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const tripTypeButtons = document.querySelectorAll('.trip-type-btn');
+            const returnDateContainer = document.getElementById('returnDateContainer');
+            const tripTypeHiddenInput = document.getElementById('TripType');
+
+            function updateTripTypeVisibility() {
+                const selectedTripType = parseInt(tripTypeHiddenInput.value); // Convert to int for comparison with enum values
+
+                // Assuming enum values: 0 for OneWay, 1 for RoundTrip, 2 for MultiCity
+                if (selectedTripType === @((int)TripType.RoundTrip)) {
+                    returnDateContainer.style.display = 'block';
+                } else {
+                    returnDateContainer.style.display = 'none';
+                }
+            }
+
+            tripTypeButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    tripTypeButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    tripTypeHiddenInput.value = this.dataset.tripType; // Update hidden input value
+                    updateTripTypeVisibility(); // Update visibility based on new selection
+                });
+            });
+
+            // Initial call to set visibility based on initial model state
+            updateTripTypeVisibility();
+
+            // Smooth scroll to results section if flights are found after search
+            const availableFlightsSection = document.getElementById('availableFlightsSection');
+            const noFlightsFoundSection = document.getElementById('noFlightsFoundSection');
+
+            if (availableFlightsSection && availableFlightsSection.offsetParent !== null) {
+                availableFlightsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else if (noFlightsFoundSection && noFlightsFoundSection.offsetParent !== null) {
+                 noFlightsFoundSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    </script>
 }

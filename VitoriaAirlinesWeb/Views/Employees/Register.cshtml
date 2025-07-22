@@ -1,62 +1,87 @@
 ﻿@using VitoriaAirlinesWeb.Models.ViewModels.Employees
 @model RegisterEmployeeViewModel
+
 @{
     ViewData["Title"] = "Register Employee";
+    var returnUrl = Context.Request.Query["returnUrl"].ToString();
+    var safeReturnUrl = string.IsNullOrEmpty(returnUrl) ? Url.Action("Index", "Employees") : returnUrl;
 }
 
-<div class="login-background">
-    <div class="login-card">
-        <h3 class="text-center text-light mb-4">Register Employee</h3>
-
-        <form method="post">
-
-            @if (!ViewData.ModelState.IsValid)
-            {
-                <div class="login-error-message">
-                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-                    {
-                        <div>@error.ErrorMessage</div>
-                    }
-                </div>
-            }
-
-            <div class="mb-3">
-                <label asp-for="FirstName" class="form-label text-light">First Name</label>
-                <input asp-for="FirstName" class="form-control bg-dark text-light border-secondary" />
-                <span asp-validation-for="FirstName" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="LastName" class="form-label text-light">Last Name</label>
-                <input asp-for="LastName" class="form-control bg-dark text-light border-secondary" />
-                <span asp-validation-for="LastName" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="Username" class="form-label text-light">Email</label>
-                <input asp-for="Username" class="form-control bg-dark text-light border-secondary" />
-                <span asp-validation-for="Username" class="text-danger"></span>
-            </div>
-
-            <button type="submit" class="btn w-100 mb-3 login-button">Register</button>
-
-            <div class="text-success">
-                <p>
-                    @ViewBag.Message
-                </p>
-            </div>
-
-        </form>
+<div class="container-fluid py-4" style="background-color: #0e0e0e;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="dark-title m-0">
+            <i class="fas fa-user-plus me-2"></i>@ViewData["Title"]
+        </h2>
+        <a href="@safeReturnUrl" class="btn btn-brand-primary">
+            <i class="fas fa-arrow-left me-1"></i> Back to List
+        </a>
     </div>
 
+    <form method="post">
+        <input type="hidden" name="returnUrl" value="@safeReturnUrl" />
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card flight-card">
+                    <div class="card-header">
+                        <i class="fas fa-user me-2"></i> Employee Information
+                    </div>
+                    <div class="card-body">
+
+                        <p class="text-white-50 mb-4 text-center">
+                            Fill in the information to create a new employee account.
+                        </p>
+
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div class="login-error-message mb-3">
+                                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                {
+                                    <div>@error.ErrorMessage</div>
+                                }
+                            </div>
+                        }
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FirstName" class="form-label custom-label">First Name</label>
+                                <input asp-for="FirstName" class="form-control custom-input" placeholder="e.g. Ana" />
+                                <span asp-validation-for="FirstName" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="LastName" class="form-label custom-label">Last Name</label>
+                                <input asp-for="LastName" class="form-control custom-input" placeholder="e.g. Costa" />
+                                <span asp-validation-for="LastName" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Username" class="form-label custom-label">Email</label>
+                            <input asp-for="Username" class="form-control custom-input" placeholder="e.g. ana.costa@vitoria.com" />
+                            <span asp-validation-for="Username" class="text-danger"></span>
+                        </div>
+
+                        <p class="text-muted small mt-3">
+                            <i class="fas fa-shield-alt me-1"></i>This user will be created with <strong>employee</strong> role and restricted access to flight management only.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-gold w-50 py-3 fs-5 rounded-pill shadow mb-3">
+                        <i class="fas fa-user-plus me-2"></i>Register
+                    </button>
+
+                    @if (!string.IsNullOrEmpty(ViewBag.Message as string))
+                    {
+                        <p class="text-success">@ViewBag.Message</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </form>
 </div>
 
-
-
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @await Html.PartialAsync("_ValidationScriptsPartial")
 }
-
-

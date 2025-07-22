@@ -6,6 +6,7 @@ using VitoriaAirlinesWeb.Models.ViewModels.Customers;
 using VitoriaAirlinesWeb.Models.ViewModels.Dashboard;
 using VitoriaAirlinesWeb.Models.ViewModels.Employees;
 using VitoriaAirlinesWeb.Models.ViewModels.Flights;
+using VitoriaAirlinesWeb.Models.ViewModels.Tickets;
 
 namespace VitoriaAirlinesWeb.Helpers
 {
@@ -15,7 +16,7 @@ namespace VitoriaAirlinesWeb.Helpers
 
         void UpdateCustomerProfile(CustomerProfile entity, CustomerProfileAdminViewModel model);
 
-        CustomerProfileViewModel ToCustomerProfileViewModel(CustomerProfile entity);
+        CustomerProfileViewModel ToCustomerProfileViewModel(CustomerProfile profile, User user);
 
         CustomerProfileAdminViewModel ToCustomerProfileAdminViewModel(CustomerProfile entity);
 
@@ -44,5 +45,10 @@ namespace VitoriaAirlinesWeb.Helpers
         FlightDashboardViewModel ToFlightDashboardViewModel(Flight entity);
 
         void UpdateFlightFromViewModel(Flight entity, FlightViewModel model);
+
+        List<FlightDisplayViewModel> ToFlightDisplayViewModel(IEnumerable<Flight> flights);
+
+        List<TicketDisplayViewModel> ToTicketDisplayViewModel(IEnumerable<Ticket> tickets);
+
     }
 }

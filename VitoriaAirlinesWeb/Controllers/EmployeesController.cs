@@ -131,25 +131,14 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
-        public async Task<IActionResult> Deactivate(string email)
-        {
-            var employee = await _userHelper.GetUserByEmailAsync(email);
-            if (employee == null) return new NotFoundViewResult("Error404");
-
-            return View(employee);
-        }
-
-
-        [HttpPost, ActionName("Deactivate")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeactivateConfirmed(string email)
+        public async Task<IActionResult> Delete(string id)
         {
-            var employee = await _userHelper.GetUserByEmailAsync(email);
+            var employee = await _userHelper.GetUserByIdAsync(id);
             if (employee == null) return new NotFoundViewResult("Error404");
-
 
             await _userHelper.DeactivateUserAsync(employee);
-
             await _userHelper.RemoveUserFromRole(employee, UserRoles.Employee);
 
             await _userHelper.CheckRoleAsync(UserRoles.Deactivated);
@@ -157,8 +146,8 @@ namespace VitoriaAirlinesWeb.Controllers
 
             TempData["SuccessMessage"] = "Employee deactivated successfully.";
             return RedirectToAction(nameof(Index));
-
         }
+
 
     }
 }

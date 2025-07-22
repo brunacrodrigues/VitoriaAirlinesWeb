@@ -74,7 +74,7 @@ namespace VitoriaAirlinesWeb.Controllers
                 ModelState.AddModelError(nameof(viewModel.ImageFile), "An image is required.");
             }
 
-            
+
             if (viewModel.TotalExecutiveSeats >= viewModel.TotalEconomySeats)
             {
                 ModelState.AddModelError(string.Empty, "Executive seats must be less than economy seats.");
@@ -92,7 +92,7 @@ namespace VitoriaAirlinesWeb.Controllers
 
                 imageId = await _blobHelper.UploadBlobAsync(viewModel.ImageFile, "images");
             }
-            
+
             var airplane = _converterHelper.ToAirplane(viewModel, imageId, true);
 
             await _airplaneRepository.CreateAsync(airplane);
@@ -174,7 +174,7 @@ namespace VitoriaAirlinesWeb.Controllers
                     {
 
                         var flightList = string.Join(
-                            "<br/>",affectedFlights.Select(f => $"- Flight {f.FlightNumber} (ID: {f.Id}) on {f.DepartureUtc:yyyy-MM-dd HH:mm}"));
+                            "<br/>", affectedFlights.Select(f => $"- Flight {f.FlightNumber} (ID: {f.Id}) on {f.DepartureUtc:yyyy-MM-dd HH:mm}"));
 
 
                         var employees = await _userHelper.GetUsersInRoleAsync(UserRoles.Employee);
@@ -217,37 +217,19 @@ namespace VitoriaAirlinesWeb.Controllers
                        airplane.TotalExecutiveSeats,
                        airplane.TotalEconomySeats
                    );
-                await _airplaneRepository.ReplaceSeatsAsync(airplane.Id, newSeats); 
+                await _airplaneRepository.ReplaceSeatsAsync(airplane.Id, newSeats);
             }
 
             TempData["SuccessMessage"] = "Airplane updated successfully.";
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: AirplanesController/Delete/5
-        public async Task<IActionResult> Delete(int id)
-        {
-            var airplane = await _airplaneRepository.GetByIdAsync(id);
-            if (airplane == null) return new NotFoundViewResult("Error404");
 
-            if (!_airplaneRepository.CanBeDeleted(id))
-            {
-                TempData["ErrorMessage"] = "This airplane has future scheduled flights and cannot be deleted.";
-                return RedirectToAction(nameof(Index));
-            }
 
-            if (_airplaneRepository.HasAnyNonCanceledFlights(id))
-            {
-                ViewBag.CanOnlyInactivate = true;
-            }
-
-            return View(airplane);
-        }
-
-        // POST: AirplanesController/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> Delete(int id)
+
         {
             var airplane = await _airplaneRepository.GetByIdAsync(id);
             if (airplane == null)

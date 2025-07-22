@@ -33,9 +33,19 @@
                     </li>
                     <li>
                         <i class="fas fa-history"></i>
-                        <a asp-controller="MyFlights" asp-action="History">Flight History</a>
+                        <a asp-controller="MyFlights" asp-action="History">Flights History</a>
                     </li>
                 </ul>
+
+                <li>
+                    <i class="fas fa-user-edit"></i>
+                    <a asp-controller="Customers" asp-action="EditTravellerProfile">Edit Profile</a>
+                </li>
+
+                <li>
+                    <i class="fas fa-sign-out-alt"></i>
+                    <a asp-controller="Account" asp-action="Logout">Logout</a>
+                </li>
             </ul>
         </div>
     </e-content-template>

@@ -1,14 +1,19 @@
-﻿@model X.PagedList.IPagedList<VitoriaAirlinesWeb.Data.Entities.Ticket>
+﻿@model IEnumerable<VitoriaAirlinesWeb.Data.Entities.Ticket>
 @using VitoriaAirlinesWeb.Data.Enums
-@using X.PagedList
-@using X.PagedList.Mvc.Core
 
 @{
     ViewData["Title"] = "Upcoming Flights";
 }
 
-<div class="main-content">
-    <h2>My Upcoming Flights</h2>
+<div class="container-fluid py-4" style="background-color: #0e0e0e; min-height: 100vh;">
+    <div class="mb-4">
+        <h2 class="dark-title mb-1">My Upcoming Flights</h2>
+        <p class="text-darkt">Here you can view your future trips with Vitoria Airlines.</p>
+
+        <a asp-controller="Home" asp-action="Index" class="btn btn-gold btn-sm mt-2">
+            <i class="fas fa-plane me-1"></i> Book a Flight
+        </a>
+    </div>
 
     @if (TempData["Success"] != null)
     {
@@ -26,86 +31,78 @@
         </div>
     }
 
-    <p>Here you can view your future trips with Vitoria Airlines.</p>
-
-    <table class="table table-custom table-striped">
-        <thead>
-            <tr>
-                <th>Flight No</th>
-                <th>From</th>
-                <th>To</th>
-                <th>Departure (UTC)</th>
-                <th>Arrival (UTC)</th>
-                <th>Seat</th>
-                <th>Class</th>
-                <th>Price Paid</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
+    @if (Model != null && !Model.Any())
+    {
+        <p class="text-grey">No upcoming flights found.</p>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
             @foreach (var ticket in Model)
             {
-                <tr>
-                    <td>@ticket.Flight.FlightNumber</td>
-                    <td>
-                        <img src="@ticket.Flight.OriginAirport.Country?.FlagImageUrl"
-                             alt="@ticket.Flight.OriginAirport.Country?.CountryCode"
-                             width="30"
-                             class="me-2" />
-                        @ticket.Flight.OriginAirport.FullName
-                    </td>
-                     <td>
-                        <img src="@ticket.Flight.DestinationAirport.Country?.FlagImageUrl"
-                             alt="@ticket.Flight.DestinationAirport.Country?.CountryCode"
-                             width="30"
-                             class="me-2" />
-                        @ticket.Flight.DestinationAirport.FullName
-                    </td>
-                    <td>@ticket.Flight.DepartureUtc.ToLocalTime()</td>
-                    <td>@ticket.Flight.ArrivalUtc.ToLocalTime()</td>
-                    <td>@ticket.Seat.Row@ticket.Seat.Letter</td>
-                    <td>@ticket.Seat.Class</td>
-                    <td>@($"{ticket.PricePaid:0.00} €")</td>
-                    <td>
-                        <span class="badge bg-primary">@ticket.Flight.Status</span>
-                              
-                    </td>
-                     <td class="text-center">
-                    <a asp-action="SelectSeat"
-                       asp-controller="Booking"
-                       asp-route-flightId="@ticket.FlightId"
-                       asp-route-ticketId="@ticket.Id"
-                       class="btn btn-sm btn-warning me-2"
-                       title="Change Seat">
-                        <i class="fas fa-exchange-alt"></i> Change Seat
-                    </a>
-                    <form asp-action="CancelTicket" asp-route-id="@ticket.Id" method="post" style="display:inline">
-                        <button type="submit" class="btn btn-sm btn-danger" title="Cancel Ticket">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </form>
-                </td>
-                </tr>
+                <div class="col">
+                    <div class="card flight-card h-100">
+                        <div class="card-header">
+                            <h3 style="color: #D4A437">
+                                Flight @ticket.Flight.FlightNumber
+                            </h3>
+                            
+
+                            <h6>
+                                @ticket.Flight.OriginAirport.IATA -> @ticket.Flight.DestinationAirport.IATA | @ticket.Flight.DepartureUtc.ToLocalTime().ToString("dd/MM/yyyy")
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <p>
+                                <i class="fas fa-plane-departure me-2"></i>
+                                <strong>Departure:</strong>
+                                <img src="@ticket.Flight.OriginAirport.Country?.FlagImageUrl"
+                                     alt="@ticket.Flight.OriginAirport.Country?.CountryCode"
+                                     width="25" class="me-2" />
+                                @ticket.Flight.OriginAirport.FullName |
+                                @ticket.Flight.DepartureUtc.ToLocalTime().ToString("HH:mm")
+                            </p>
+
+                            <p>
+                                <i class="fas fa-plane-arrival me-2"></i>
+                                <strong>Arrival:</strong>
+                                <img src="@ticket.Flight.DestinationAirport.Country?.FlagImageUrl"
+                                     alt="@ticket.Flight.DestinationAirport.Country?.CountryCode"
+                                     width="25" class="me-2" />
+                                @ticket.Flight.DestinationAirport.FullName |
+                                @ticket.Flight.ArrivalUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                            </p>
+
+                            <p><i class="fas fa-chair me-2"></i><strong>Seat:</strong> @ticket.Seat.Row@ticket.Seat.Letter (@ticket.Seat.Class)</p>
+                            <p><i class="fas fa-euro-sign me-2"></i><strong>Price:</strong> @($"{ticket.PricePaid:0.00} €")</p>
+                            <p>
+                                <i class="fas fa-info-circle me-2"></i><strong>Status:</strong>
+                                <span class="badge bg-warning text-dark">@ticket.Flight.Status</span>
+                            </p>
+                        </div>
+                        <div class="card-footer d-flex justify-content-between">
+                            <a asp-action="SelectSeat"
+                               asp-controller="Booking"
+                               asp-route-flightId="@ticket.FlightId"
+                               asp-route-ticketId="@ticket.Id"
+                               class="btn btn-gold btn-sm">
+                                <i class="fas fa-exchange-alt me-1"></i>
+                            </a>
+
+                            <form asp-action="CancelTicket"
+                                  asp-route-id="@ticket.Id"
+                                  method="post"
+                                  onsubmit="return confirm('Are you sure you want to cancel this ticket?');">
+                                <button type="submit" class="btn btn-brand-primary btn-sm">
+                                    <i class="fas fa-times me-1"></i> Cancel
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             }
-        </tbody>
-    </table>
-
-<div class="d-flex justify-content-center">
-  @Html.PagedListPager(
-      Model,
-      page => Url.Action("Upcoming", new { page }),
-      new PagedListRenderOptions {
-        DisplayLinkToFirstPage       = PagedListDisplayMode.Always,
-        DisplayLinkToLastPage        = PagedListDisplayMode.Always,
-        DisplayLinkToPreviousPage    = PagedListDisplayMode.Always,
-        DisplayLinkToNextPage        = PagedListDisplayMode.Always,
-        DisplayLinkToIndividualPages = true,
-        MaximumPageNumbersToDisplay  = 5
-      }
-  )
-</div>
-
+        </div>
+    }
 </div>
 
 @section Scripts {
@@ -119,4 +116,3 @@
         }, 5000);
     </script>
 }
-

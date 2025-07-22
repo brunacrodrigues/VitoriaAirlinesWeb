@@ -10,6 +10,8 @@ namespace VitoriaAirlinesWeb.Data.Repositories
 
         Task<CustomerProfile?> GetByPassportAsync(string passportNumber);
 
+        Task<CustomerProfile?> GetProfileWithUserAndFlightsAsync(int id);
+
 
     }
 }

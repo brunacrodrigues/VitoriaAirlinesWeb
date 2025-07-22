@@ -30,7 +30,7 @@ namespace VitoriaAirlinesWeb.Data.Repositories
         public async Task<Flight?> GetByIdWithDetailsAsync(int id)
         {
             return await _context.Flights
-                .Include(f => f.Airplane)
+                .Include(f => f.Airplane).ThenInclude(a => a.Seats)
                 .Include(f => f.OriginAirport)
                 .ThenInclude(a => a.Country)
                 .Include(f => f.DestinationAirport)

@@ -8,6 +8,7 @@ using VitoriaAirlinesWeb.Models.ViewModels.Customers;
 using VitoriaAirlinesWeb.Models.ViewModels.Dashboard;
 using VitoriaAirlinesWeb.Models.ViewModels.Employees;
 using VitoriaAirlinesWeb.Models.ViewModels.Flights;
+using VitoriaAirlinesWeb.Models.ViewModels.Tickets;
 
 namespace VitoriaAirlinesWeb.Helpers
 {
@@ -37,14 +38,19 @@ namespace VitoriaAirlinesWeb.Helpers
             };
         }
 
-        public CustomerProfileViewModel ToCustomerProfileViewModel(CustomerProfile entity)
+
+        public CustomerProfileViewModel ToCustomerProfileViewModel(CustomerProfile profile, User user)
         {
             return new CustomerProfileViewModel
             {
-                CountryId = entity.CountryId,
-                PassportNumber = entity.PassportNumber
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                CurrentProfileImagePath = user.ImageFullPath,
+                CountryId = profile.CountryId,
+                PassportNumber = profile.PassportNumber,
             };
         }
+
 
         public Airplane ToAirplane(AirplaneViewModel model, Guid imageId, bool isNew)
         {
@@ -231,6 +237,50 @@ namespace VitoriaAirlinesWeb.Helpers
             entity.ExecutiveClassPrice = model.ExecutiveClassPrice;
             entity.DepartureUtc = model.DepartureDate!.Value.ToDateTime(model.DepartureTime!.Value).ToUniversalTime();
             entity.Duration = model.Duration!.Value;
+        }
+
+        public List<FlightDisplayViewModel> ToFlightDisplayViewModel(IEnumerable<Flight> flights)
+        {
+            var timeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Lisbon");
+
+            return flights.Select(f => new FlightDisplayViewModel
+            {
+                Id = f.Id,
+                FlightNumber = f.FlightNumber,
+                AirplaneModel = f.Airplane.Model,
+                Origin = f.OriginAirport.FullName,
+                OriginFlagUrl = f.OriginAirport.Country?.FlagImageUrl ?? "",
+                Destination = f.DestinationAirport.FullName,
+                DestinationFlagUrl = f.DestinationAirport.Country?.FlagImageUrl ?? "",
+                Departure = TimeZoneInfo.ConvertTimeFromUtc(f.DepartureUtc, timeZone).ToString("yyyy-MM-dd HH:mm"),
+                Arrival = TimeZoneInfo.ConvertTimeFromUtc(f.ArrivalUtc, timeZone).ToString("yyyy-MM-dd HH:mm"),
+                Duration = f.Duration.ToString(@"hh\:mm"),
+                ExecutiveClassPrice = f.ExecutiveClassPrice,
+                EconomyClassPrice = f.EconomyClassPrice,
+                Status = f.Status.ToString()
+            }).ToList();
+        }
+
+        public List<TicketDisplayViewModel> ToTicketDisplayViewModel(IEnumerable<Ticket> tickets)
+        {
+            var timeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Lisbon");
+
+            return tickets.Select(t => new TicketDisplayViewModel
+            {
+                Id = t.Id,
+                FlightNumber = t.Flight.FlightNumber,
+                Origin = t.Flight.OriginAirport.FullName,
+                OriginFlagUrl = t.Flight.OriginAirport.Country?.FlagImageUrl ?? "",
+                Destination = t.Flight.DestinationAirport.FullName,
+                DestinationFlagUrl = t.Flight.DestinationAirport.Country?.FlagImageUrl ?? "",
+                Departure = TimeZoneInfo.ConvertTimeFromUtc(t.Flight.DepartureUtc, timeZone),
+                Arrival = TimeZoneInfo.ConvertTimeFromUtc(t.Flight.ArrivalUtc, timeZone),
+                SeatDisplay = $"{t.Seat.Row}{t.Seat.Letter}",
+                Class = t.Seat.Class.ToString(),
+                PricePaid = t.PricePaid,
+                Status = t.Flight.Status.ToString()
+
+            }).ToList();
         }
     }
 }

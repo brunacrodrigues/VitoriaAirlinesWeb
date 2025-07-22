@@ -40,12 +40,13 @@ namespace VitoriaAirlinesWeb
 
             // Add services to the container.
             builder.Services
-            .AddControllersWithViews()
-            .AddJsonOptions(opts =>
-            {
-                opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
-                opts.JsonSerializerOptions.WriteIndented = true;
-            });
+                .AddControllersWithViews()
+                .AddJsonOptions(opts =>
+                {
+                    opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+                    opts.JsonSerializerOptions.WriteIndented = true;
+                });
+
 
             // SignalR
             builder.Services.AddSignalR();
@@ -155,6 +156,7 @@ namespace VitoriaAirlinesWeb
             // Hangfire config
             builder.Services.AddHangfire(config =>
                 config.UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
+            GlobalJobFilters.Filters.Add(new JobExpirationFilter(TimeSpan.FromMinutes(15)));
             builder.Services.AddHangfireServer();
 
             // FlightService
@@ -227,7 +229,7 @@ namespace VitoriaAirlinesWeb
             RecurringJob.AddOrUpdate<IFlightService>(
                 "update-completed-flights",
                 service => service.UpdateFlightStatusAsync(),
-                Cron.Hourly);
+                Cron.Minutely);
 
 
 

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using VitoriaAirlinesWeb.Data.Entities;
+using VitoriaAirlinesWeb.Data.Enums;
 using VitoriaAirlinesWeb.Models.Airports;
 
 namespace VitoriaAirlinesWeb.Models.ViewModels.FlightSearch
@@ -23,6 +24,8 @@ namespace VitoriaAirlinesWeb.Models.ViewModels.FlightSearch
         [Display(Name = "Return Date")]
         public DateTime? ReturnDate { get; set; }
 
+        public int NumPassengers { get; set; } = 1;
+        public TripType TripType { get; set; } = TripType.OneWay;
 
         public IEnumerable<AirportDropdownViewModel>? Airports { get; set; }
 

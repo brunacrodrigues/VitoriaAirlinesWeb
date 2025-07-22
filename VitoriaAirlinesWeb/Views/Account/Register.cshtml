@@ -1,15 +1,35 @@
-﻿@using VitoriaAirlinesWeb.Models.ViewModels.Account
-@model RegisterNewUserViewModel
+﻿@model VitoriaAirlinesWeb.Models.ViewModels.Account.RegisterNewUserViewModel
+
 @{
+    Layout = null;
     ViewData["Title"] = "Register";
 }
 
-<div class="login-background">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Register - Vitoria Airlines</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+</head>
+<body class="login-background">
     <div class="login-card">
-        <h3 class="text-center text-light mb-4">Register</h3>
+        <h3 class="login-title text-center mb-1">Create an Account</h3>
+        <p class="login-subtitle text-center mb-4">Join Vitoria Airlines and start booking your next destination.</p>
+        @if (ViewBag.Message != null)
+        {
+            <div class="alert alert-success fade-out-alert text-center mb-3">
+                @ViewBag.Message
+            </div>
+        }
 
         <form method="post">
-            
             @if (!ViewData.ModelState.IsValid)
             {
                 <div class="login-error-message">
@@ -18,55 +38,89 @@
                         <div>@error.ErrorMessage</div>
                     }
                 </div>
-            } 
+            }
 
-            <div class="mb-3">
-                <label asp-for="FirstName" class="form-label text-light">First Name</label>
-                <input asp-for="FirstName" class="form-control bg-dark text-light border-secondary" />
-                <span asp-validation-for="FirstName" class="text-danger"></span>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="FirstName" class="form-label text-light">First Name</label>
+                    <input asp-for="FirstName" class="form-control bg-dark text-light border-secondary" />
+                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="LastName" class="form-label text-light">Last Name</label>
+                    <input asp-for="LastName" class="form-control bg-dark text-light border-secondary" />
+                    <span asp-validation-for="LastName" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Username" class="form-label text-light">Email</label>
+                    <input asp-for="Username" class="form-control bg-dark text-light border-secondary" />
+                    <span asp-validation-for="Username" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Password" class="form-label text-light">Password</label>
+                    <div class="input-group">
+                        <input asp-for="Password" class="form-control bg-dark text-light border-secondary" id="passwordInput" type="password" />
+                        <button class="btn btn-outline-secondary toggle-password" type="button" onclick="togglePassword('passwordInput', this)">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+
+                    </div>
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6 offset-md-6">
+                    <label asp-for="ConfirmPassword" class="form-label text-light">Confirm Password</label>
+                    <div class="input-group">
+                        <input asp-for="ConfirmPassword" class="form-control bg-dark text-light border-secondary" id="confirmPasswordInput" type="password" />
+                        <button class="btn btn-outline-secondary toggle-password" type="button" onclick="togglePassword('confirmPasswordInput', this)">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+
+                    </div>
+                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label asp-for="LastName" class="form-label text-light">Last Name</label>
-                <input asp-for="LastName" class="form-control bg-dark text-light border-secondary" />
-                <span asp-validation-for="LastName" class="text-danger"></span>
+            <button type="submit" class="btn w-100 mt-4 login-button">Register</button>
+
+            <div class="login-bottom-links mt-3">
+                <a asp-action="Login">Already have an account? Login</a>
+                <span class="text-muted">or</span>
+                <a asp-controller="Home" asp-action="Index">Continue as Guest</a>
             </div>
-
-            <div class="mb-3">
-                <label asp-for="Username" class="form-label text-light">Email</label>
-                <input asp-for="Username" class="form-control bg-dark text-light border-secondary" />
-                <span asp-validation-for="Username" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="Password" class="form-label text-light">Password</label>
-                <input asp-for="Password" class="form-control bg-dark text-light border-secondary" />
-                <span asp-validation-for="Password" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="ConfirmPassword" class="form-label text-light">Confirm Password</label>
-                <input asp-for="ConfirmPassword" class="form-control bg-dark text-light border-secondary" />
-                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-            </div>
-
-            <button type="submit" class="btn w-100 mb-3 login-button">Register</button>
-
-            <div class="text-success">
-                <p>
-                    @ViewBag.Message
-                </p>
-            </div>
-
         </form>
     </div>
-    
-    </div>
+
+    <script>
+        function togglePassword(id, btn) {
+            const input = document.getElementById(id);
+            const icon = btn.querySelector('i');
+
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove("fa-eye");
+                icon.classList.add("fa-eye-slash");
+            } else {
+                input.type = "password";
+                icon.classList.remove("fa-eye-slash");
+                icon.classList.add("fa-eye");
+            }
+        }
+        setTimeout(function () {
+            const alerts = document.querySelectorAll('.fade-out-alert');
+            alerts.forEach(alert => {
+                alert.style.transition = "opacity 0.5s ease-out";
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 500);
+            });
+        }, 4000);
+
+    </script>
 
 
-
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-}
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+</body>
+</html>

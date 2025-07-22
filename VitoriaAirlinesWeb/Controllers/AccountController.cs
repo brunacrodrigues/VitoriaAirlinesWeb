@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using VitoriaAirlinesWeb.Data.Entities;
@@ -255,7 +254,7 @@ namespace VitoriaAirlinesWeb.Controllers
             return View();
         }
 
-        
+
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
@@ -305,7 +304,7 @@ namespace VitoriaAirlinesWeb.Controllers
             return View(model);
         }
 
-        
+
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> EditProfile(EditUserProfileViewModel model)
@@ -328,7 +327,7 @@ namespace VitoriaAirlinesWeb.Controllers
 
             if (model.ImageFile != null && model.ImageFile.Length > 0)
             {
-                
+
                 if (model.ImageFile != null && model.ImageFile.Length > 0)
                 {
                     var imageId = await _blobHelper.UploadBlobAsync(model.ImageFile, "images");

@@ -40,5 +40,25 @@ namespace VitoriaAirlinesWeb.Data.Repositories
                 .FirstOrDefaultAsync(cp => cp.Id == id);
 
         }
+
+
+        public async Task<CustomerProfile?> GetProfileWithUserAndFlightsAsync(int id)
+        {
+            return await _context.CustomerProfiles
+                .Include(cp => cp.User)
+                    .ThenInclude(u => u.Tickets)
+                        .ThenInclude(t => t.Flight)
+                            .ThenInclude(f => f.OriginAirport)
+                                .ThenInclude(a => a.Country)
+                .Include(cp => cp.User)
+                    .ThenInclude(u => u.Tickets)
+                        .ThenInclude(t => t.Flight)
+                            .ThenInclude(f => f.DestinationAirport)
+                                .ThenInclude(a => a.Country)
+                .Include(cp => cp.Country)
+                .FirstOrDefaultAsync(cp => cp.Id == id);
+        }
+
+
     }
 }
