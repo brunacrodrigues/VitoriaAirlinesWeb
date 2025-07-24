@@ -2384,7 +2384,7 @@ header .navbar-brand, header .nav-link {
 }
 
     .hero-section .overlay {
-        background-color: rgba(0, 0, 0, 0.7);
+        background-color: rgba(0, 0, 0, 0.55);
         position: absolute;
         top: 0;
         bottom: 0;
@@ -2419,7 +2419,7 @@ header .navbar-brand, header .nav-link {
     }
 
 .search-form-container {
-    background-color: rgba(0, 0, 0, 0.95); /* PRETO QUASE SÓLIDO E OPACO para a seção de pesquisa */
+    background-color: rgba(0, 0, 0, 0.75); /* PRETO QUASE SÓLIDO E OPACO para a seção de pesquisa */
     border: 2px solid #D4A437; /* Borda dourada forte */
     border-radius: 16px; /* Borda mais arredondada */
     backdrop-filter: blur(10px); /* Blur ligeiramente mais forte */

@@ -1,74 +1,88 @@
 ﻿@model VitoriaAirlinesWeb.Models.ViewModels.Booking.ConfirmBookingViewModel
 
-<div class="login-background">
-    <div class="login-card" style="max-width: 450px; width: 100%;">
-        <div class="card-header">
-            <h2 class="text-white text-center mb-0">Confirm Your Booking</h2>
+<div class="container-fluid py-5" style="background-color: #0e0e0e; min-height: 100vh;">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card flight-card shadow-lg">
+                <div class="card-header text-center">
+                    <h2 class="text-light mb-0"><i class="fas fa-check-circle me-2"></i>Confirm Your Booking</h2>
+                </div>
+
+                <div class="card-body text-light">
+                    <dl class="row mb-4">
+                        <dt class="col-5">Flight Number:</dt>
+                        <dd class="col-7">@Model.FlightNumber</dd>
+
+                        <dt class="col-5">Departure:</dt>
+                        <dd class="col-7">@Model.DepartureInfo at @Model.DepartureTime.ToString("g")</dd>
+
+                        <dt class="col-5">Arrival:</dt>
+                        <dd class="col-7">@Model.ArrivalInfo at @Model.ArrivalTime.ToString("g")</dd>
+
+                        <dt class="col-5">Seat:</dt>
+                        <dd class="col-7">@Model.SeatInfo (@Model.SeatClass)</dd>
+
+                        <dt class="col-5">Price:</dt>
+                        <dd class="col-7">€@Model.FinalPrice.ToString("F2")</dd>
+                    </dl>
+
+                    <form asp-action="CreateCheckoutSession" method="post">
+    @Html.AntiForgeryToken()
+
+    <input type="hidden" name="FlightId" value="@Model.FlightId" />
+    <input type="hidden" name="SeatId" value="@Model.SeatId" />
+    <input type="hidden" name="Price" value="@Model.FinalPrice" />
+
+    @if (!Model.IsCustomer)
+    {
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="FirstName" class="form-label">First Name</label>
+                <input asp-for="FirstName" class="form-control" />
+                <span asp-validation-for="FirstName" class="text-danger"></span>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="LastName" class="form-label">Last Name</label>
+                <input asp-for="LastName" class="form-control" />
+                <span asp-validation-for="LastName" class="text-danger"></span>
+            </div>
         </div>
 
-        <div class="card-body">
-            <dl class="row mb-4">
-                <dt class="col-5">Flight Number:</dt>
-                <dd class="col-7">@Model.FlightNumber</dd>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="Email" class="form-label">Email</label>
+                <input asp-for="Email" type="email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="PassportNumber" class="form-label">Passport Number</label>
+                <input asp-for="PassportNumber" class="form-control" />
+                <span asp-validation-for="PassportNumber" class="text-danger"></span>
+            </div>
+        </div>
+    }
+    else if (string.IsNullOrWhiteSpace(Model.ExistingPassportNumber))
+    {
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="PassportNumber" class="form-label">Passport Number</label>
+                <input asp-for="PassportNumber" class="form-control" />
+                <span asp-validation-for="PassportNumber" class="text-danger"></span>
+            </div>
+        </div>
+    }
 
-                <dt class="col-5">Departure:</dt>
-                <dd class="col-7">@Model.DepartureInfo at @Model.DepartureTime.ToString("g")</dd>
+    <button type="submit" class="btn btn-gold w-100">
+        <i class="fas fa-credit-card me-1"></i> Confirm and Pay
+    </button>
+</form>
 
-                <dt class="col-5">Arrival:</dt>
-                <dd class="col-7">@Model.ArrivalInfo  at @Model.ArrivalTime.ToString("g")</dd>
-
-                <dt class="col-5">Seat:</dt>
-                <dd class="col-7">@Model.SeatInfo (@Model.SeatClass)</dd>
-
-                <dt class="col-5">Price:</dt>
-                <dd class="col-7">€@Model.FinalPrice.ToString("F2")</dd>
-            </dl>
-
-            <form asp-action="CreateCheckoutSession" method="post">
-                <input type="hidden" name="FlightId" value="@Model.FlightId" />
-                <input type="hidden" name="SeatId" value="@Model.SeatId" />
-                <input type="hidden" name="Price" value="@Model.FinalPrice" />
-
-                @if (!Model.IsCustomer)
-                {
-                    <div class="mb-3">
-                        <label asp-for="FirstName" class="form-label"></label>
-                        <input asp-for="FirstName" class="form-control"/>
-                        <span asp-validation-for="FirstName" class="text-danger"></span>
-                    </div>
-                    <div class="mb-3">
-                        <label asp-for="LastName" class="form-label"></label>
-                        <input asp-for="LastName" class="form-control"/>
-                        <span asp-validation-for="LastName" class="text-danger"></span>
-                    </div>
-                    <div class="mb-3">
-                        <label asp-for="Email" class="form-label"></label>
-                        <input asp-for="Email" type="email" class="form-control" />
-                        <span asp-validation-for="Email" class="text-danger"></span>
-                    </div>
-                }
-
-                @if (string.IsNullOrWhiteSpace(Model.ExistingPassportNumber))
-                {
-                    <div class="mb-3">
-                        <label asp-for="PassportNumber" class="form-label"></label>
-                        <input asp-for="PassportNumber" class="form-control" />
-                        <span asp-validation-for="PassportNumber" class="text-danger"></span>
-                    </div>
-                }
-
-
-                @Html.AntiForgeryToken()
-
-                <button type="submit" class="btn btn-gold w-100">Confirm and Pay</button>
-            </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @await Html.PartialAsync("_ValidationScriptsPartial")
 }
-

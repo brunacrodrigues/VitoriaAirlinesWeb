@@ -24,13 +24,14 @@ namespace VitoriaAirlinesWeb.Models.ViewModels.FlightSearch
         [Display(Name = "Return Date")]
         public DateTime? ReturnDate { get; set; }
 
-        public int NumPassengers { get; set; } = 1;
         public TripType TripType { get; set; } = TripType.OneWay;
 
         public IEnumerable<AirportDropdownViewModel>? Airports { get; set; }
 
 
-        public IEnumerable<Flight> Flights { get; set; }
+        public IEnumerable<Flight> OneWayFlights { get; set; }
+
+        public IEnumerable<Flight> ReturnFlights { get; set; }
 
         public HashSet<int> BookedFlightIds { get; set; }
     }

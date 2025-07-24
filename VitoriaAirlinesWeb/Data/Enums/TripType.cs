@@ -3,7 +3,6 @@
     public enum TripType
     {
         OneWay,
-        RoundTrip,
-        MultiCity
+        RoundTrip
     }
 }
