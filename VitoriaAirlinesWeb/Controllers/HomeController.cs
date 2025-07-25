@@ -101,5 +101,17 @@ namespace VitoriaAirlinesWeb.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+
+
+        [HttpPost]
+        public IActionResult SetReturnFlightId(int returnFlightId)
+        {
+            HttpContext.Session.Remove("OutboundFlightId");
+            HttpContext.Session.Remove("OutboundSeatId");
+
+            HttpContext.Session.SetInt32("ReturnFlightId", returnFlightId);
+            return Ok(); // Retorna um status 200 OK, sem conteúdo JSON
+        }
+
     }
 }

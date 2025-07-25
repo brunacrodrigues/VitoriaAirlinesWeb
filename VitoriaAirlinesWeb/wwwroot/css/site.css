@@ -3000,3 +3000,10 @@ table thead.sticky-top th {
     top: 0;
     z-index: 2;
 }
+
+
+.btn-brand-primary.btn-gold {
+    background-color: #D4A437 !important; /* Cor dourada (substitui o background do btn-brand-primary) */
+    color: #333 !important; /* Cor do texto para contraste */
+    border-color: #FFD700 !important;
+}

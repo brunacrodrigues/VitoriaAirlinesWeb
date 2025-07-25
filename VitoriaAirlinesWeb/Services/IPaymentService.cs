@@ -1,4 +1,4 @@
-﻿using NuGet.Protocol.Plugins;
+﻿using VitoriaAirlinesWeb.Data.Entities;
 
 namespace VitoriaAirlinesWeb.Services
 {
@@ -18,8 +18,18 @@ namespace VitoriaAirlinesWeb.Services
             string cancelUrl);
 
         Task<string> CreateSeatUpgradeCheckoutSessionAsync(
-            string description, 
+            string description,
             decimal priceDifference,
+            string successUrl,
+            string cancelUrl);
+
+        Task<string> CreateRoundTripCheckoutSessionAsync(
+            Flight outboundFlight,
+            Flight returnFlight,
+            Seat outboundSeat,
+            Seat returnSeat,
+            decimal outboundPrice,
+            decimal returnPrice,
             string successUrl,
             string cancelUrl);
     }

@@ -103,7 +103,7 @@
 
 
 
-        }
+                }
     </div>
 </div>
 
@@ -179,9 +179,21 @@
                                         }
                                         else
                                         {
-                                            <a asp-controller="Booking" asp-action="SelectSeat" asp-route-flightId="@flight.Id" class="btn btn-brand-primary fw-bold">
-                                                <i class="fas fa-ticket-alt me-1"></i> Book Now
-                                            </a>
+                                            @if (Model.TripType == TripType.RoundTrip)
+                                            {
+                                                <button type="button" class="btn btn-brand-primary fw-bold select-flight-btn"
+                                                        data-flight-id="@flight.Id"
+                                                        data-direction="outbound"
+                                                        data-departure="@flight.DepartureUtc.ToString("o")">
+                                                    <i class="fas fa-check me-1"></i> Select
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <a asp-controller="Booking" asp-action="SelectSeat" asp-route-flightId="@flight.Id" class="btn btn-brand-primary fw-bold">
+                                                    <i class="fas fa-ticket-alt me-1"></i> Book Now
+                                                </a>
+                                            }
                                         }
                                     }
                                 </div>
@@ -265,9 +277,13 @@
                                         }
                                         else
                                         {
-                                            <a asp-controller="Booking" asp-action="SelectSeat" asp-route-flightId="@flight.Id" class="btn btn-brand-primary fw-bold">
-                                                <i class="fas fa-ticket-alt me-1"></i> Book Now
-                                            </a>
+                                            @* Para voos de volta, SEMPRE queremos um botão de seleção para o round trip. *@
+                                            <button type="button" class="btn btn-brand-primary fw-bold select-flight-btn"
+                                                    data-flight-id="@flight.Id"
+                                                    data-direction="return"
+                                                    data-departure="@flight.DepartureUtc.ToString("o")">
+                                                <i class="fas fa-check me-1"></i> Select
+                                            </button>
                                         }
                                     }
                                 </div>
@@ -276,6 +292,13 @@
                     </div>
                 }
             </div>
+
+            <div class="text-center mt-4 mb-5">
+                <a id="continueToBookingBtn" class="btn btn-gold btn-lg fw-bold d-none">
+                    <i class="fas fa-arrow-right me-1"></i> Continue to Booking
+                </a>
+            </div>
+
         </div>
     </section>
 }
@@ -391,7 +414,7 @@
             });
 
             function toggleReturnDate(tripType) {
-                if (parseInt(tripType) === @((int)TripType.RoundTrip)) {
+                if (parseInt(tripType) === @((int)TripType.RoundTrip)) { // Use a Razor expression for TripType.RoundTrip enum value
                     returnDateContainer.style.display = 'block';
                 } else {
                     returnDateContainer.style.display = 'none';
@@ -400,6 +423,155 @@
 
             // Inicializa no load
             toggleReturnDate(tripTypeInput.value);
+
+            // --- LÓGICA DE SELEÇÃO DE VOOS DE IDA E VOLTA ---
+            let selectedOutbound = null;
+            let selectedReturn = null;
+            let selectedOutboundDate = null; // Para guardar a data do voo de ida selecionado
+
+            const selectButtons = document.querySelectorAll('.select-flight-btn');
+            const continueBtn = document.getElementById('continueToBookingBtn');
+
+            // Função para atualizar a visibilidade do botão "Continuar"
+            function updateContinueButtonVisibility() {
+                if (selectedOutbound && selectedReturn) {
+                    continueBtn.classList.remove('d-none');
+                    // O href é apenas um placeholder, a navegação é controlada pelo eventListener
+                    continueBtn.href = `#`;
+                } else {
+                    continueBtn.classList.add('d-none');
+                    continueBtn.href = "#";
+                }
+                console.log(`[updateContinueButtonVisibility] Outbound: ${selectedOutbound}, Return: ${selectedReturn}. Botão "Continuar": ${!continueBtn.classList.contains('d-none') ? 'Visível' : 'Escondido'}`);
+            }
+
+            // Adicione um ouvinte de clique ao botão "Continuar para Reserva"
+            // Isso garante que o ReturnFlightId é enviado para a sessão antes de navegar
+            continueBtn.addEventListener('click', async function(e) {
+                e.preventDefault(); // Previne a navegação padrão do <a>
+
+                if (!selectedOutbound || !selectedReturn) {
+                    alert("Por favor, selecione tanto o voo de ida quanto o voo de volta antes de continuar.");
+                    return;
+                }
+
+                // Desativa o botão para evitar cliques duplos e dá feedback visual
+                this.disabled = true;
+                this.textContent = 'A processar...';
+
+                try {
+                    // Aponta para o HomeController e não espera JSON no retorno
+                    const response = await fetch(`/Home/SetReturnFlightId?returnFlightId=${selectedReturn}`, { method: 'POST' });
+
+                    if (response.ok) { // Verifica se o status HTTP é 200 OK
+                        console.log("ReturnFlightId armazenado na sessão. Status OK.");
+                        // Redireciona para SelectSeat para o voo de ida
+                        window.location.href = `/Booking/SelectSeat?flightId=${selectedOutbound}`;
+                    } else {
+                        // Se não for OK (ex: 400 Bad Request, 500 Internal Server Error)
+                        alert("Ocorreu um erro ao preparar a sua reserva de volta no servidor. Por favor, tente novamente.");
+                        console.error("Falha ao armazenar ReturnFlightId na sessão. Status:", response.status);
+                    }
+                } catch (error) {
+                    console.error("Erro ao enviar ReturnFlightId para a sessão:", error);
+                    alert("Ocorreu um erro de rede ao preparar a sua reserva. Por favor, tente novamente.");
+                } finally {
+                    // Reativa o botão em caso de erro
+                    this.disabled = false;
+                    this.innerHTML = '<i class="fas fa-arrow-right me-1"></i> Continue to Booking'; // Restaura o ícone e texto
+                }
+            });
+
+
+            selectButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const flightId = parseInt(this.dataset.flightId);
+                    const direction = this.dataset.direction;
+                    const departureIso = this.dataset.departure;
+                    const departureDate = new Date(departureIso);
+
+                    console.log(`[Clique] Botão clicado: Direção=${direction}, FlightId=${flightId}`);
+                    console.log(`[Antes] selectedOutbound=${selectedOutbound}, selectedReturn=${selectedReturn}, selectedOutboundDate=${selectedOutboundDate ? selectedOutboundDate.toISOString() : 'null'}`);
+
+
+                    if (direction === 'outbound') {
+                        // Se o voo de ida já estiver selecionado e for o mesmo, desseleciona
+                        if (selectedOutbound === flightId) {
+                            selectedOutbound = null;
+                            selectedOutboundDate = null;
+                            this.classList.remove('btn-gold');
+                            console.log(`[Ida] Voo desselecionado: ${flightId}`);
+                        } else {
+                            // Desseleciona visualmente qualquer outro voo de ida que possa estar "gold"
+                            document.querySelectorAll('.select-flight-btn[data-direction="outbound"]')
+                                .forEach(btn => btn.classList.remove('btn-gold'));
+
+                            // Seleciona o novo voo de ida
+                            selectedOutbound = flightId;
+                            selectedOutboundDate = departureDate;
+                            this.classList.add('btn-gold');
+                            console.log(`[Ida] Voo selecionado: ${flightId}. Nova data de partida: ${selectedOutboundDate.toISOString()}`);
+
+                            // Se já houver um voo de volta selecionado, verifica se ainda é válido
+                            if (selectedReturn) {
+                                const returnBtn = document.querySelector(`.select-flight-btn[data-direction="return"][data-flight-id="${selectedReturn}"]`);
+                                if (returnBtn) { // Certifica-se que o botão do voo de volta ainda existe
+                                    const currentReturnDate = new Date(returnBtn.dataset.departure);
+                                    if (currentReturnDate <= selectedOutboundDate) {
+                                        // Se a data do voo de volta não for mais válida, desseleciona-o
+                                        returnBtn.classList.remove('btn-gold');
+                                        selectedReturn = null;
+                                        alert("O voo de volta selecionado foi automaticamente desselecionado porque a data é anterior ou igual à do novo voo de ida. Por favor, selecione um novo voo de volta.");
+                                        console.log(`[Ida] Voo de volta desselecionado devido à data inválida: ${flightId}`);
+                                    }
+                                } else {
+                                    // Se o botão do voo de volta não for encontrado, significa que ele não está mais na página (possivelmente devido a uma nova busca), então desseleciona a variável.
+                                    selectedReturn = null;
+                                    console.log("[Ida] Botão do voo de volta selecionado não encontrado, redefinindo selectedReturn.");
+                                }
+                            }
+                        }
+                    }
+
+                    if (direction === 'return') {
+                        // Impede a seleção de voo de volta se nenhum voo de ida estiver selecionado
+                        if (!selectedOutboundDate) {
+                            alert("Por favor, selecione um voo de ida primeiro.");
+                            console.log("[Volta] Nenhum voo de ida selecionado. Abortando seleção de volta.");
+                            return;
+                        }
+
+                        // Impede a seleção de voo de volta se a data for anterior ou igual à de ida
+                        if (departureDate <= selectedOutboundDate) {
+                            alert("O voo de volta deve ser em uma data posterior ao voo de ida.");
+                            // Desselecionar visualmente se por acaso estava "gold" e é inválido
+                            this.classList.remove('btn-gold');
+                            if (selectedReturn === flightId) { // Se estava selecionado, garante que a variável também seja resetada
+                                selectedReturn = null;
+                            }
+                        }
+
+                        // Se o voo de volta já estiver selecionado e for o mesmo, desseleciona
+                        if (selectedReturn === flightId) {
+                            selectedReturn = null;
+                            this.classList.remove('btn-gold');
+                            console.log(`[Volta] Voo desselecionado: ${flightId}`);
+                        } else {
+                            // Desseleciona visualmente qualquer outro voo de volta que possa estar "gold"
+                            document.querySelectorAll('.select-flight-btn[data-direction="return"]')
+                                .forEach(btn => btn.classList.remove('btn-gold'));
+
+                            // Seleciona o novo voo de volta
+                            selectedReturn = flightId;
+                            this.classList.add('btn-gold');
+                            console.log(`[Volta] Voo selecionado: ${flightId}`);
+                        }
+                    }
+
+                    console.log(`[Depois] selectedOutbound=${selectedOutbound}, selectedReturn=${selectedReturn}`);
+                    updateContinueButtonVisibility(); // Atualiza apenas a visibilidade
+                });
+            });
         });
     </script>
 

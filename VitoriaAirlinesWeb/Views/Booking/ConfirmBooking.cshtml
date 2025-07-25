@@ -26,6 +26,7 @@
                         <dd class="col-7">€@Model.FinalPrice.ToString("F2")</dd>
                     </dl>
 
+
                     <form asp-action="CreateCheckoutSession" method="post">
     @Html.AntiForgeryToken()
 

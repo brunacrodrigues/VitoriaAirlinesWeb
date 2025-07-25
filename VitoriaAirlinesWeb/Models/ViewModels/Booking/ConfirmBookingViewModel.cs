@@ -31,28 +31,24 @@ namespace VitoriaAirlinesWeb.Models.ViewModels.Booking
 
         public decimal FinalPrice { get; set; }
 
-        public bool IsCustomer {  get; set; }
+        public bool IsCustomer { get; set; }
 
         public string? ExistingPassportNumber { get; set; }
 
 
         [Display(Name = "Passport Number")]
-        [Required(ErrorMessage = "Passport Number is required")]
         public string? PassportNumber { get; set; }
 
 
         [Display(Name = "First Name")]
-        [Required(ErrorMessage = "First Name is required")]
         public string? FirstName { get; set; }
 
 
         [Display(Name = "Last Name")]
-        [Required(ErrorMessage = "Last Name is required")]
         public string? LastName { get; set; }
 
 
-        [Required(ErrorMessage = "Email is required")]
-        [DataType(DataType.EmailAddress)]
+
         public string? Email { get; set; }
     }
 }

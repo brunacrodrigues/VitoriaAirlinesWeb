@@ -1,0 +1,107 @@
+﻿@model VitoriaAirlinesWeb.Models.ViewModels.Booking.ConfirmRoundTripViewModel
+
+<div class="container-fluid py-5" style="background-color: #0e0e0e; min-height: 100vh;">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card flight-card shadow-lg">
+                <div class="card-header text-center">
+                    <h2 class="text-light mb-0"><i class="fas fa-check-circle me-2"></i>Confirm Your Booking</h2>
+                </div>
+
+                <div class="card-body text-light">
+                    <h5 class="text-light">Outbound Flight</h5>
+                    <dl class="row mb-4">
+                        <dt class="col-5">Flight Number:</dt>
+                        <dd class="col-7">@Model.OutboundFlight.FlightNumber</dd>
+
+                        <dt class="col-5">Departure:</dt>
+                        <dd class="col-7">@Model.OutboundFlight.OriginAirport.Name → @Model.OutboundFlight.DestinationAirport.Name at @Model.OutboundFlight.DepartureUtc.ToLocalTime().ToString("g")</dd>
+
+                        <dt class="col-5">Arrival:</dt>
+                        <dd class="col-7">@Model.OutboundFlight.DestinationAirport.Name at @Model.OutboundFlight.ArrivalUtc.ToLocalTime().ToString("g")</dd>
+
+                        <dt class="col-5">Seat:</dt>
+                        <dd class="col-7">@Model.OutboundSeat.Row@Model.OutboundSeat.Letter (@Model.OutboundSeat.Class)</dd>
+
+                        <dt class="col-5">Price:</dt>
+                        <dd class="col-7">€@Model.OutboundPrice.ToString("F2")</dd>
+                    </dl>
+
+                    <h5 class="text-light">Return Flight</h5>
+                    <dl class="row mb-4">
+                        <dt class="col-5">Flight Number:</dt>
+                        <dd class="col-7">@Model.ReturnFlight.FlightNumber</dd>
+
+                        <dt class="col-5">Departure:</dt>
+                        <dd class="col-7">@Model.ReturnFlight.OriginAirport.Name → @Model.ReturnFlight.DestinationAirport.Name at @Model.ReturnFlight.DepartureUtc.ToLocalTime().ToString("g")</dd>
+
+                        <dt class="col-5">Arrival:</dt>
+                        <dd class="col-7">@Model.ReturnFlight.DestinationAirport.Name at @Model.ReturnFlight.ArrivalUtc.ToLocalTime().ToString("g")</dd>
+
+                        <dt class="col-5">Seat:</dt>
+                        <dd class="col-7">@Model.ReturnSeat.Row@Model.ReturnSeat.Letter (@Model.ReturnSeat.Class)</dd>
+
+                        <dt class="col-5">Price:</dt>
+                        <dd class="col-7">€@Model.ReturnPrice.ToString("F2")</dd>
+                    </dl>
+
+                    <form asp-action="CreateRoundTripCheckoutSession" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="row mb-4">
+                            <dt class="col-5 fw-bold">Total Price:</dt>
+                            <dd class="col-7 fw-bold">€@Model.TotalPrice.ToString("F2")</dd>
+                        </div>
+
+                        @if (!Model.IsCustomer)
+                        {
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="FirstName" class="form-label">First Name</label>
+                                    <input asp-for="FirstName" class="form-control" />
+                                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="LastName" class="form-label">Last Name</label>
+                                    <input asp-for="LastName" class="form-control" />
+                                    <span asp-validation-for="LastName" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="Email" class="form-label">Email</label>
+                                    <input asp-for="Email" type="email" class="form-control" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="PassportNumber" class="form-label">Passport Number</label>
+                                    <input asp-for="PassportNumber" class="form-control" />
+                                    <span asp-validation-for="PassportNumber" class="text-danger"></span>
+                                </div>
+                            </div>
+                        }
+                        else if (string.IsNullOrWhiteSpace(Model.ExistingPassportNumber))
+                        {
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="PassportNumber" class="form-label">Passport Number</label>
+                                    <input asp-for="PassportNumber" class="form-control" />
+                                    <span asp-validation-for="PassportNumber" class="text-danger"></span>
+                                </div>
+                            </div>
+                        }
+
+                        <button type="submit" class="btn btn-gold w-100 mt-3">
+                            <i class="fas fa-credit-card me-1"></i> Confirm and Pay
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

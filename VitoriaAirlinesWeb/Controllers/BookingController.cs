@@ -42,6 +42,17 @@ namespace VitoriaAirlinesWeb.Controllers
         [HttpGet]
         public async Task<IActionResult> SelectSeat(int flightId, int? ticketId = null)
         {
+            // Limpa sessão de voos se não estiver a alterar assento
+            // Só limpa se estivermos num voo isolado e não houver volta prevista
+            if (!ticketId.HasValue && HttpContext.Session.GetInt32("ReturnFlightId") == null)
+            {
+                HttpContext.Session.Remove("OutboundFlightId");
+                HttpContext.Session.Remove("OutboundSeatId");
+                HttpContext.Session.Remove("ReturnFlightId");
+                HttpContext.Session.Remove("ReturnSeatId");
+            }
+
+
             if (User.Identity.IsAuthenticated && (User.IsInRole(UserRoles.Admin) || User.IsInRole(UserRoles.Employee)))
             {
                 TempData["Error"] = "This functionality is reserved for customers only.";
@@ -56,13 +67,14 @@ namespace VitoriaAirlinesWeb.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
+
             if (User.Identity.IsAuthenticated && User.IsInRole(UserRoles.Customer))
             {
                 var user = await _userHelper.GetUserAsync(User);
                 if (user != null)
                 {
                     var alreadyBooked = await _ticketRepository.UserHasTicketForFlightAsync(user.Id, flightId);
-                    if (alreadyBooked && !ticketId.HasValue) 
+                    if (alreadyBooked && !ticketId.HasValue)
                     {
                         TempData["Error"] = "You have already booked this flight.";
                         return RedirectToAction("Index", "Home");
@@ -95,8 +107,6 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
-
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ConfirmBooking(int flightId, int seatId)
@@ -110,70 +120,186 @@ namespace VitoriaAirlinesWeb.Controllers
             var flight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(flightId);
             if (flight == null)
             {
-                return NotFound("Flight not found");
+                TempData["Error"] = "Flight not found.";
+                return RedirectToAction("Index", "Home");
             }
 
             var seat = flight.Airplane.Seats.FirstOrDefault(s => s.Id == seatId);
             if (seat == null)
             {
-                return NotFound("Seat not found");
+                TempData["Error"] = "Seat not found.";
+                return RedirectToAction("Index", "Home");
             }
 
-            var model = _converterHelper.ToConfirmBookingViewModel(flight, seat);
-            model.IsCustomer = User.Identity.IsAuthenticated && User.IsInRole(UserRoles.Customer);
-
-            if (model.IsCustomer)
+            // Se ainda não temos ida registada na sessão, tratamos como voo de ida
+            if (HttpContext.Session.GetInt32("OutboundFlightId") == null)
             {
-                var user = await _userHelper.GetUserAsync(User);
-                var profile = await _customerProfileRepository.GetByUserIdAsync(user.Id);
-                model.ExistingPassportNumber = profile?.PassportNumber;
+                HttpContext.Session.SetInt32("OutboundFlightId", flightId);
+                HttpContext.Session.SetInt32("OutboundSeatId", seatId);
+
+                var returnFlightId = HttpContext.Session.GetInt32("ReturnFlightId");
+
+                if (returnFlightId.HasValue)
+                {
+                    // Round-trip: ir selecionar o lugar da volta
+                    return RedirectToAction("SelectSeat", new { flightId = returnFlightId.Value });
+                }
+                else
+                {
+                    // One-way: ir direto para confirmação da compra
+                    var model = _converterHelper.ToConfirmBookingViewModel(flight, seat);
+                    model.IsCustomer = User.Identity.IsAuthenticated && User.IsInRole(UserRoles.Customer);
+
+                    if (model.IsCustomer)
+                    {
+                        var user = await _userHelper.GetUserAsync(User);
+                        var profile = await _customerProfileRepository.GetByUserIdAsync(user.Id);
+                        model.ExistingPassportNumber = profile?.PassportNumber;
+                    }
+
+                    return View("ConfirmBooking", model);
+                }
             }
 
-            return View(model);
-        }
+            HttpContext.Session.SetInt32("ReturnFlightId", flightId);
+            HttpContext.Session.SetInt32("ReturnSeatId", seatId);
 
+            return RedirectToAction("ConfirmRoundTrip");
+        }
 
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateCheckoutSession(int flightId, int seatId, decimal price, string? firstName, string? lastName, string? email, string? passportNumber)
         {
-            var flight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(flightId);
-            if (flight == null) return new NotFoundViewResult("Error404"); ;
-
-            var seat = flight.Airplane.Seats.FirstOrDefault(s => s.Id == seatId);
-            if (seat == null) return new NotFoundViewResult("Error404");
-
-            if (string.IsNullOrWhiteSpace(passportNumber))
+            // Verificações de segurança e obtenção de dados básicos (voo e assento)
+            if (User.Identity.IsAuthenticated && (User.IsInRole(UserRoles.Admin) || User.IsInRole(UserRoles.Employee)))
             {
-                TempData["Error"] = "Passport number is required.";
-                return RedirectToAction("ConfirmBooking", new { flightId, seatId });
+                TempData["Error"] = "This functionality is reserved for customers only.";
+                return RedirectToAction("Index", "Home");
             }
 
+            var flight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(flightId);
+            if (flight == null)
+            {
+                TempData["Error"] = "Flight not found."; // Melhor seria retornar View com erro
+                return RedirectToAction("Index", "Home");
+            }
+
+            var seat = flight.Airplane.Seats.FirstOrDefault(s => s.Id == seatId);
+            if (seat == null)
+            {
+                TempData["Error"] = "Seat not found."; // Melhor seria retornar View com erro
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Preparar o ViewModel para, potencialmente, retornar à View com erros ou dados preenchidos
+            var model = _converterHelper.ToConfirmBookingViewModel(flight, seat);
+            model.IsCustomer = User.Identity.IsAuthenticated && User.IsInRole(UserRoles.Customer);
+            model.FlightId = flightId; // Assegurar que os IDs estão no modelo
+            model.SeatId = seatId;
+            model.FinalPrice = price; // Passar o preço também
+
+            // Preencher o modelo com os dados recebidos para re-renderização (se necessário)
+            model.FirstName = firstName;
+            model.LastName = lastName;
+            model.Email = email;
+            model.PassportNumber = passportNumber;
 
 
-            HttpContext.Session.SetInt32("FlightId", flightId);
-            HttpContext.Session.SetInt32("SeatId", seatId);
-            HttpContext.Session.SetString("Price", price.ToString(CultureInfo.InvariantCulture));
-            if (User.Identity.IsAuthenticated && User.IsInRole(UserRoles.Customer))
+            // Lógica de validação condicional para dados pessoais
+            if (model.IsCustomer)
             {
                 var user = await _userHelper.GetUserAsync(User);
                 var profile = await _customerProfileRepository.GetByUserIdAsync(user.Id);
 
+                // VALIDAÇÃO DO PASSAPORTE PARA CLIENTES:
                 if (string.IsNullOrWhiteSpace(profile?.PassportNumber))
                 {
-                    profile.PassportNumber = passportNumber;
-                    await _customerProfileRepository.UpdateAsync(profile);
+                    // Se o cliente NÃO tem passaporte registado no perfil: O campo é obrigatório no formulário.
+                    if (string.IsNullOrWhiteSpace(passportNumber))
+                    {
+                        ModelState.AddModelError("PassportNumber", "Passport number is required.");
+                    }
+                    else
+                    {
+                        // Se fornecido, verifica se já está em uso por OUTRO utilizador.
+                        var existingProfile = await _customerProfileRepository.GetByPassportAsync(passportNumber);
+                        if (existingProfile != null && existingProfile.UserId != user.Id)
+                        {
+                            ModelState.AddModelError("PassportNumber", "This passport number is already in use by another account.");
+                        }
+                        else
+                        {
+                            // Se o passaporte é válido e único, atualiza o perfil do cliente
+                            profile.PassportNumber = passportNumber;
+                            await _customerProfileRepository.UpdateAsync(profile);
+                        }
+                    }
+                }
+                else
+                {
+                    // Se o cliente JÁ tem um passaporte registado no perfil: Usa o do perfil.
+                    // Para efeitos de Stripe ou outros, garanta que o 'passportNumber' que vai usar é o do perfil
+                    // se o input do form estiver vazio.
+                    if (string.IsNullOrWhiteSpace(passportNumber))
+                    {
+                        passportNumber = profile.PassportNumber;
+                        model.PassportNumber = profile.PassportNumber; // Atualiza o modelo para a view
+                    }
+
                 }
             }
-            else
+            else // É um utilizador anónimo
             {
-                HttpContext.Session.SetString("FirstName", firstName ?? "");
-                HttpContext.Session.SetString("LastName", lastName ?? "");
-                HttpContext.Session.SetString("Email", email ?? "");
-                HttpContext.Session.SetString("PassportNumber", passportNumber ?? "");
+                // VALIDAÇÕES PARA ANÓNIMOS: TODOS os campos são obrigatórios e devem ser únicos (email, passaporte)
+                if (string.IsNullOrWhiteSpace(firstName))
+                    ModelState.AddModelError("FirstName", "First name is required.");
+
+                if (string.IsNullOrWhiteSpace(lastName))
+                    ModelState.AddModelError("LastName", "Last name is required.");
+
+                if (string.IsNullOrWhiteSpace(email))
+                    ModelState.AddModelError("Email", "Email is required.");
+                else if (!new System.ComponentModel.DataAnnotations.EmailAddressAttribute().IsValid(email)) // Valida formato do email
+                    ModelState.AddModelError("Email", "Invalid email format.");
+                else
+                {
+                    var existingUser = await _userHelper.GetUserByEmailAsync(email);
+                    if (existingUser != null)
+                        ModelState.AddModelError("Email", "An account with this email already exists.");
+                }
+
+                if (string.IsNullOrWhiteSpace(passportNumber))
+                    ModelState.AddModelError("PassportNumber", "Passport number is required.");
+                else
+                {
+                    var existingProfile = await _customerProfileRepository.GetByPassportAsync(passportNumber);
+                    if (existingProfile != null)
+                        ModelState.AddModelError("PassportNumber", "This passport number is already in use.");
+                }
+
+                // Se a validação para anónimos passar até aqui, armazena os dados na sessão
+                // para serem usados na criação de conta após o pagamento bem-sucedido.
+
+                if (ModelState.IsValid)
+                {
+                    HttpContext.Session.SetString("FirstName", firstName!);
+                    HttpContext.Session.SetString("LastName", lastName!);
+                    HttpContext.Session.SetString("Email", email!);
+                    HttpContext.Session.SetString("PassportNumber", passportNumber!);
+                }
             }
 
+            // VERIFICAÇÃO FINAL DO MODELSTATE
+            if (!ModelState.IsValid)
+            {
+                return View("ConfirmBooking", model);
+            }
+
+            HttpContext.Session.SetInt32("FlightId", flightId);
+            HttpContext.Session.SetInt32("SeatId", seatId);
+            HttpContext.Session.SetString("Price", price.ToString(CultureInfo.InvariantCulture));
 
             var baseUrl = $"{Request.Scheme}://{Request.Host}";
             var successUrl = $"{baseUrl}/Booking/Success?session_id={{CHECKOUT_SESSION_ID}}";
@@ -402,7 +528,7 @@ namespace VitoriaAirlinesWeb.Controllers
                 ticket.SeatId = newSeatId;
                 ticket.PricePaid = newPrice;
                 await _ticketRepository.UpdateAsync(ticket);
-                
+
                 // TODO send email
 
                 TempData["Success"] = $"Seat changed to {newSeat.Row}{newSeat.Letter}! A refund of {amountToRefund:C} has been issued.";
@@ -430,7 +556,7 @@ namespace VitoriaAirlinesWeb.Controllers
                     cancelUrl
                 );
 
-                return Redirect(checkoutUrl); 
+                return Redirect(checkoutUrl);
             }
         }
 
@@ -469,6 +595,343 @@ namespace VitoriaAirlinesWeb.Controllers
 
             return View();
         }
+
+
+
+        [HttpGet]
+        public async Task<IActionResult> ConfirmRoundTrip()
+        {
+            var outboundFlightId = HttpContext.Session.GetInt32("OutboundFlightId");
+            var returnFlightId = HttpContext.Session.GetInt32("ReturnFlightId");
+            var outboundSeatId = HttpContext.Session.GetInt32("OutboundSeatId");
+            var returnSeatId = HttpContext.Session.GetInt32("ReturnSeatId");
+
+            if (outboundFlightId == null || returnFlightId == null || outboundSeatId == null || returnSeatId == null)
+            {
+                TempData["Error"] = "Booking information is incomplete.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var outboundFlight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(outboundFlightId.Value);
+            var returnFlight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(returnFlightId.Value);
+
+            var outboundSeat = outboundFlight?.Airplane.Seats.FirstOrDefault(s => s.Id == outboundSeatId.Value);
+            var returnSeat = returnFlight?.Airplane.Seats.FirstOrDefault(s => s.Id == returnSeatId.Value);
+
+            if (outboundFlight == null || returnFlight == null || outboundSeat == null || returnSeat == null)
+            {
+                TempData["Error"] = "Some booking data could not be loaded.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var viewModel = new ConfirmRoundTripViewModel
+            {
+                OutboundFlight = outboundFlight,
+                ReturnFlight = returnFlight,
+                OutboundSeat = outboundSeat,
+                ReturnSeat = returnSeat,
+                IsCustomer = User.Identity.IsAuthenticated && User.IsInRole(UserRoles.Customer)
+
+            };
+
+            if (viewModel.IsCustomer)
+            {
+                var user = await _userHelper.GetUserAsync(User);
+                var profile = await _customerProfileRepository.GetByUserIdAsync(user.Id);
+                viewModel.ExistingPassportNumber = profile?.PassportNumber;
+            }
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateRoundTripCheckoutSession(string? firstName, string? lastName, string? email, string? passportNumber)
+        {
+            // 1. Obtenção de dados da sessão e verificação inicial
+            var outboundFlightId = HttpContext.Session.GetInt32("OutboundFlightId");
+            var returnFlightId = HttpContext.Session.GetInt32("ReturnFlightId");
+            var outboundSeatId = HttpContext.Session.GetInt32("OutboundSeatId");
+            var returnSeatId = HttpContext.Session.GetInt32("ReturnSeatId");
+
+            if (outboundFlightId == null || returnFlightId == null || outboundSeatId == null || returnSeatId == null)
+            {
+                ModelState.AddModelError(string.Empty, "Booking information is incomplete.");
+                return RedirectToAction("Index", "Home");
+            }
+
+            var outboundFlight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(outboundFlightId.Value);
+            var returnFlight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(returnFlightId.Value);
+            var outboundSeat = outboundFlight?.Airplane.Seats.FirstOrDefault(s => s.Id == outboundSeatId.Value);
+            var returnSeat = returnFlight?.Airplane.Seats.FirstOrDefault(s => s.Id == returnSeatId.Value);
+
+            if (outboundFlight == null || returnFlight == null || outboundSeat == null || returnSeat == null)
+            {
+                ModelState.AddModelError(string.Empty, "Flight or seat data is missing.");
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Preparar o ViewModel para, potencialmente, retornar à View com erros ou dados preenchidos
+            var model = new ConfirmRoundTripViewModel
+            {
+                OutboundFlight = outboundFlight,
+                ReturnFlight = returnFlight,
+                OutboundSeat = outboundSeat,
+                ReturnSeat = returnSeat,
+                IsCustomer = User.Identity.IsAuthenticated && User.IsInRole(UserRoles.Customer)
+            };
+            // Preencher o modelo com os dados recebidos para re-renderização (se necessário)
+            model.FirstName = firstName;
+            model.LastName = lastName;
+            model.Email = email;
+            model.PassportNumber = passportNumber;
+
+
+            // 2. Lógica de validação condicional para dados pessoais (IDÊNTICA à de CreateCheckoutSession)
+            if (model.IsCustomer)
+            {
+                var user = await _userHelper.GetUserAsync(User);
+                var profile = await _customerProfileRepository.GetByUserIdAsync(user.Id);
+
+                if (string.IsNullOrWhiteSpace(profile?.PassportNumber))
+                {
+                    if (string.IsNullOrWhiteSpace(passportNumber))
+                    {
+                        ModelState.AddModelError("PassportNumber", "Passport number is required.");
+                    }
+                    else
+                    {
+                        var existingProfile = await _customerProfileRepository.GetByPassportAsync(passportNumber);
+                        if (existingProfile != null && existingProfile.UserId != user.Id)
+                        {
+                            ModelState.AddModelError("PassportNumber", "This passport number is already in use by another account.");
+                        }
+                        else
+                        {
+                            profile.PassportNumber = passportNumber;
+                            await _customerProfileRepository.UpdateAsync(profile);
+                        }
+                    }
+                }
+                else
+                {
+                    if (string.IsNullOrWhiteSpace(passportNumber))
+                    {
+                        passportNumber = profile.PassportNumber;
+                        model.PassportNumber = profile.PassportNumber; // Atualiza o modelo para a view
+                    }
+                }
+            }
+            else // É um utilizador anónimo
+            {
+                if (string.IsNullOrWhiteSpace(firstName))
+                    ModelState.AddModelError("FirstName", "First name is required.");
+
+                if (string.IsNullOrWhiteSpace(lastName))
+                    ModelState.AddModelError("LastName", "Last name is required.");
+
+                if (string.IsNullOrWhiteSpace(email))
+                    ModelState.AddModelError("Email", "Email is required.");
+                else if (!new System.ComponentModel.DataAnnotations.EmailAddressAttribute().IsValid(email))
+                    ModelState.AddModelError("Email", "Invalid email format.");
+                else
+                {
+                    var existingUser = await _userHelper.GetUserByEmailAsync(email);
+                    if (existingUser != null)
+                        ModelState.AddModelError("Email", "An account with this email already exists.");
+                }
+
+                if (string.IsNullOrWhiteSpace(passportNumber))
+                    ModelState.AddModelError("PassportNumber", "Passport number is required.");
+                else
+                {
+                    var existingProfile = await _customerProfileRepository.GetByPassportAsync(passportNumber);
+                    if (existingProfile != null)
+                        ModelState.AddModelError("PassportNumber", "This passport number is already in use.");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    HttpContext.Session.SetString("FirstName", firstName!);
+                    HttpContext.Session.SetString("LastName", lastName!);
+                    HttpContext.Session.SetString("Email", email!);
+                    HttpContext.Session.SetString("PassportNumber", passportNumber!);
+                }
+            }
+
+            // 3. VERIFICAÇÃO FINAL DO MODELSTATE
+            if (!ModelState.IsValid)
+            {
+                return View("ConfirmRoundTrip", model);
+            }
+
+            // 4. Se tudo válido, procede com a criação da sessão de pagamento
+            var priceOutbound = model.OutboundPrice;
+            var priceReturn = model.ReturnPrice;
+            var totalPrice = model.TotalPrice;
+
+            HttpContext.Session.SetString("OutboundPrice", priceOutbound.ToString(CultureInfo.InvariantCulture));
+            HttpContext.Session.SetString("ReturnPrice", priceReturn.ToString(CultureInfo.InvariantCulture));
+
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+            var successUrl = $"{baseUrl}/Booking/RoundTripSuccess?session_id={{CHECKOUT_SESSION_ID}}";
+            var cancelUrl = $"{baseUrl}/Booking/Cancel";
+
+            var checkoutUrl = await _paymentService.CreateRoundTripCheckoutSessionAsync(
+                outboundFlight,
+                returnFlight,
+                outboundSeat,
+                returnSeat,
+                priceOutbound,
+                priceReturn,
+                successUrl,
+                cancelUrl
+            );
+
+            return Redirect(checkoutUrl);
+        }
+
+
+        public async Task<IActionResult> RoundTripSuccess(string session_id)
+        {
+            var sessionService = new SessionService();
+            var session = await sessionService.GetAsync(session_id);
+
+            if (session.PaymentStatus != "paid")
+            {
+                TempData["Error"] = "Payment was not completed.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var outboundFlightId = HttpContext.Session.GetInt32("OutboundFlightId");
+            var returnFlightId = HttpContext.Session.GetInt32("ReturnFlightId");
+            var outboundSeatId = HttpContext.Session.GetInt32("OutboundSeatId");
+            var returnSeatId = HttpContext.Session.GetInt32("ReturnSeatId");
+            var outboundPriceStr = HttpContext.Session.GetString("OutboundPrice");
+            var returnPriceStr = HttpContext.Session.GetString("ReturnPrice");
+
+            if (outboundFlightId == null || returnFlightId == null || outboundSeatId == null || returnSeatId == null ||
+                string.IsNullOrEmpty(outboundPriceStr) || string.IsNullOrEmpty(returnPriceStr))
+            {
+                TempData["Error"] = "Booking data is missing.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            decimal priceOutbound = decimal.Parse(outboundPriceStr, CultureInfo.InvariantCulture);
+            decimal priceReturn = decimal.Parse(returnPriceStr, CultureInfo.InvariantCulture);
+            string userId;
+
+            if (User.Identity.IsAuthenticated && User.IsInRole(UserRoles.Customer))
+            {
+                var email = User.Identity.Name;
+                var user = await _userHelper.GetUserByEmailAsync(email);
+                if (user == null)
+                {
+                    TempData["Error"] = "Could not retrieve user data.";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                userId = user.Id;
+            }
+            else
+            {
+                var email = HttpContext.Session.GetString("Email");
+                var firstName = HttpContext.Session.GetString("FirstName");
+                var lastName = HttpContext.Session.GetString("LastName");
+                var passportNumber = HttpContext.Session.GetString("PassportNumber");
+
+                if (string.IsNullOrWhiteSpace(email))
+                {
+                    TempData["Error"] = "Missing user email.";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                var user = new User
+                {
+                    UserName = email,
+                    Email = email,
+                    FirstName = firstName,
+                    LastName = lastName
+                };
+
+                var createResult = await _userHelper.AddUserAsync(user, "Temp1234!");
+                if (!createResult.Succeeded)
+                {
+                    TempData["Error"] = "User creation failed.";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                var token = await _userHelper.GenerateEmailConfirmationTokenAsync(user);
+                await _userHelper.ConfirmEmailAsync(user, token);
+                await _userHelper.CheckRoleAsync(UserRoles.Customer);
+                await _userHelper.AddUserToRoleAsync(user, UserRoles.Customer);
+
+                var profile = new CustomerProfile
+                {
+                    UserId = user.Id,
+                    PassportNumber = passportNumber
+                };
+                await _customerProfileRepository.CreateAsync(profile);
+
+                var resetToken = await _userHelper.GeneratePasswordResetTokenAsync(user);
+                var resetLink = Url.Action("ResetPassword", "Account", new { email = user.Email, token = resetToken }, Request.Scheme);
+                var body = $"<p>Hello {user.FullName},</p>" +
+                           $"<p>Thank you for booking with Vitoria Airlines.</p>" +
+                           $"<p>You have been registered as a customer. Click below to set your password:</p>" +
+                           $"<p><a href='{resetLink}'>Set Password</a></p>";
+
+                await _mailHelper.SendEmailAsync(user.Email, "Set your Vitoria Airlines password", body);
+
+                userId = user.Id;
+            }
+
+            var ticket1Exists = await _ticketRepository.UserHasTicketForFlightAsync(userId, outboundFlightId.Value);
+            var ticket2Exists = await _ticketRepository.UserHasTicketForFlightAsync(userId, returnFlightId.Value);
+
+            if (ticket1Exists || ticket2Exists)
+            {
+                TempData["Error"] = "You already have a ticket for one of the selected flights.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var ticketOutbound = new Ticket
+            {
+                FlightId = outboundFlightId.Value,
+                SeatId = outboundSeatId.Value,
+                UserId = userId,
+                PricePaid = priceOutbound,
+                PurchaseDateUtc = DateTime.UtcNow
+            };
+
+            var ticketReturn = new Ticket
+            {
+                FlightId = returnFlightId.Value,
+                SeatId = returnSeatId.Value,
+                UserId = userId,
+                PricePaid = priceReturn,
+                PurchaseDateUtc = DateTime.UtcNow
+            };
+
+            await _ticketRepository.CreateAsync(ticketOutbound);
+            await _ticketRepository.CreateAsync(ticketReturn);
+
+            HttpContext.Session.Remove("OutboundFlightId");
+            HttpContext.Session.Remove("ReturnFlightId");
+            HttpContext.Session.Remove("OutboundSeatId");
+            HttpContext.Session.Remove("ReturnSeatId");
+            HttpContext.Session.Remove("OutboundPrice");
+            HttpContext.Session.Remove("ReturnPrice");
+            HttpContext.Session.Remove("FirstName");
+            HttpContext.Session.Remove("LastName");
+            HttpContext.Session.Remove("Email");
+            HttpContext.Session.Remove("PassportNumber");
+
+            return View("Success");
+        }
+
+
+
 
     }
 }
