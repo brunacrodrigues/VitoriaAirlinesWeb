@@ -7,12 +7,10 @@
 }
 
 @{
-    // 1. DETERMINA A ACTION E O MÉTODO CORRETOS COM BASE NO CONTEXTO
     bool isSeatChange = Model.TicketId.HasValue;
     string formAction = isSeatChange ? "ConfirmSeatChange" : "ConfirmBooking";
-    string formMethod = isSeatChange ? "get" : "post"; // Troca vai para um GET, Compra vai para um POST
+    string formMethod = isSeatChange ? "get" : "post";
 }
-
 
 <div class="container my-5">
     <div class="text-center mb-5">
@@ -57,7 +55,6 @@
     <form asp-action="@formAction" asp-controller="Booking" method="@formMethod" id="confirmSeatForm">
         @if (!isSeatChange)
         {
-
             <input type="hidden" name="flightId" value="@Model.FlightId" />
             <input type="hidden" name="seatId" id="selectedSeatId" />
         }
@@ -67,141 +64,140 @@
             <input type="hidden" name="newSeatId" id="selectedSeatId" />
         }
 
-        <div id="plane-section" class="plane-container mx-auto d-flex justify-content-center gap-4" style="display: none;">
-            <div>
-                <h3 id="plane-section-title" class="text-center mb-4 fw-light"></h3>
+        <div id="plane-section" class="plane-container container" style="display: none;">
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-7 mb-4">
+                    <h3 id="plane-section-title" class="text-center mb-4 fw-light"></h3>
 
-                <div class="legend-container mb-4">
-                    <div class="legend-item"><div class="seat-sample executive"></div> Executive Class</div>
-                    <div class="legend-item"><div class="seat-sample economy"></div> Economy Class</div>
-                    <div class="legend-item"><div class="seat-sample occupied"></div> Occupied</div>
+                    <div class="legend-container mb-4">
+                        <div class="legend-item"><div class="seat-sample executive"></div> Executive Class</div>
+                        <div class="legend-item"><div class="seat-sample economy"></div> Economy Class</div>
+                        <div class="legend-item"><div class="seat-sample occupied"></div> Occupied</div>
+                    </div>
+
+                    <div class="plane">
+                        <div class="cockpit">Cockpit</div>
+
+                        @foreach (var rowGroup in Model.Seats.OrderBy(s => s.Row).GroupBy(s => s.Row))
+                        {
+                            var seats = rowGroup.ToList();
+
+                            <div class="seat-row" data-row-class="@seats.First().Class.ToString()">
+                                <div class="row-label">@rowGroup.Key</div>
+
+                                @foreach (var letter in allLetters)
+                                {
+                                    if (letter == "D")
+                                    {
+                                        <div class="aisle"></div>
+                                    }
+
+                                    var seat = seats.FirstOrDefault(s => s.Letter == letter);
+                                    if (seat != null)
+                                    {
+                                        bool isOccupied = Model.OccupiedSeatsIds.Contains(seat.Id);
+                                        string seatStateClass = isOccupied ? "occupied" : "available";
+                                        string seatTypeClass = seat.Class == SeatClass.Executive ? "executive" : "economy";
+
+                                        <a href="#"
+                                           class="booking-seat @seatStateClass @seatTypeClass"
+                                           data-seat-id="@seat.Id"
+                                           data-seat-class="@seat.Class.ToString()"
+                                           title="@(isOccupied ? "Occupied" : $"Row {seat.Row}, Seat {seat.Letter} ({seat.Class})")"
+                                           @(isOccupied ? "tabindex=\"-1\" aria-disabled=\"true\"" : "")>
+                                            @seat.Letter
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <div style="width: 40px;"></div>
+                                    }
+                                }
+                            </div>
+                        }
+                    </div>
                 </div>
 
-                <div class="plane">
-                    <div class="cockpit">Cockpit</div>
-
-                    @foreach (var rowGroup in Model.Seats.OrderBy(s => s.Row).GroupBy(s => s.Row))
-                    {
-                        var seats = rowGroup.ToList();
-
-                        <div class="seat-row" data-row-class="@seats.First().Class.ToString()">
-                            <div class="row-label">@rowGroup.Key</div>
-
-                            @foreach (var letter in allLetters)
-                            {
-                                if (letter == "D")
-                                {
-                                    <div class="aisle"></div>
-                                }
-
-                                var seat = seats.FirstOrDefault(s => s.Letter == letter);
-                                if (seat != null)
-                                {
-                                    bool isOccupied = Model.OccupiedSeatsIds.Contains(seat.Id);
-                                    string seatStateClass = isOccupied ? "occupied" : "available";
-                                    string seatTypeClass = seat.Class == SeatClass.Executive ? "executive" : "economy";
-
-                                    <a href="#"
-                                       class="booking-seat @seatStateClass @seatTypeClass"
-                                       data-seat-id="@seat.Id"
-                                       data-seat-class="@seat.Class.ToString()"
-                                       title="@(isOccupied ? "Occupied" : $"Row {seat.Row}, Seat {seat.Letter} ({seat.Class})")"
-                                       @(isOccupied ? "tabindex=\"-1\" aria-disabled=\"true\"" : "")>
-                                        @seat.Letter
-                                    </a>
-                                }
-                                else
-                                {
-                                    <div style="width: 40px;"></div>
-                                }
-                            }
-                        </div>
-                    }
+                <div id="confirm-seat-container" class="col-12 col-lg-4 d-flex flex-column align-items-center justify-content-start" style="display: none;">
+                    <h4>Selected Seat</h4>
+                    <div id="selected-seat-info" class="mb-3 fw-semibold" style="font-size: 1.2rem;">None</div>
+                    <button type="submit" id="confirm-selection-btn" class="btn btn-gold" disabled>Confirm Seat Selection</button>
+                    @Html.AntiForgeryToken()
                 </div>
-            </div>
-
-            <div id="confirm-seat-container" class="d-flex flex-column align-items-center justify-content-start" style="min-width: 205px; display: none; margin-left: 10rem;">
-                <h4>Selected Seat</h4>
-                <div id="selected-seat-info" class="mb-3 fw-semibold" style="font-size: 1.2rem;">None</div>
-                <button type="submit" id="confirm-selection-btn" class="btn btn-gold" disabled>Confirm Seat Selection</button>
-                @Html.AntiForgeryToken()
             </div>
         </div>
     </form>
 </div>
 
 @section Scripts {
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const fareCards = document.querySelectorAll('.fare-card');
-            const planeSection = document.getElementById('plane-section');
-            const planeSectionTitle = document.getElementById('plane-section-title');
-            const allSeatRows = document.querySelectorAll('.seat-row');
-            const confirmContainer = document.getElementById('confirm-seat-container');
-            const selectedSeatInfo = document.getElementById('selected-seat-info');
-            const confirmButton = document.getElementById('confirm-selection-btn');
-            const selectedSeatInput = document.getElementById('selectedSeatId');
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const fareCards = document.querySelectorAll('.fare-card');
+        const planeSection = document.getElementById('plane-section');
+        const planeSectionTitle = document.getElementById('plane-section-title');
+        const allSeatRows = document.querySelectorAll('.seat-row');
+        const confirmContainer = document.getElementById('confirm-seat-container');
+        const selectedSeatInfo = document.getElementById('selected-seat-info');
+        const confirmButton = document.getElementById('confirm-selection-btn');
+        const selectedSeatInput = document.getElementById('selectedSeatId');
 
-            fareCards.forEach(card => {
-                card.addEventListener('click', function () {
-                    fareCards.forEach(c => c.classList.remove('selected', 'border-primary', 'border-warning', 'border-3'));
-                    this.classList.add('selected');
-                    const isExecutive = this.getAttribute('data-class-filter') === 'Executive';
-                    this.classList.add(isExecutive ? 'border-warning' : 'border-primary', 'border-3');
+        fareCards.forEach(card => {
+            card.addEventListener('click', function () {
+                fareCards.forEach(c => c.classList.remove('selected', 'border-primary', 'border-warning', 'border-3'));
+                this.classList.add('selected');
+                const isExecutive = this.getAttribute('data-class-filter') === 'Executive';
+                this.classList.add(isExecutive ? 'border-warning' : 'border-primary', 'border-3');
 
-                    const selectedClass = this.getAttribute('data-class-filter');
-                    planeSectionTitle.textContent = `Now, please select your ${selectedClass} seat`;
+                const selectedClass = this.getAttribute('data-class-filter');
+                planeSectionTitle.textContent = `Now, please select your ${selectedClass} seat`;
 
-                    allSeatRows.forEach(row => {
-                        const rowClass = row.getAttribute('data-row-class');
-                        row.style.display = rowClass === selectedClass ? 'grid' : 'none';
-                    });
-
-                    planeSection.style.display = 'flex';
-                    planeSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                    clearSelection();
+                allSeatRows.forEach(row => {
+                    const rowClass = row.getAttribute('data-row-class');
+                    row.style.display = rowClass === selectedClass ? 'grid' : 'none';
                 });
-            });
 
-            let selectedSeat = null;
+                planeSection.style.display = 'block';
+                planeSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-            function clearSelection() {
-                if (selectedSeat) {
-                    selectedSeat.classList.remove('selected-seat');
-                    selectedSeat = null;
-                }
-                selectedSeatInfo.textContent = 'None';
-                selectedSeatInput.value = '';
-                confirmButton.disabled = true;
-                confirmButton.classList.add('disabled');
-                confirmContainer.style.display = 'none';
-            }
-
-            const seatLinks = document.querySelectorAll('.booking-seat.available');
-
-            seatLinks.forEach(seat => {
-                seat.addEventListener('click', function (e) {
-                    e.preventDefault();
-
-                    if (selectedSeat) {
-                        selectedSeat.classList.remove('selected-seat');
-                    }
-
-                    this.classList.add('selected-seat');
-                    selectedSeat = this;
-
-                    selectedSeatInfo.textContent = this.title;
-
-                    selectedSeatInput.value = this.getAttribute('data-seat-id');
-
-                    confirmButton.disabled = false;
-                    confirmButton.classList.remove('disabled');
-
-                    confirmContainer.style.display = 'flex';
-                });
+                clearSelection();
             });
         });
-    </script>
 
+        let selectedSeat = null;
+
+        function clearSelection() {
+            if (selectedSeat) {
+                selectedSeat.classList.remove('selected-seat');
+                selectedSeat = null;
+            }
+            selectedSeatInfo.textContent = 'None';
+            selectedSeatInput.value = '';
+            confirmButton.disabled = true;
+            confirmButton.classList.add('disabled');
+            confirmContainer.style.display = 'none';
+        }
+
+        const seatLinks = document.querySelectorAll('.booking-seat.available');
+
+        seatLinks.forEach(seat => {
+            seat.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                if (selectedSeat) {
+                    selectedSeat.classList.remove('selected-seat');
+                }
+
+                this.classList.add('selected-seat');
+                selectedSeat = this;
+
+                selectedSeatInfo.textContent = this.title;
+                selectedSeatInput.value = this.getAttribute('data-seat-id');
+
+                confirmButton.disabled = false;
+                confirmButton.classList.remove('disabled');
+                confirmContainer.style.display = 'flex';
+            });
+        });
+    });
+</script>
 }

@@ -103,22 +103,52 @@ namespace VitoriaAirlinesWeb.Controllers
             return View(model);
         }
 
+
         [HttpPost]
         [Authorize(Roles = UserRoles.Admin)]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditCustomerProfile(int id, CustomerProfileAdminViewModel model)
         {
-
             if (id != model.Id) return new NotFoundViewResult("Error404");
-
-            if (!ModelState.IsValid)
-            {
-                model.Countries = _countryRepository.GetComboCountries();
-                return View(model);
-            }
 
             var customer = await _customerRepository.GetByIdWithUserAsync(id);
             if (customer == null) return new NotFoundViewResult("Error404");
+
+            if (model.CountryId == 0)
+            {
+                model.CountryId = null;
+            }
+
+            // Impedir remoção do passaporte
+            if (string.IsNullOrWhiteSpace(model.PassportNumber) && !string.IsNullOrWhiteSpace(customer.PassportNumber))
+            {
+                ModelState.AddModelError(nameof(model.PassportNumber), "You cannot remove the customer's passport number once it's set.");
+            }
+
+            // Validar unicidade do passaporte
+            if (!string.IsNullOrWhiteSpace(model.PassportNumber))
+            {
+                var existing = await _customerRepository.GetByPassportAsync(model.PassportNumber);
+                if (existing != null && existing.Id != model.Id)
+                {
+                    ModelState.AddModelError(nameof(model.PassportNumber), "This passport number is already associated with another customer.");
+                }
+            }
+
+            if (!ModelState.IsValid)
+            {
+                // Restaurar valores para exibição correta
+                model.Countries = _countryRepository.GetComboCountries();
+                model.PassportNumber = customer.PassportNumber;
+                model.FullName = customer.User.FullName;
+                model.Email = customer.User.Email;
+
+                ModelState.SetModelValue(nameof(model.PassportNumber), model.PassportNumber, model.PassportNumber);
+                ModelState.SetModelValue(nameof(model.FullName), model.FullName, model.FullName);
+                ModelState.SetModelValue(nameof(model.Email), model.Email, model.Email);
+
+                return View(model);
+            }
 
             _converterHelper.UpdateCustomerProfile(customer, model);
             await _customerRepository.UpdateAsync(customer);
@@ -155,10 +185,36 @@ namespace VitoriaAirlinesWeb.Controllers
             var profile = await _customerRepository.GetByUserIdAsync(user.Id);
             if (profile == null) return new NotFoundViewResult("Error404");
 
+            // Corrigir dropdown que envia 0 como "nenhuma seleção"
+            if (model.CountryId == 0)
+            {
+                model.CountryId = null;
+            }
+
+            // Impedir remoção do passaporte já definido
+            if (string.IsNullOrWhiteSpace(model.PassportNumber) && !string.IsNullOrWhiteSpace(profile.PassportNumber))
+            {
+                ModelState.AddModelError(nameof(model.PassportNumber), "You cannot remove your passport number once it's set.");
+            }
+
+            // Validar unicidade do passaporte
+            if (!string.IsNullOrWhiteSpace(model.PassportNumber))
+            {
+                var existing = await _customerRepository.GetByPassportAsync(model.PassportNumber);
+                if (existing != null && existing.Id != profile.Id)
+                {
+                    ModelState.AddModelError(nameof(model.PassportNumber), "Invalid passport number.");
+                }
+            }
+
             if (!ModelState.IsValid)
             {
+                // Restaurar valores visuais
                 model.Countries = _countryRepository.GetComboCountries();
                 model.CurrentProfileImagePath = user.ImageFullPath;
+                model.PassportNumber = profile.PassportNumber;
+
+                ModelState.SetModelValue(nameof(model.PassportNumber), model.PassportNumber, model.PassportNumber);
                 return View(model);
             }
 
@@ -166,7 +222,11 @@ namespace VitoriaAirlinesWeb.Controllers
             user.FirstName = model.FirstName;
             user.LastName = model.LastName;
 
-            if (model.ImageFile != null && model.ImageFile.Length > 0)
+            if (Request.Form["RemoveImage"] == "true")
+            {
+                user.ProfileImageId = null;
+            }
+            else if (model.ImageFile != null && model.ImageFile.Length > 0)
             {
                 var imageId = await _blobHelper.UploadBlobAsync(model.ImageFile, "images");
                 user.ProfileImageId = imageId;
@@ -181,7 +241,7 @@ namespace VitoriaAirlinesWeb.Controllers
                 return View(model);
             }
 
-            // Atualiza dados do perfil de cliente
+            // Atualiza dados do perfil
             profile.CountryId = model.CountryId;
             profile.PassportNumber = model.PassportNumber;
             await _customerRepository.UpdateAsync(profile);
@@ -189,6 +249,7 @@ namespace VitoriaAirlinesWeb.Controllers
             TempData["SuccessMessage"] = "Profile updated successfully!";
             return RedirectToAction(nameof(EditTravellerProfile));
         }
+
 
 
         // POST: CustomersController/Delete/5

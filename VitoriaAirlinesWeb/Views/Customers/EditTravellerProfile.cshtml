@@ -48,6 +48,16 @@
 
                         <input asp-for="ImageFile" type="file" class="form-control custom-input mt-2" accept=".jpg,.jpeg,.png" style="max-width: 300px;" />
                         <span asp-validation-for="ImageFile" class="text-danger"></span>
+
+                        @if (!string.IsNullOrEmpty(Model.CurrentProfileImagePath))
+                        {
+                            <div class="form-check mt-3">
+                                <input class="form-check-input" type="checkbox" name="RemoveImage" id="RemoveImage" value="true" />
+                                <label class="form-check-label text-muted small" for="RemoveImage">
+                                    Remove current profile picture
+                                </label>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>

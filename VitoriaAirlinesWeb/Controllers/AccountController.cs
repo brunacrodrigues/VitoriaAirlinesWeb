@@ -325,14 +325,14 @@ namespace VitoriaAirlinesWeb.Controllers
             user.FirstName = model.FirstName;
             user.LastName = model.LastName;
 
-            if (model.ImageFile != null && model.ImageFile.Length > 0)
+            if (Request.Form["RemoveImage"] == "true")
             {
-
-                if (model.ImageFile != null && model.ImageFile.Length > 0)
-                {
-                    var imageId = await _blobHelper.UploadBlobAsync(model.ImageFile, "images");
-                    user.ProfileImageId = imageId;
-                }
+                user.ProfileImageId = null;
+            }
+            else if (model.ImageFile != null && model.ImageFile.Length > 0)
+            {
+                var imageId = await _blobHelper.UploadBlobAsync(model.ImageFile, "images");
+                user.ProfileImageId = imageId;
             }
 
             var response = await _userHelper.UpdateUserAsync(user);

@@ -36,6 +36,12 @@ namespace VitoriaAirlinesWeb.Data
                 .HasForeignKey<CustomerProfile>(cp => cp.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<CustomerProfile>()
+                .HasOne(cp => cp.Country)
+                .WithMany()
+                .HasForeignKey(cp => cp.CountryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
 
             modelBuilder.Entity<Seat>()
                 .HasOne(seat => seat.Airplane)
