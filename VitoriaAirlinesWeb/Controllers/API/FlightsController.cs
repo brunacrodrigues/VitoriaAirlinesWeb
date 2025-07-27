@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 using VitoriaAirlinesWeb.Data.Repositories;
+using VitoriaAirlinesWeb.Helpers;
 using VitoriaAirlinesWeb.Models.Dtos;
 
 namespace VitoriaAirlinesWeb.Controllers.API
@@ -11,22 +11,30 @@ namespace VitoriaAirlinesWeb.Controllers.API
     [ApiController]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 
-    public class MyFlightsController : ControllerBase
+    public class FlightsController : ControllerBase
     {
         private readonly ITicketRepository _ticketRepository;
+        private readonly IUserHelper _userHelper;
 
-        public MyFlightsController(ITicketRepository ticketRepository)
+        public FlightsController(ITicketRepository ticketRepository, IUserHelper userHelper)
         {
             _ticketRepository = ticketRepository;
+            _userHelper = userHelper;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetMyUpcomingFlights()
+        [HttpGet("{userId}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetUserUpcomingFlights(string userId)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId))
+            if (string.IsNullOrWhiteSpace(userId))
             {
-                return Unauthorized();
+                return BadRequest("UserId is required.");
+            }
+
+            var user = await _userHelper.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound("User not found.");
             }
 
             var tickets = await _ticketRepository.GetUpcomingTicketsByUserAsync(userId);
@@ -38,13 +46,14 @@ namespace VitoriaAirlinesWeb.Controllers.API
                 DepartureUtc = t.Flight.DepartureUtc,
                 OriginAirport = t.Flight.OriginAirport.IATA,
                 DestinationAirport = t.Flight.DestinationAirport.IATA,
-                Seat = $"{t.Seat.Row}{t.Seat.Letter}",
+                Seat = $"{t.Seat.Row}{t.Seat.Letter} {t.Seat.Class}",
                 PricePaid = t.PricePaid,
                 PurchaseDateUtc = t.PurchaseDateUtc
             });
 
             return Ok(result);
         }
+
 
     }
 }

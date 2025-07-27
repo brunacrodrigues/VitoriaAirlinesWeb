@@ -38,14 +38,14 @@ namespace VitoriaAirlinesWeb
             });
 
 
-            // Add services to the container.
             builder.Services
                 .AddControllersWithViews()
                 .AddJsonOptions(opts =>
-                {
-                    opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
-                    opts.JsonSerializerOptions.WriteIndented = true;
-                });
+            {
+                opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+                opts.JsonSerializerOptions.WriteIndented = true;
+            });
+
 
 
             // SignalR
@@ -177,6 +177,7 @@ namespace VitoriaAirlinesWeb
 
 
 
+
             // Stripe config
             builder.Services.Configure<StripeSettings>(
                 builder.Configuration.GetSection("Stripe"));
@@ -185,6 +186,18 @@ namespace VitoriaAirlinesWeb
 
             // Stripe Service
             builder.Services.AddScoped<IPaymentService, StripePaymentService>();
+
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", policy =>
+                {
+                    policy.AllowAnyOrigin()
+                          .AllowAnyMethod()
+                          .AllowAnyHeader();
+                });
+            });
+
 
             builder.Services.AddSession();
 
@@ -219,6 +232,8 @@ namespace VitoriaAirlinesWeb
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.UseCors("AllowAll");
 
             app.UseAuthentication();
             app.UseAuthorization();
