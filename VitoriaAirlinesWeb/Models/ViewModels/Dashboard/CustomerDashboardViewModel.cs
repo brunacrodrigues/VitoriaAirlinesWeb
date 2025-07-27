@@ -25,5 +25,7 @@
 
         public FlightInfoViewModel? LastCompletedFlight { get; set; }
 
+        public FlightInfoViewModel? NextUpcomingFlight { get; set; }
+
     }
 }

@@ -1,11 +1,24 @@
 ﻿@model VitoriaAirlinesWeb.Models.ViewModels.Dashboard.EmployeeDashboardViewModel
 @using VitoriaAirlinesWeb.Helpers
+@using Microsoft.AspNetCore.Identity
+@using VitoriaAirlinesWeb.Data.Entities
+@inject UserManager<User> UserManager
+
+@{
+    var user = await UserManager.GetUserAsync(User);
+    var firstName = user?.FirstName ?? "Employee";
+}
 
 <div class="dashboard-container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="section-title">Employee Dashboard</h2>
-            <p class="text-muted">Welcome, @User.Identity.Name</p>
+            <h2 class="section-title" style="color:#D4A437">@firstName's Dashboard</h2>
+            <p class="text-muted">
+                Here you can schedule flights and monitor ongoing operations.<br />
+                You can also track occupancy and ticket sales performance.
+            </p>
+
+
         </div>
         <div class="d-flex justify-content-end gap-2 mb-4">
             <a asp-controller="Flights" asp-action="Create" class="btn btn-sm btn-brand-primary">
@@ -97,7 +110,7 @@
     <div class="row mt-5">
         <div class="col-md-6">
             <div class="dashboard-card h-100">
-                <h5 class="mb-3">Low Occupancy Flights</h5>
+                <h5 class="mb-3" style="color:#D4A437">Low Occupancy Flights</h5>
                 @if (!Model.LowOccupancyFlights.Any())
                 {
                     <div class="text-muted">No low occupancy flights.</div>
@@ -112,7 +125,7 @@
                                     <img src="@flight.OriginCountryFlagUrl" alt="flag" width="25" class="rounded" />
                                     <img src="@flight.DestinationCountryFlagUrl" alt="flag" width="25" class="rounded" />
                                     <div>
-                                        <div class="fw-bold">@flight.FlightNumber</div>
+                                        <div class="fw-bold text-light">@flight.FlightNumber</div>
                                         <small class="text-muted">@flight.OriginAirportFullName → @flight.DestinationAirportFullName</small><br />
                                         <small>@flight.DepartureFormatted</small>
                                     </div>
@@ -127,8 +140,8 @@
 
         <div class="col-md-6">
             <div class="dashboard-card h-100">
-                <h5 class="mb-3">Recently Created Flights</h5>
-                <table class="table table-bordered table-sm">
+                <h5 class="mb-3" style="color:#D4A437">Recently Scheduled Flights</h5>
+                <table class="table dashboard-table-custom table-sm align-middle">
                     <thead>
                         <tr>
                             <th>Flight</th>

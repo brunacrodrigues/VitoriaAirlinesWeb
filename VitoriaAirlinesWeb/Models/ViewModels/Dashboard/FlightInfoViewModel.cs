@@ -9,5 +9,9 @@
         public string DestinationCountryFlagUrl { get; set; } = null!;
         public DateTime DepartureTime { get; set; }
         public DateTime ArrivalTime { get; set; }
+
+        public string? SeatNumber { get; set; }
+        public int FlightId { get; set; }
+        public int TicketId { get; set; }
     }
 }

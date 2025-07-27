@@ -228,30 +228,64 @@ namespace VitoriaAirlinesWeb.Data.Repositories
 
         public async Task<FlightInfoViewModel?> GetUserLastCompletedFlightAsync(string userId)
         {
-            return await Task.Run(() =>
-                _context.Tickets
-                    .Include(t => t.Flight)
-                        .ThenInclude(f => f.OriginAirport)
-                            .ThenInclude(a => a.Country)
-                    .Include(t => t.Flight)
-                        .ThenInclude(f => f.DestinationAirport)
-                            .ThenInclude(a => a.Country)
-                    .Where(t => t.UserId == userId && t.Flight.Status == FlightStatus.Completed)
-                    .AsEnumerable()
-                    .OrderByDescending(t => t.Flight.ArrivalUtc)
-                    .Select(t => new FlightInfoViewModel
-                    {
-                        FlightNumber = t.Flight.FlightNumber,
-                        OriginAirport = t.Flight.OriginAirport.FullName,
-                        OriginCountryFlagUrl = t.Flight.OriginAirport.Country.FlagImageUrl,
-                        DestinationAirport = t.Flight.DestinationAirport.FullName,
-                        DestinationCountryFlagUrl = t.Flight.DestinationAirport.Country.FlagImageUrl,
-                        DepartureTime = t.Flight.DepartureUtc,
-                        ArrivalTime = t.Flight.ArrivalUtc
-                    })
-                    .FirstOrDefault()
-            );
+            var ticket = await _context.Tickets
+                .Include(t => t.Flight)
+                    .ThenInclude(f => f.OriginAirport)
+                        .ThenInclude(a => a.Country)
+                .Include(t => t.Flight)
+                    .ThenInclude(f => f.DestinationAirport)
+                        .ThenInclude(a => a.Country)
+                .Where(t => t.UserId == userId && t.Flight.Status == FlightStatus.Completed)
+                .OrderByDescending(t => t.Flight.DepartureUtc)
+                .FirstOrDefaultAsync();
+
+            if (ticket == null) return null;
+
+            return new FlightInfoViewModel
+            {
+                FlightNumber = ticket.Flight.FlightNumber,
+                OriginAirport = ticket.Flight.OriginAirport.FullName,
+                OriginCountryFlagUrl = ticket.Flight.OriginAirport.Country.FlagImageUrl,
+                DestinationAirport = ticket.Flight.DestinationAirport.FullName,
+                DestinationCountryFlagUrl = ticket.Flight.DestinationAirport.Country.FlagImageUrl,
+                DepartureTime = ticket.Flight.DepartureUtc,
+                ArrivalTime = ticket.Flight.DepartureUtc + ticket.Flight.Duration
+            };
         }
+
+
+
+        public async Task<FlightInfoViewModel?> GetUserUpcomingFlightAsync(string userId)
+        {
+            var ticket = await _context.Tickets
+                .Include(t => t.Seat)
+                .Include(t => t.Flight)
+                    .ThenInclude(f => f.OriginAirport)
+                        .ThenInclude(a => a.Country)
+                .Include(t => t.Flight)
+                    .ThenInclude(f => f.DestinationAirport)
+                        .ThenInclude(a => a.Country)
+                .Where(t => t.UserId == userId && t.Flight.Status == FlightStatus.Scheduled)
+                .OrderBy(t => t.Flight.DepartureUtc)
+                .FirstOrDefaultAsync();
+
+            if (ticket == null) return null;
+
+            return new FlightInfoViewModel
+            {
+                FlightId = ticket.Flight.Id,
+                TicketId = ticket.Id,
+                FlightNumber = ticket.Flight.FlightNumber,
+                OriginAirport = ticket.Flight.OriginAirport.FullName,
+                OriginCountryFlagUrl = ticket.Flight.OriginAirport.Country.FlagImageUrl,
+                DestinationAirport = ticket.Flight.DestinationAirport.FullName,
+                DestinationCountryFlagUrl = ticket.Flight.DestinationAirport.Country.FlagImageUrl,
+                DepartureTime = ticket.Flight.DepartureUtc,
+                ArrivalTime = ticket.Flight.DepartureUtc + ticket.Flight.Duration,
+                SeatNumber = $"{ticket.Seat.Row}{ticket.Seat.Letter} {ticket.Seat.Class}"
+            };
+        }
+
 
     }
 }

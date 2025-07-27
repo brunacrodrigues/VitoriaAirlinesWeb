@@ -1,10 +1,20 @@
 ﻿@model VitoriaAirlinesWeb.Models.ViewModels.Dashboard.CustomerDashboardViewModel
+@using Microsoft.AspNetCore.Identity
+@using VitoriaAirlinesWeb.Data.Entities
+@inject UserManager<User> UserManager
+
+@{
+    var user = await UserManager.GetUserAsync(User);
+    var firstName = user?.FirstName ?? "Customer";
+}
+
 
 <div class="dashboard-container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="section-title">Customer Dashboard</h2>
-            <p class="text-muted">Welcome, @User.Identity.Name</p>
+            <h2 class="section-title" style="color:#D4A437">@firstName's Dashboard</h2>
+            <p class="text-muted">Here you can manage your flights, view your travel history, and update your personal information.</p>
+
         </div>
     </div>
 
@@ -40,7 +50,7 @@
         </div>
     </div>
 
-    <!-- Profile + Last Flight -->
+    <!-- Profile + Last/Next Flight -->
     <div class="row mb-4">
         <div class="col-md-5">
             <div class="dashboard-card h-100">
@@ -48,10 +58,10 @@
                     <div class="d-flex align-items-center">
                         <img src="@Model.ProfilePictureUrl" alt="Profile Picture" class="rounded-circle me-3" width="70" height="70" />
                         <div>
-                            <h5 class="mb-0">@Model.FullName</h5>
-                            <small class="text-muted">@Model.Email</small>
+                            <h5 class="mb-0 text-light">@Model.FullName</h5>
+                            <small class="text-light">@Model.Email</small>
 
-                            <p class="mb-1 mt-2">
+                            <p class="mb-1 mt-2 text-light">
                                 <strong>Nationality:</strong>
                                 @if (!string.IsNullOrEmpty(Model.CountryFlagUrl))
                                 {
@@ -60,7 +70,7 @@
                                 @(string.IsNullOrEmpty(Model.Country) ? "Not specified" : Model.Country)
                             </p>
 
-                            <p class="mb-1">
+                            <p class="mb-1 text-light">
                                 <strong>Passport:</strong>
                                 @(string.IsNullOrEmpty(Model.PassportNumber) ? "Not provided" : Model.PassportNumber)
                             </p>
@@ -71,43 +81,98 @@
                     </a>
                 </div>
 
-                <div class="d-grid mt-3">
-                    <a asp-controller="Home" asp-action="Index" class="btn btn-gold btn-lg">
-                        <i class="fas fa-search me-1"></i> Search Flights
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-7">
-            <div class="dashboard-card h-100">
-                <h5 class="mb-3">Last Flight</h5>
                 @if (Model.LastCompletedFlight != null)
                 {
                     var last = Model.LastCompletedFlight;
-                    <p class="mb-1"><strong>@last.FlightNumber</strong></p>
-                    <p class="mb-1">
-                        <img src="@last.OriginCountryFlagUrl" width="25" class="me-2 rounded" />
-                        @last.OriginAirport →
-                        <img src="@last.DestinationCountryFlagUrl" width="25" class="mx-2 rounded" />
-                        @last.DestinationAirport
-                    </p>
-                    <p class="mb-1">
-                        <i class="far fa-calendar-alt me-1"></i>
-                        @last.DepartureTime.ToLocalTime().ToString("dd MMM yyyy")
-                    </p>
-                    <p class="mb-1">
-                        <i class="far fa-clock me-1"></i>
-                        @last.DepartureTime.ToLocalTime().ToString("HH:mm") → @last.ArrivalTime.ToLocalTime().ToString("HH:mm")
-                    </p>
-                    <span class="badge dashboard-badge-success">
-                        <i class="fas fa-check-circle me-1"></i> Completed
-                    </span>
+                    <div>
+                        <h6 class="text-light">Last Flight</h6>
+                        <div class="border rounded p-3" style="background-color:#D4A437">
+                            <p class="mb-1 fw-bold text-dark">@last.FlightNumber</p>
+                            <p class="mb-1 text-dark">
+                                <img src="@last.OriginCountryFlagUrl" width="25" class="me-2 rounded" />
+                                @last.OriginAirport →
+                                <img src="@last.DestinationCountryFlagUrl" width="25" class="mx-2 rounded" />
+                                @last.DestinationAirport
+                            </p>
+                            <p class="mb-1 text-dark">
+                                <i class="far fa-calendar-alt me-1 text-dark"></i>
+                                @last.DepartureTime.ToLocalTime().ToString("dd MMM yyyy")
+                            </p>
+                            <p class="mb-1 text-dark">
+                                <i class="far fa-clock me-1 text-dark"></i>
+                                @last.DepartureTime.ToLocalTime().ToString("HH:mm") →
+                                @last.ArrivalTime.ToLocalTime().ToString("HH:mm")
+                            </p>
+                            <span class="badge dashboard-badge-success text-dark">
+                                <i class="fas fa-check-circle me-1 text-dark"></i> Completed
+                            </span>
+                        </div>
+                    </div>
                 }
                 else
                 {
                     <p class="text-muted">No completed flights yet.</p>
                 }
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div class="dashboard-card h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <h5 class="mb-3 text-light">Next Flight</h5>
+                    @if (Model.NextUpcomingFlight != null)
+                    {
+                        var next = Model.NextUpcomingFlight;
+                        <p class="mb-1 text-light"><strong>@next.FlightNumber</strong></p>
+                        <p class="mb-1 text-light">
+                            <img src="@next.OriginCountryFlagUrl" width="25" class="me-2 rounded" />
+                            @next.OriginAirport →
+                            <img src="@next.DestinationCountryFlagUrl" width="25" class="mx-2 rounded" />
+                            @next.DestinationAirport
+                        </p>
+                        <p class="mb-1 text-light">
+                            <i class="far fa-calendar-alt me-1"></i>
+                            @next.DepartureTime.ToLocalTime().ToString("dd MMM yyyy")
+                        </p>
+                        <p class="mb-1 text-light">
+                            <i class="far fa-clock me-1"></i>
+                            @next.DepartureTime.ToLocalTime().ToString("HH:mm") →
+                            @next.ArrivalTime.ToLocalTime().ToString("HH:mm")
+                        </p>
+
+                        @if (!string.IsNullOrWhiteSpace(next.SeatNumber))
+                        {
+                            <p class="mb-1 text-light">
+                                <i class="fas fa-chair me-1"></i>
+                                <strong>@next.SeatNumber</strong>
+                            </p>
+                        }
+
+                        <div class="d-flex gap-2 flex-wrap mt-3">
+                            <a asp-action="SelectSeat"
+                               asp-controller="Booking"
+                               asp-route-flightId="@next.FlightId"
+                               asp-route-ticketId="@next.TicketId"
+                               class="btn btn-sm btn-brand-primary">
+                                <i class="fas fa-exchange-alt me-1"></i> Change Seat
+                            </a>
+                        </div>
+
+                        <span class="badge dashboard-badge-warning mt-3">
+                            <i class="fas fa-plane-departure me-1 text-dark"></i> Upcoming
+                        </span>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No upcoming flights yet.</p>
+                    }
+                </div>
+
+                <div class="d-grid mt-4">
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-gold btn-lg">
+                        <i class="fas fa-search me-1"></i> Search Flights
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -206,8 +271,8 @@
                                                 </td>
                                                 <td>@flight.DepartureTime.ToString("dd MMM yyyy")</td>
                                                 <td>
-                                                    <span class="badge dashboard-badge-success">
-                                                        <i class="fas fa-check-circle me-1"></i> Completed
+                                                    <span class="badge dashboard-badge-success text-dark">
+                                                        <i class="fas fa-check-circle me-1 text-dark"></i> Completed
                                                     </span>
                                                 </td>
                                             </tr>

@@ -1,11 +1,23 @@
 ﻿@model VitoriaAirlinesWeb.Models.ViewModels.Dashboard.AdminDashboardViewModel
 @using VitoriaAirlinesWeb.Helpers
+@using Microsoft.AspNetCore.Identity
+@using VitoriaAirlinesWeb.Data.Entities
+@inject UserManager<User> UserManager
+
+@{
+    var user = await UserManager.GetUserAsync(User);
+    var firstName = user?.FirstName ?? "Admin";
+}
+
 
 <div class="dashboard-container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="section-title">Admin Dashboard</h2>
-            <p class="text-muted">Welcome, @User.Identity.Name</p>
+            <h2 class="section-title" style="color:#D4A437">@firstName's Dashboard</h2>
+            <p class="text-muted">
+                Here you can manage airplanes, airports, customers and employees.<br />
+                You can also monitor scheduled flights and view key performance statistics.
+            </p>
         </div>
         <div class="d-flex justify-content-end gap-2 mb-4">
             <a asp-controller="Employees" asp-action="Register" class="btn btn-sm btn-brand-primary">
@@ -155,7 +167,7 @@
         <div class="row mt-5">
             <div class="col-md-5">
                 <div class="dashboard-card h-100">
-                    <h5 class="mb-3">Top Destinations</h5>
+                    <h5 class="mb-3" style="color:#D4A437">Top Destinations</h5>
                     <ul class="list-unstyled">
                         @foreach (var dest in Model.TopDestinations)
                         {
@@ -163,7 +175,7 @@
                                 <div class="d-flex align-items-center gap-2">
                                     <img src="@dest.CountryFlagUrl" alt="@dest.CountryName" width="30" class="rounded" />
                                     <div>
-                                        <div class="fw-bold">@dest.AirportName</div>
+                                        <div class="fw-bold text-light">@dest.AirportName</div>
                                         <small class="text-muted">@dest.City, @dest.CountryName</small>
                                     </div>
                                 </div>
@@ -177,19 +189,19 @@
             <div class="col-md-5 offset-md-1">
                 <div class="h-100 d-flex flex-column justify-content-between">
                     <div class="dashboard-card text-center mb-3 flex-fill">
-                        <h6>Average Occupancy Rate</h6>
+                        <h6 style="color:#D4A437">Average Occupancy Rate</h6>
                         <h2 class="dashboard-text-success">@Model.AverageOccupancyRate.ToString("0.0")%</h2>
                         <small class="text-muted">Across all airplanes</small>
                     </div>
 
                     <div class="dashboard-card text-center mb-3 flex-fill">
-                        <h6>Most Active Model</h6>
+                        <h6 style="color:#D4A437">Most Active Model</h6>
                         <h4 class="dashboard-text-maroon">@Model.MostActiveAirplane?.Model</h4>
                         <small class="text-muted">@Model.MostActiveAirplane?.FlightCount flights</small>
                     </div>
 
                     <div class="dashboard-card text-center flex-fill">
-                        <h6>Least Occupied Model</h6>
+                        <h6 style="color:#D4A437">Least Occupied Model</h6>
                         <h4 class="dashboard-text-danger">@Model.LeastOccupiedAirplane?.Model</h4>
                         <small class="text-muted">@Model.LeastOccupiedAirplane?.OccupancyRate.ToString("0.0")% occupancy</small>
                     </div>

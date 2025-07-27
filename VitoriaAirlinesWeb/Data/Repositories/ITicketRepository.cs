@@ -37,5 +37,7 @@ namespace VitoriaAirlinesWeb.Data.Repositories
 
         Task<FlightInfoViewModel?> GetUserLastCompletedFlightAsync(string userId);
 
+        Task<FlightInfoViewModel?> GetUserUpcomingFlightAsync(string userId);
+
     }
 }

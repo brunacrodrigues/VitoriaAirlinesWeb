@@ -111,8 +111,7 @@ namespace VitoriaAirlinesWeb.Controllers
                     UpcomingFlights = await _ticketRepository.GetUserUpcomingFlightsAsync(user.Id),
                     PastFlights = await _ticketRepository.GetUserPastFlightsAsync(user.Id),
                     LastCompletedFlight = await _ticketRepository.GetUserLastCompletedFlightAsync(user.Id),
-
-
+                    NextUpcomingFlight = await _ticketRepository.GetUserUpcomingFlightAsync(user.Id),
                 };
 
 

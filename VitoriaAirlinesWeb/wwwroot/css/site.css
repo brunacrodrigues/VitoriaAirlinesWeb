@@ -1016,8 +1016,8 @@ header .navbar-brand, header .nav-link {
 /* dashboard */
 
 .dashboard-container {
-    background-color: #f9f9f9;
-    /*background-color: #0e0e0e; escuro*/
+    /*background-color: #f9f9f9;*/
+    background-color: #0e0e0e; /*escuro*/
     color: #111;
     padding: 2rem;
     font-family: 'Outfit', sans-serif;
@@ -1026,7 +1026,8 @@ header .navbar-brand, header .nav-link {
 .dashboard-summary-card {
     border: none;
     border-radius: 1rem;
-    background-color: #ffffff;
+   /* background-color: #ffffff;*/
+    background-color: #4B0012;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
     text-align: center;
     padding: 1.5rem;
@@ -1036,17 +1037,18 @@ header .navbar-brand, header .nav-link {
     .dashboard-summary-card h5 {
         margin-bottom: 0.5rem;
         font-weight: 600;
-        color: #333;
+        color: white;
     }
 
     .dashboard-summary-card h2 {
         font-size: 2rem;
         margin: 0;
+        color: #D4A437
     }
 
     .dashboard-summary-card span {
         font-size: 0.9rem;
-        color: #666;
+        color: #A67C26;
     }
 
 .dashboard-text-maroon {
@@ -1111,12 +1113,12 @@ header .navbar-brand, header .nav-link {
 
 .e-chart text {
     font-family: 'Outfit' !important;
-    fill: black;
+    fill: white;
 }
 
 
 .dashboard-card {
-    background-color: #ffffff;
+    background-color: #1a1a1a;
     border: 2px solid #4B0012;
     border-radius: 12px;
     padding: 1.2rem 1.5rem;
@@ -1839,4 +1841,51 @@ table thead.sticky-top th {
         background-color: #4B0012;
         color: white;
     }
+
+.dashboard-table-custom thead {
+    background-color: #4B0012; /* fundo do cabeçalho */
+    color: #f0b400; /* texto do cabeçalho */
+}
+
+.dashboard-table-custom tbody tr {
+    background-color: #1a1a1a; /* fundo das linhas */
+    color: #ffffff; /* texto das linhas */
+    border-bottom: 1px solid #333; /* separador */
+}
+
+    .dashboard-table-custom tbody tr:nth-child(even) {
+        background-color: #1a1a1a; /* zebra alternada */
+    }
+
+    .dashboard-table-custom tbody tr:hover {
+        background-color: #2a2a2a; /* hover */
+    }
+
+
+
+
+
+
+.nav-tabs {
+    background-color: #4B0012;
+    border-bottom: 2px solid #4B0012;
+}
+
+    .nav-tabs .nav-link {
+        color: #f0b400; /* texto */
+        background-color: transparent; /* fundo default */
+        border: 1px solid transparent;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+        padding: 0.6rem 1.2rem;
+    }
+
+        .nav-tabs .nav-link.active {
+            background-color: #D4A437; /* fundo aba ativa */
+            color: #4B0012;
+            font-weight:bold;
+            border-color: #4B0012 #4B0012 #1a1a1a;
+        }
+
+
 
