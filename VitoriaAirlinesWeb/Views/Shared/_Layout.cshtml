@@ -82,20 +82,21 @@ else if (role == "Customer") { <partial name="_CustomerSidebar" /> }
                                                 <span>@user?.FullName</span>
                                             </div>
                                         </a>
-                                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                            <li><a class="dropdown-item" asp-controller="Dashboard" asp-action="Index">My Dashboard</a></li>
-                                            @if(User.IsInRole(UserRoles.Customer))
-                                            {
-                                                <li><a class="dropdown-item" asp-controller="Customers" asp-action="EditTravellerProfile">Edit Profile</a></li>
-                                            }
-                                            else
-                                            {
-                                                <li><a class="dropdown-item" asp-controller="Account" asp-action="EditProfile">Edit Profile</a></li>
-                                            }
-                                            
-                                            <li><hr class="dropdown-divider"></li>
-                                            <li><a class="dropdown-item" asp-controller="Account" asp-action="Logout">Logout</a></li>
-                                        </ul>
+                                        <ul class="dropdown-menu custom-dropdown shadow" aria-labelledby="navbarDropdown">
+    <li><a class="dropdown-item dropdown-link" asp-controller="Dashboard" asp-action="Index">My Dashboard</a></li>
+    @if(User.IsInRole(UserRoles.Customer))
+    {
+        <li><a class="dropdown-item dropdown-link" asp-controller="Customers" asp-action="EditTravellerProfile">Edit Profile</a></li>
+    }
+    else
+    {
+        <li><a class="dropdown-item dropdown-link" asp-controller="Account" asp-action="EditProfile">Edit Profile</a></li>
+    }
+
+    <li><hr class="dropdown-divider custom-divider"></li>
+    <li><a class="dropdown-item dropdown-link" asp-controller="Account" asp-action="Logout">Logout</a></li>
+</ul>
+
                                     </li>
 
                                     <li class="nav-item dropdown">

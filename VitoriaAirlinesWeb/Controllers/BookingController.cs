@@ -267,7 +267,7 @@ namespace VitoriaAirlinesWeb.Controllers
                 {
                     var existingUser = await _userHelper.GetUserByEmailAsync(email);
                     if (existingUser != null)
-                        ModelState.AddModelError("Email", "An account with this email already exists.");
+                        ModelState.AddModelError("Email", "Invalid email.");
                 }
 
                 if (string.IsNullOrWhiteSpace(passportNumber))
@@ -276,7 +276,7 @@ namespace VitoriaAirlinesWeb.Controllers
                 {
                     var existingProfile = await _customerProfileRepository.GetByPassportAsync(passportNumber);
                     if (existingProfile != null)
-                        ModelState.AddModelError("PassportNumber", "This passport number is already in use.");
+                        ModelState.AddModelError("PassportNumber", "Invalid passport number.");
                 }
 
                 // Se a validação para anónimos passar até aqui, armazena os dados na sessão
@@ -738,7 +738,7 @@ namespace VitoriaAirlinesWeb.Controllers
                 {
                     var existingUser = await _userHelper.GetUserByEmailAsync(email);
                     if (existingUser != null)
-                        ModelState.AddModelError("Email", "An account with this email already exists.");
+                        ModelState.AddModelError("Email", "Invalid email.");
                 }
 
                 if (string.IsNullOrWhiteSpace(passportNumber))
@@ -747,7 +747,7 @@ namespace VitoriaAirlinesWeb.Controllers
                 {
                     var existingProfile = await _customerProfileRepository.GetByPassportAsync(passportNumber);
                     if (existingProfile != null)
-                        ModelState.AddModelError("PassportNumber", "This passport number is already in use.");
+                        ModelState.AddModelError("PassportNumber", "Invalid passport number.");
                 }
 
                 if (ModelState.IsValid)
@@ -759,7 +759,6 @@ namespace VitoriaAirlinesWeb.Controllers
                 }
             }
 
-            // 3. VERIFICAÇÃO FINAL DO MODELSTATE
             if (!ModelState.IsValid)
             {
                 return View("ConfirmRoundTrip", model);

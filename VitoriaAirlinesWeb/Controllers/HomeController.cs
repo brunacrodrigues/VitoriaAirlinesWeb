@@ -28,61 +28,81 @@ namespace VitoriaAirlinesWeb.Controllers
             _userHelper = userHelper;
         }
 
+
+
         [HttpGet]
         public async Task<IActionResult> Index(SearchFlightViewModel viewModel)
         {
+            // Clean session before a new search
+            HttpContext.Session.Remove("OutboundFlightId");
+            HttpContext.Session.Remove("OutboundSeatId");
+            HttpContext.Session.Remove("ReturnFlightId");
+            HttpContext.Session.Remove("ReturnSeatId");
+            HttpContext.Session.Remove("FlightId");
+            HttpContext.Session.Remove("SeatId");
+            HttpContext.Session.Remove("Price");
+
             viewModel.Airports = await _airportRepository.GetComboAirportsWithFlagsAsync();
-            viewModel.OneWayFlights = new List<Flight>();
-            viewModel.ReturnFlights = new List<Flight>();
-            viewModel.BookedFlightIds = new HashSet<int>();
+            viewModel.BookedFlightIds = new();
+            viewModel.HasSearched = false;
 
-            // TODO ALTERAR ISTO DPS
 
-            if (viewModel.TripType == TripType.RoundTrip)
+            if (Request.Query.ContainsKey("TripType"))
             {
-                if (!viewModel.OriginAirportId.HasValue || !viewModel.DestinationAirportId.HasValue)
+                viewModel.HasSearched = true;
+
+
+                if (!viewModel.OriginAirportId.HasValue &&
+                    !viewModel.DestinationAirportId.HasValue &&
+                    !viewModel.DepartureDate.HasValue &&
+                    !viewModel.ReturnDate.HasValue)
+                {
+                    TempData["Error"] = "Please fill in at least one field before searching.";
+                    return View(viewModel);
+                }
+
+
+                if (viewModel.OriginAirportId == viewModel.DestinationAirportId &&
+                    viewModel.OriginAirportId.HasValue && viewModel.DestinationAirportId.HasValue)
+                {
+                    TempData["Error"] = "Origin and destination airports cannot be the same.";
+                    return View(viewModel);
+                }
+
+                if (viewModel.TripType == TripType.RoundTrip &&
+                    (!viewModel.OriginAirportId.HasValue || !viewModel.DestinationAirportId.HasValue))
                 {
                     TempData["Error"] = "For round-trip searches, both origin and destination must be selected.";
                     return View(viewModel);
                 }
-            }
-            else
-            {
-                if (!viewModel.OriginAirportId.HasValue && !viewModel.DestinationAirportId.HasValue && !viewModel.DepartureDate.HasValue)
+
+
+                viewModel.OneWayFlights = await _flightRepository.SearchFlightsAsync(
+                    viewModel.DepartureDate,
+                    viewModel.OriginAirportId,
+                    viewModel.DestinationAirportId);
+
+                if (viewModel.TripType == TripType.RoundTrip)
                 {
-                    TempData["Error"] = "Please fill at least one field to search for flights.";
-                    return View(viewModel);
+                    var returnSearchDate = viewModel.ReturnDate ?? viewModel.DepartureDate?.AddDays(1);
+
+                    viewModel.ReturnFlights = await _flightRepository.SearchFlightsAsync(
+                        returnSearchDate,
+                        viewModel.DestinationAirportId,
+                        viewModel.OriginAirportId);
                 }
-            }
 
-
-            viewModel.OneWayFlights = await _flightRepository.SearchFlightsAsync(
-                viewModel.DepartureDate,
-                viewModel.OriginAirportId,
-                viewModel.DestinationAirportId
-            );
-
-            if (viewModel.TripType == TripType.RoundTrip)
-            {
-                var returnSearchDate = viewModel.ReturnDate ?? viewModel.DepartureDate?.AddDays(1);
-
-                viewModel.ReturnFlights = await _flightRepository.SearchFlightsAsync(
-                    returnSearchDate,
-                    viewModel.DestinationAirportId,
-                    viewModel.OriginAirportId
-                );
-            }
-
-
-            if (User.IsInRole(UserRoles.Customer))
-            {
-                var user = await _userHelper.GetUserAsync(User);
-                if (user is null) return new NotFoundViewResult("Error404");
-
-                foreach (var flight in viewModel.OneWayFlights.Concat(viewModel.ReturnFlights))
+                if (User.IsInRole(UserRoles.Customer))
                 {
-                    if (await _ticketRepository.UserHasTicketForFlightAsync(user.Id, flight.Id))
-                        viewModel.BookedFlightIds.Add(flight.Id);
+                    var user = await _userHelper.GetUserAsync(User);
+                    if (user is null) return new NotFoundViewResult("Error404");
+
+                    foreach (var flight in (viewModel.OneWayFlights ?? Enumerable.Empty<Flight>())
+                        .Concat(viewModel.ReturnFlights ?? Enumerable.Empty<Flight>()))
+                    {
+                        if (await _ticketRepository.UserHasTicketForFlightAsync(user.Id, flight.Id))
+                            viewModel.BookedFlightIds.Add(flight.Id);
+                    }
                 }
             }
 
