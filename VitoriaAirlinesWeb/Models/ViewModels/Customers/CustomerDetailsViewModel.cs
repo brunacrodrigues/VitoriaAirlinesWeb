@@ -8,5 +8,7 @@ namespace VitoriaAirlinesWeb.Models.ViewModels.Customers
         public int TotalFlights { get; set; }
         public Flight? LastFlight { get; set; }
         public Flight? NextFlight { get; set; }
+        public string Role { get; set; }
+
     }
 }

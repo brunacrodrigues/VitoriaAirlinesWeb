@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Stripe.Checkout;
 using System.Globalization;
 using VitoriaAirlinesWeb.Data.Entities;
@@ -323,7 +324,6 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
-
         public async Task<IActionResult> Success(string session_id)
         {
             var sessionService = new SessionService();
@@ -346,12 +346,14 @@ namespace VitoriaAirlinesWeb.Controllers
             }
 
             decimal price = decimal.Parse(priceString, CultureInfo.InvariantCulture);
+
             string userId;
+            string email;
+            string fullName;
 
             if (User.Identity.IsAuthenticated && User.IsInRole(UserRoles.Customer))
             {
-                var email = User.Identity.Name;
-                var existingUser = await _userHelper.GetUserByEmailAsync(email);
+                var existingUser = await _userHelper.GetUserByEmailAsync(User.Identity.Name);
                 if (existingUser == null)
                 {
                     TempData["Error"] = "Could not retrieve your user data.";
@@ -359,75 +361,67 @@ namespace VitoriaAirlinesWeb.Controllers
                 }
 
                 userId = existingUser.Id;
+                email = existingUser.Email;
+                fullName = existingUser.FullName;
             }
             else
             {
-                var email = HttpContext.Session.GetString("Email");
+                var sessionEmail = HttpContext.Session.GetString("Email");
                 var firstName = HttpContext.Session.GetString("FirstName");
                 var lastName = HttpContext.Session.GetString("LastName");
                 var passportNumber = HttpContext.Session.GetString("PassportNumber");
 
-
-                if (string.IsNullOrWhiteSpace(email))
+                if (string.IsNullOrWhiteSpace(sessionEmail))
                 {
                     TempData["Error"] = "Email information is missing.";
                     return RedirectToAction("Index", "Home");
                 }
 
-                var user = new User
+                var newUser = new User
                 {
-                    UserName = email,
-                    Email = email,
+                    UserName = sessionEmail,
+                    Email = sessionEmail,
                     FirstName = firstName,
                     LastName = lastName
                 };
 
-                var createResult = await _userHelper.AddUserAsync(user, "Temp1234!");
+                var createResult = await _userHelper.AddUserAsync(newUser, "Temp1234!");
                 if (!createResult.Succeeded)
                 {
                     TempData["Error"] = "User creation failed.";
                     return RedirectToAction("Index", "Home");
                 }
 
-                var emailToken = await _userHelper.GenerateEmailConfirmationTokenAsync(user);
-                await _userHelper.ConfirmEmailAsync(user, emailToken);
+                var token = await _userHelper.GenerateEmailConfirmationTokenAsync(newUser);
+                await _userHelper.ConfirmEmailAsync(newUser, token);
                 await _userHelper.CheckRoleAsync(UserRoles.Customer);
-                await _userHelper.AddUserToRoleAsync(user, UserRoles.Customer);
+                await _userHelper.AddUserToRoleAsync(newUser, UserRoles.Customer);
 
                 var profile = new CustomerProfile
                 {
-                    UserId = user.Id,
+                    UserId = newUser.Id,
                     PassportNumber = passportNumber
                 };
                 await _customerProfileRepository.CreateAsync(profile);
 
-                var token = await _userHelper.GeneratePasswordResetTokenAsync(user);
-                var scheme = Request?.Scheme ?? "https";
-                var resetLink = Url.Action("ResetPassword", "Account", new
-                {
-                    email = user.Email,
-                    token = token
-                }, protocol: scheme);
-
-                var body = $"<p>Hello {user.FullName},</p>" +
+                var resetToken = await _userHelper.GeneratePasswordResetTokenAsync(newUser);
+                var resetLink = Url.Action("ResetPassword", "Account", new { email = newUser.Email, token = resetToken }, Request.Scheme);
+                var body = $"<p>Hello {newUser.FullName},</p>" +
                            $"<p>Thank you for booking with Vitoria Airlines.</p>" +
                            $"<p>You have been registered as a customer. Click below to set your password:</p>" +
                            $"<p><a href='{resetLink}'>Set Password</a></p>";
 
-                var response = await _mailHelper.SendEmailAsync(user.Email, "Set your Vitoria Airlines password", body);
-                if (!response.IsSuccess)
-                {
-                    TempData["Error"] = "User created, but email failed.";
-                    return RedirectToAction("Index", "Home");
-                }
+                await _mailHelper.SendEmailAsync(newUser.Email, "Set your Vitoria Airlines password", body);
 
-                userId = user.Id;
+                userId = newUser.Id;
+                email = newUser.Email;
+                fullName = newUser.FullName;
             }
 
-            var alreadyBooked = await _ticketRepository.UserHasTicketForFlightAsync(userId, flightId.Value);
-            if (alreadyBooked)
+            var conflict = await _ticketRepository.GetBySeatAndFlightAsync(seatId.Value, flightId.Value);
+            if (conflict != null)
             {
-                TempData["Error"] = "You already have a ticket for this flight.";
+                TempData["Error"] = "This seat is no longer available.";
                 return RedirectToAction("Index", "Home");
             }
 
@@ -440,7 +434,24 @@ namespace VitoriaAirlinesWeb.Controllers
                 PurchaseDateUtc = DateTime.UtcNow
             };
 
-            await _ticketRepository.CreateAsync(ticket);
+            try
+            {
+                await _ticketRepository.CreateAsync(ticket);
+            }
+            catch (DbUpdateException)
+            {
+                TempData["Error"] = "This seat was already booked. Please choose another.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            await _mailHelper.SendBookingConfirmationEmailAsync(
+                email,
+                fullName,
+                ticket.Flight.FlightNumber,
+                $"{ticket.Seat?.Row}{ticket.Seat?.Letter}",
+                price,
+                ticket.PurchaseDateUtc
+            );
 
             HttpContext.Session.Remove("FlightId");
             HttpContext.Session.Remove("SeatId");
@@ -449,7 +460,6 @@ namespace VitoriaAirlinesWeb.Controllers
             HttpContext.Session.Remove("LastName");
             HttpContext.Session.Remove("Email");
             HttpContext.Session.Remove("PassportNumber");
-
 
             return View();
         }
@@ -488,6 +498,8 @@ namespace VitoriaAirlinesWeb.Controllers
             return View("ConfirmSeatChange", viewModel);
         }
 
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ExecuteSeatChange(int oldTicketId, int newSeatId)
@@ -502,50 +514,77 @@ namespace VitoriaAirlinesWeb.Controllers
             var newSeat = flight.Airplane.Seats.FirstOrDefault(s => s.Id == newSeatId);
             if (newSeat == null) return new NotFoundViewResult("Error404");
 
-            if (ticket.Flight.DepartureUtc <= DateTime.UtcNow.AddHours(24))
+            if (flight.DepartureUtc <= DateTime.UtcNow.AddHours(24))
             {
                 TempData["Error"] = "Seat changes are not allowed less than 24 hours before departure.";
                 return RedirectToAction("Upcoming", "MyFlights");
             }
 
-
             var oldPrice = ticket.PricePaid;
             var newPrice = (newSeat.Class == SeatClass.Economy) ? flight.EconomyClassPrice : flight.ExecutiveClassPrice;
             var priceDifference = newPrice - oldPrice;
 
+            var seatConflict = await _ticketRepository.GetBySeatAndFlightAsync(newSeatId, flight.Id);
+            if (seatConflict != null && seatConflict.Id != ticket.Id && !seatConflict.IsCanceled)
+            {
+                TempData["Error"] = "This seat is no longer available.";
+                return RedirectToAction("Upcoming", "MyFlights");
+            }
+
             if (priceDifference == 0)
             {
                 ticket.SeatId = newSeatId;
-                await _ticketRepository.UpdateAsync(ticket);
+
+                try
+                {
+                    await _ticketRepository.UpdateAsync(ticket);
+                }
+                catch (DbUpdateException)
+                {
+                    TempData["Error"] = "Seat change failed due to a conflict. Please try again.";
+                    return RedirectToAction("Upcoming", "MyFlights");
+                }
 
                 TempData["Success"] = $"Your seat has been successfully changed to {newSeat.Row}{newSeat.Letter} at no extra cost.";
                 return RedirectToAction("Upcoming", "MyFlights");
             }
-
             else if (priceDifference < 0)
             {
                 var amountToRefund = Math.Abs(priceDifference);
                 ticket.SeatId = newSeatId;
                 ticket.PricePaid = newPrice;
-                await _ticketRepository.UpdateAsync(ticket);
 
-                // TODO send email
+                try
+                {
+                    await _ticketRepository.UpdateAsync(ticket);
+                }
+                catch (DbUpdateException)
+                {
+                    TempData["Error"] = "Seat change failed due to a conflict. Please try again.";
+                    return RedirectToAction("Upcoming", "MyFlights");
+                }
+
+                await _mailHelper.SendBookingConfirmationEmailAsync(
+                    user.Email,
+                    user.FullName,
+                    flight.FlightNumber,
+                    $"{newSeat.Row}{newSeat.Letter}",
+                    newPrice,
+                    DateTime.UtcNow
+                );
 
                 TempData["Success"] = $"Seat changed to {newSeat.Row}{newSeat.Letter}! A refund of {amountToRefund:C} has been issued.";
                 return RedirectToAction("Upcoming", "MyFlights");
             }
-
-            else
+            else // priceDifference > 0 → upgrade
             {
                 HttpContext.Session.SetInt32("OldTicketId", oldTicketId);
                 HttpContext.Session.SetInt32("NewSeatId", newSeatId);
                 HttpContext.Session.SetString("PriceDifference", priceDifference.ToString(CultureInfo.InvariantCulture));
 
-
                 var baseUrl = $"{Request.Scheme}://{Request.Host}";
                 var successUrl = $"{baseUrl}/Booking/ChangeSeatSuccess?session_id={{CHECKOUT_SESSION_ID}}";
                 var cancelUrl = $"{baseUrl}/Booking/Cancel";
-
 
                 var description = $"Upgrade from seat {ticket.Seat.Row}{ticket.Seat.Letter} to {newSeat.Row}{newSeat.Letter} on flight {flight.FlightNumber}";
 
@@ -575,27 +614,67 @@ namespace VitoriaAirlinesWeb.Controllers
             var newSeatId = HttpContext.Session.GetInt32("NewSeatId");
             var priceDifferenceString = HttpContext.Session.GetString("PriceDifference");
 
-            if (oldTicketId == null || newSeatId == null)
+            if (oldTicketId == null || newSeatId == null || string.IsNullOrEmpty(priceDifferenceString))
             {
                 TempData["Error"] = "Critical error: Seat change information was lost after payment. Please contact support immediately.";
                 return RedirectToAction("Upcoming", "MyFlights");
             }
 
-            var ticket = await _ticketRepository.GetByIdAsync(oldTicketId.Value);
+            var ticket = await _ticketRepository.GetTicketWithDetailsAsync(oldTicketId.Value);
+            if (ticket == null || ticket.IsCanceled)
+            {
+                TempData["Error"] = "Original ticket could not be found.";
+                return RedirectToAction("Upcoming", "MyFlights");
+            }
+
             var newPrice = ticket.PricePaid + decimal.Parse(priceDifferenceString, CultureInfo.InvariantCulture);
+
+            var seatConflict = await _ticketRepository.GetBySeatAndFlightAsync(newSeatId.Value, ticket.FlightId);
+            if (seatConflict != null && seatConflict.Id != ticket.Id && !seatConflict.IsCanceled)
+            {
+                TempData["Error"] = "The selected seat is no longer available.";
+                return RedirectToAction("Upcoming", "MyFlights");
+            }
 
             ticket.SeatId = newSeatId.Value;
             ticket.PricePaid = newPrice;
 
-            await _ticketRepository.UpdateAsync(ticket);
+            try
+            {
+                await _ticketRepository.UpdateAsync(ticket);
+            }
+            catch (DbUpdateException)
+            {
+                TempData["Error"] = "Seat change failed due to a conflict. Please try again.";
+                return RedirectToAction("Upcoming", "MyFlights");
+            }
 
+            // Limpa sessão
             HttpContext.Session.Remove("OldTicketId");
             HttpContext.Session.Remove("NewSeatId");
             HttpContext.Session.Remove("PriceDifference");
 
+            var user = await _userHelper.GetUserByEmailAsync(User.Identity.Name);
+            var flight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(ticket.FlightId);
+            var seat = flight?.Airplane.Seats.FirstOrDefault(s => s.Id == newSeatId.Value);
+
+            if (flight == null || seat == null)
+            {
+                TempData["Error"] = "Flight or seat details could not be loaded after update.";
+                return RedirectToAction("Upcoming", "MyFlights");
+            }
+
+            await _mailHelper.SendBookingConfirmationEmailAsync(
+                user.Email,
+                user.FullName,
+                flight.FlightNumber,
+                $"{seat.Row}{seat.Letter}",
+                ticket.PricePaid,
+                DateTime.UtcNow
+            );
+
             return View();
         }
-
 
 
         [HttpGet]
@@ -819,12 +898,14 @@ namespace VitoriaAirlinesWeb.Controllers
 
             decimal priceOutbound = decimal.Parse(outboundPriceStr, CultureInfo.InvariantCulture);
             decimal priceReturn = decimal.Parse(returnPriceStr, CultureInfo.InvariantCulture);
+
             string userId;
+            string email;
+            string fullName;
 
             if (User.Identity.IsAuthenticated && User.IsInRole(UserRoles.Customer))
             {
-                var email = User.Identity.Name;
-                var user = await _userHelper.GetUserByEmailAsync(email);
+                var user = await _userHelper.GetUserByEmailAsync(User.Identity.Name);
                 if (user == null)
                 {
                     TempData["Error"] = "Could not retrieve user data.";
@@ -832,57 +913,61 @@ namespace VitoriaAirlinesWeb.Controllers
                 }
 
                 userId = user.Id;
+                email = user.Email;
+                fullName = user.FullName;
             }
             else
             {
-                var email = HttpContext.Session.GetString("Email");
+                var sessionEmail = HttpContext.Session.GetString("Email");
                 var firstName = HttpContext.Session.GetString("FirstName");
                 var lastName = HttpContext.Session.GetString("LastName");
                 var passportNumber = HttpContext.Session.GetString("PassportNumber");
 
-                if (string.IsNullOrWhiteSpace(email))
+                if (string.IsNullOrWhiteSpace(sessionEmail))
                 {
                     TempData["Error"] = "Missing user email.";
                     return RedirectToAction("Index", "Home");
                 }
 
-                var user = new User
+                var newUser = new User
                 {
-                    UserName = email,
-                    Email = email,
+                    UserName = sessionEmail,
+                    Email = sessionEmail,
                     FirstName = firstName,
                     LastName = lastName
                 };
 
-                var createResult = await _userHelper.AddUserAsync(user, "Temp1234!");
+                var createResult = await _userHelper.AddUserAsync(newUser, "Temp1234!");
                 if (!createResult.Succeeded)
                 {
                     TempData["Error"] = "User creation failed.";
                     return RedirectToAction("Index", "Home");
                 }
 
-                var token = await _userHelper.GenerateEmailConfirmationTokenAsync(user);
-                await _userHelper.ConfirmEmailAsync(user, token);
+                var token = await _userHelper.GenerateEmailConfirmationTokenAsync(newUser);
+                await _userHelper.ConfirmEmailAsync(newUser, token);
                 await _userHelper.CheckRoleAsync(UserRoles.Customer);
-                await _userHelper.AddUserToRoleAsync(user, UserRoles.Customer);
+                await _userHelper.AddUserToRoleAsync(newUser, UserRoles.Customer);
 
                 var profile = new CustomerProfile
                 {
-                    UserId = user.Id,
+                    UserId = newUser.Id,
                     PassportNumber = passportNumber
                 };
                 await _customerProfileRepository.CreateAsync(profile);
 
-                var resetToken = await _userHelper.GeneratePasswordResetTokenAsync(user);
-                var resetLink = Url.Action("ResetPassword", "Account", new { email = user.Email, token = resetToken }, Request.Scheme);
-                var body = $"<p>Hello {user.FullName},</p>" +
+                var resetToken = await _userHelper.GeneratePasswordResetTokenAsync(newUser);
+                var resetLink = Url.Action("ResetPassword", "Account", new { email = newUser.Email, token = resetToken }, Request.Scheme);
+                var body = $"<p>Hello {newUser.FullName},</p>" +
                            $"<p>Thank you for booking with Vitoria Airlines.</p>" +
                            $"<p>You have been registered as a customer. Click below to set your password:</p>" +
                            $"<p><a href='{resetLink}'>Set Password</a></p>";
 
-                await _mailHelper.SendEmailAsync(user.Email, "Set your Vitoria Airlines password", body);
+                await _mailHelper.SendEmailAsync(newUser.Email, "Set your Vitoria Airlines password", body);
 
-                userId = user.Id;
+                userId = newUser.Id;
+                email = newUser.Email;
+                fullName = newUser.FullName;
             }
 
             var ticket1Exists = await _ticketRepository.UserHasTicketForFlightAsync(userId, outboundFlightId.Value);
@@ -891,6 +976,32 @@ namespace VitoriaAirlinesWeb.Controllers
             if (ticket1Exists || ticket2Exists)
             {
                 TempData["Error"] = "You already have a ticket for one of the selected flights.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var outboundFlight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(outboundFlightId.Value);
+            var returnFlight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(returnFlightId.Value);
+            if (outboundFlight == null || returnFlight == null)
+            {
+                TempData["Error"] = "Flight data missing.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var outboundSeat = outboundFlight.Airplane.Seats.FirstOrDefault(s => s.Id == outboundSeatId.Value);
+            var returnSeat = returnFlight.Airplane.Seats.FirstOrDefault(s => s.Id == returnSeatId.Value);
+            if (outboundSeat == null || returnSeat == null)
+            {
+                TempData["Error"] = "Seat data missing.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var outboundConflict = await _ticketRepository.GetBySeatAndFlightAsync(outboundSeatId.Value, outboundFlightId.Value);
+            var returnConflict = await _ticketRepository.GetBySeatAndFlightAsync(returnSeatId.Value, returnFlightId.Value);
+
+            if ((outboundConflict != null && !outboundConflict.IsCanceled) ||
+                (returnConflict != null && !returnConflict.IsCanceled))
+            {
+                TempData["Error"] = "One or both of the selected seats have already been taken.";
                 return RedirectToAction("Index", "Home");
             }
 
@@ -912,8 +1023,34 @@ namespace VitoriaAirlinesWeb.Controllers
                 PurchaseDateUtc = DateTime.UtcNow
             };
 
-            await _ticketRepository.CreateAsync(ticketOutbound);
-            await _ticketRepository.CreateAsync(ticketReturn);
+            try
+            {
+                await _ticketRepository.CreateAsync(ticketOutbound);
+                await _ticketRepository.CreateAsync(ticketReturn);
+            }
+            catch (DbUpdateException)
+            {
+                TempData["Error"] = "Seat conflict occurred during booking. Please try again.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            await _mailHelper.SendBookingConfirmationEmailAsync(
+                email,
+                fullName,
+                outboundFlight.FlightNumber,
+                $"{outboundSeat.Row}{outboundSeat.Letter}",
+                priceOutbound,
+                ticketOutbound.PurchaseDateUtc
+            );
+
+            await _mailHelper.SendBookingConfirmationEmailAsync(
+                email,
+                fullName,
+                returnFlight.FlightNumber,
+                $"{returnSeat.Row}{returnSeat.Letter}",
+                priceReturn,
+                ticketReturn.PurchaseDateUtc
+            );
 
             HttpContext.Session.Remove("OutboundFlightId");
             HttpContext.Session.Remove("ReturnFlightId");
@@ -928,7 +1065,6 @@ namespace VitoriaAirlinesWeb.Controllers
 
             return View("Success");
         }
-
 
 
 

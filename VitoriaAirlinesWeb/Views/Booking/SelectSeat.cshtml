@@ -1,5 +1,6 @@
 ﻿@model VitoriaAirlinesWeb.Models.ViewModels.Booking.SelectSeatViewModel
 @using VitoriaAirlinesWeb.Data.Enums
+@using System.Globalization
 
 @{
     ViewData["Title"] = "Select Your Fare & Seat";
@@ -34,7 +35,7 @@
                 <div class="fare-card-header mb-2">
                     <i class="fas fa-couch fa-2x"></i>
                     <h4 class="mt-2 mb-1">Economy Class</h4>
-                    <p class="price">From <strong>@Model.EconomyPrice.ToString("C2")</strong></p>
+                    <p class="price">From <strong>@Model.EconomyPrice.ToString("C2", CultureInfo.GetCultureInfo("pt-PT"))</strong></p>
                 </div>
                 <span class="btn btn-economy mt-2">Select This Fare</span>
             </div>
@@ -45,7 +46,7 @@
                 <div class="fare-card-header mb-2">
                     <i class="fas fa-crown fa-2x"></i>
                     <h4 class="mt-2 mb-1">Executive Class</h4>
-                    <p class="price">From <strong>@Model.ExecutivePrice.ToString("C2")</strong></p>
+                    <p class="price">From <strong>@Model.ExecutivePrice.ToString("C2", CultureInfo.GetCultureInfo("pt-PT"))</strong></p>
                 </div>
                 <span class="btn btn-executive mt-2">Select This Fare</span>
             </div>

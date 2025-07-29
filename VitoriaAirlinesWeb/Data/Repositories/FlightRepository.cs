@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Data.Enums;
+using VitoriaAirlinesWeb.Helpers;
 using VitoriaAirlinesWeb.Models.ViewModels.Dashboard.VitoriaAirlinesWeb.Models.ViewModels.Dashboard;
 
 namespace VitoriaAirlinesWeb.Data.Repositories
@@ -51,7 +52,6 @@ namespace VitoriaAirlinesWeb.Data.Repositories
                 .ToListAsync();
         }
 
-
         public async Task<IEnumerable<Flight>> SearchFlightsAsync(DateTime? date, int? originId, int? destinationId)
         {
             var query = _context.Flights
@@ -63,7 +63,9 @@ namespace VitoriaAirlinesWeb.Data.Repositories
 
             if (date is not null)
             {
-                query = query.Where(f => f.DepartureUtc.Date == date.Value.Date);
+                var startUtc = TimezoneHelper.ConvertToUtc(date.Value.Date);
+                var endUtc = TimezoneHelper.ConvertToUtc(date.Value.Date.AddDays(1).AddTicks(-1));
+                query = query.Where(f => f.DepartureUtc >= startUtc && f.DepartureUtc <= endUtc);
             }
 
             if (originId is not null && originId > 0)
@@ -77,8 +79,8 @@ namespace VitoriaAirlinesWeb.Data.Repositories
             }
 
             return await query.OrderBy(f => f.DepartureUtc).ToListAsync();
-
         }
+
 
 
         public async Task<IEnumerable<Flight>> GetFlightsHistoryAsync()
@@ -107,11 +109,14 @@ namespace VitoriaAirlinesWeb.Data.Repositories
                 .FirstOrDefaultAsync(f => f.Id == id);
         }
 
+
         public async Task<IEnumerable<Flight>> GetFlightsForDateAsync(DateTime date)
         {
-            var target = date.Date;
+            var startUtc = TimezoneHelper.ConvertToUtc(date.Date);
+            var endUtc = TimezoneHelper.ConvertToUtc(date.Date.AddDays(1).AddTicks(-1));
+
             return await _context.Flights
-                .Where(f => f.DepartureUtc.Date == target)
+                .Where(f => f.DepartureUtc >= startUtc && f.DepartureUtc <= endUtc)
                 .Include(f => f.Airplane)
                 .Include(f => f.OriginAirport)
                 .Include(f => f.DestinationAirport)
@@ -143,15 +148,25 @@ namespace VitoriaAirlinesWeb.Data.Repositories
         private bool IsAirplaneReadyForDeparture(IEnumerable<Flight> flightsWithAirplane, DateTime newDepartureUtc, int newFlightOriginAirportId)
         {
             // Find the last flight that the airplane completed before the new departure time.
-            var lastCompletedFlight = flightsWithAirplane.
+            var lastFlight = flightsWithAirplane.
                 Where(f => f.ArrivalUtc <= newDepartureUtc &&
-                f.Status == FlightStatus.Completed)
+                f.Status != FlightStatus.Canceled)
                 .OrderByDescending(f => f.ArrivalUtc)
                 .FirstOrDefault();
 
             // If there was a previous flight
-            if (lastCompletedFlight is not null)
-                return lastCompletedFlight.DestinationAirportId == newFlightOriginAirportId; // new Origin must match last flight destination airport
+            if (lastFlight is not null)
+                return lastFlight.DestinationAirportId == newFlightOriginAirportId; // Origin must match last flight destination airport
+
+
+            // Check if there is a future flight already scheduled with this airplane
+            var nextFlight = flightsWithAirplane
+                .Where(f => f.DepartureUtc >= newDepartureUtc && f.Status != FlightStatus.Canceled)
+                .OrderBy(f => f.DepartureUtc)
+                .FirstOrDefault();
+
+            if (nextFlight is not null)
+                return nextFlight.OriginAirportId == newFlightOriginAirportId;
 
 
             // If there's no flight history, we assume the airplane is correctly positioned.
@@ -209,6 +224,19 @@ namespace VitoriaAirlinesWeb.Data.Repositories
                     AirplaneId = f.AirplaneId
                 })
                 .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Flight>> GetFutureFlightsByAirplaneAsync(int airplaneId)
+        {
+            return await _context.Flights
+                .Include(f => f.Tickets)
+                .Include(f => f.OriginAirport).ThenInclude(a => a.Country)
+                .Include(f => f.DestinationAirport).ThenInclude(a => a.Country)
+                .Where(f =>
+                   f.AirplaneId == airplaneId &&
+                   f.Status == FlightStatus.Scheduled &&
+                   f.DepartureUtc > DateTime.UtcNow)
+               .ToListAsync();
         }
 
 
@@ -277,15 +305,11 @@ namespace VitoriaAirlinesWeb.Data.Repositories
                     OriginCountryFlagUrl = x.Flight.OriginAirport.Country.FlagImageUrl,
                     DestinationAirportFullName = x.Flight.DestinationAirport.FullName,
                     DestinationCountryFlagUrl = x.Flight.DestinationAirport.Country.FlagImageUrl,
-                    DepartureFormatted = x.Flight.DepartureUtc.ToLocalTime().ToString("HH:mm dd MMM"),
+                    DepartureFormatted = TimezoneHelper.ConvertToLocal(x.Flight.DepartureUtc).ToString("HH:mm dd MMM"),
                     OccupancyRate = Math.Round(x.Sold * 100.0 / x.Capacity, 1)
                 })
                 .ToList();
         }
-
-
-
-
 
     }
 }

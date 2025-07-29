@@ -27,11 +27,17 @@
         <div class="alert alert-info fade-out-alert">@TempData["InfoMessage"]</div>
     }
 
+    @if (TempData["WarningMessage"] != null)
+    {
+        <div class="alert alert-danger fade-out-alert">@TempData["WarningMessage"]</div>
+    }
+
     <ejs-grid id="customersGrid"
               dataSource="@Model"
               allowPaging="true"
               allowSorting="true"
               toolbar="@(new List<string>() { "Search" })"
+              searchSettings="@(new GridSearchSettings { Fields = new[] { "FullName", "Email", "CountryName", "PassportNumber"} })"
               gridLines="Horizontal"
               height="500">
         <e-grid-columns>
@@ -39,6 +45,7 @@
             <e-grid-column field="Email" headerText="Email" width="200" textAlign="Left"></e-grid-column>
             <e-grid-column headerText="Nationality" width="200" textAlign="Left" template="#countryTemplate"></e-grid-column>
             <e-grid-column field="PassportNumber" headerText="Passport Number" width="150" textAlign="Center"></e-grid-column>
+            <e-grid-column headerText="Status" width="120" textAlign="Center" template="#statusTemplate"></e-grid-column>
             <e-grid-column headerText="Actions" width="160" textAlign="Center" template="#actionTemplate"></e-grid-column>
         </e-grid-columns>
     </ejs-grid>
@@ -55,23 +62,41 @@
         ${/if}
     </script>
 
-    <script type="text/x-template" id="actionTemplate">
-        <div class="d-flex justify-content-center gap-2">
-            <a href="/Customers/Details/${Id}" class="btn btn-sm btn-info" title="Details">
-                <i class="fas fa-eye"></i>
-            </a>
-            <a href="/Customers/EditCustomerProfile/${Id}" class="btn btn-sm btn-warning" title="Edit">
-                <i class="fas fa-pen"></i>
-            </a>
-             <button class="btn btn-sm btn-danger" title="Deactivate"
-                    data-bs-toggle="modal"
-                    data-bs-target="#deleteModal"
-                    data-id="${Id}"
-                    data-model="${FullName}">
-                <i class="fas fa-trash-alt"></i>
-            </button>
-        </div>
+    <script type="text/x-template" id="statusTemplate">
+        ${if(Role == "Deactivated")}
+            <span class="badge bg-danger">Deactivated</span>
+        ${else}
+            <span class="badge bg-success">Active</span>
+        ${/if}
     </script>
+
+
+    <script type="text/x-template" id="actionTemplate">
+        ${if(Role != "Deactivated")}
+            <div class="d-flex justify-content-center gap-2">
+                <a href="/Customers/Details/${Id}" class="btn btn-sm btn-info" title="Details">
+                    <i class="fas fa-eye"></i>
+                </a>
+                <a href="/Customers/EditCustomerProfile/${Id}" class="btn btn-sm btn-warning" title="Edit">
+                    <i class="fas fa-pen"></i>
+                </a>
+                <button class="btn btn-sm btn-danger" title="Deactivate"
+                        data-bs-toggle="modal"
+                        data-bs-target="#deleteModal"
+                        data-id="${Id}"
+                        data-model="${FullName}">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+        ${else}
+            <div class="d-flex justify-content-center">
+                <a href="/Customers/Details/${Id}" class="btn btn-sm btn-secondary" title="View only (deactivated)">
+                    <i class="fas fa-eye"></i>
+                </a>
+            </div>
+        ${/if}
+    </script>
+
 </div>
 
 

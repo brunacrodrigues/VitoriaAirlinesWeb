@@ -2,6 +2,7 @@
 @using VitoriaAirlinesWeb.Helpers
 @using Microsoft.AspNetCore.Identity
 @using VitoriaAirlinesWeb.Data.Entities
+@using System.Globalization
 @inject UserManager<User> UserManager
 
 @{
@@ -73,7 +74,7 @@
         <div class="col-md-2">
             <div class="dashboard-summary-card">
                 <h5>Revenue</h5>
-                <h2 class="dashboard-text-gold">@Model.TotalRevenue.ToString("C")</h2>
+                <h2 class="dashboard-text-gold">@Model.TotalRevenue.ToString("C2", CultureInfo.GetCultureInfo("pt-PT"))</h2>
                 <span>Total Sales</span>
             </div>
         </div>
@@ -87,6 +88,7 @@
                 <thead>
                     <tr>
                         <th>Flight</th>
+                        <th>Airplane</th>
                         <th>From</th>
                         <th>To</th>
                         <th>Departure</th>
@@ -106,6 +108,7 @@
                         {
                             <tr data-flight-id="@flight.Id" data-departure-iso="@flight.DepartureIso">
                                 <td>@flight.FlightNumber</td>
+                                <td>@flight.AirplaneModel</td>
                                 <td>
                                     <img src="@flight.OriginCountryFlagUrl" alt="flag" width="30" class="me-2" />
                                     @flight.OriginAirportFullName

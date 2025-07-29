@@ -5,6 +5,9 @@
         public int Id { get; set; }
         public string FlightNumber { get; set; } = null!;
 
+
+        public string AirplaneModel { get; set; } = null!;
+
         public string OriginAirportFullName { get; set; } = null!;
         public string OriginCountryFlagUrl { get; set; } = null!;
 

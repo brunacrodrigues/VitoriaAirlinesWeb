@@ -86,7 +86,7 @@ namespace VitoriaAirlinesWeb.Helpers
                 IATA = model.IATA.ToUpper(),
                 Name = model.Name,
                 City = model.City,
-                CountryId = model.CountryId
+                CountryId = model.CountryId.Value
             };
         }
 
@@ -113,7 +113,8 @@ namespace VitoriaAirlinesWeb.Helpers
                 AirplaneId = model.AirplaneId,
                 EconomyClassPrice = model.EconomyClassPrice,
                 ExecutiveClassPrice = model.ExecutiveClassPrice,
-                DepartureUtc = model.DepartureDate.Value.ToDateTime(model.DepartureTime.Value).ToUniversalTime(),
+                DepartureUtc = TimezoneHelper.ConvertToUtc(DateTime.SpecifyKind(
+                    model.DepartureDate.Value.ToDateTime(model.DepartureTime.Value), DateTimeKind.Unspecified)),
                 Duration = model.Duration.Value,
                 Status = isNew ? FlightStatus.Scheduled : model.Status
             };
@@ -121,6 +122,8 @@ namespace VitoriaAirlinesWeb.Helpers
 
         public FlightViewModel ToFlightViewModel(Flight entity)
         {
+            var localDeparture = TimezoneHelper.ConvertToLocal(entity.DepartureUtc);
+
             return new FlightViewModel
             {
                 Id = entity.Id,
@@ -130,8 +133,8 @@ namespace VitoriaAirlinesWeb.Helpers
                 AirplaneId = entity.AirplaneId,
                 EconomyClassPrice = entity.EconomyClassPrice,
                 ExecutiveClassPrice = entity.ExecutiveClassPrice,
-                DepartureDate = DateOnly.FromDateTime(entity.DepartureUtc.ToLocalTime()),
-                DepartureTime = TimeOnly.FromDateTime(entity.DepartureUtc.ToLocalTime()),
+                DepartureDate = DateOnly.FromDateTime(localDeparture),
+                DepartureTime = TimeOnly.FromDateTime(localDeparture),
                 Duration = entity.Duration,
                 Status = entity.Status
             };
@@ -178,8 +181,8 @@ namespace VitoriaAirlinesWeb.Helpers
                 FlightNumber = flight.FlightNumber,
                 DepartureInfo = $"{flight.OriginAirport.Name} ({flight.OriginAirport.IATA})",
                 ArrivalInfo = $"{flight.DestinationAirport.Name} ({flight.DestinationAirport.IATA})",
-                DepartureTime = flight.DepartureUtc.ToLocalTime(),
-                ArrivalTime = flight.ArrivalUtc.ToLocalTime(),
+                DepartureTime = TimezoneHelper.ConvertToLocal(flight.DepartureUtc),
+                ArrivalTime = TimezoneHelper.ConvertToLocal(flight.ArrivalUtc),
                 SeatInfo = $"Row {seat.Row}, Seat {seat.Letter}",
                 SeatClass = seat.Class.ToString(),
                 FinalPrice = seat.Class == SeatClass.Executive ? flight.ExecutiveClassPrice : flight.EconomyClassPrice
@@ -199,8 +202,8 @@ namespace VitoriaAirlinesWeb.Helpers
                 FlightNumber = flight.FlightNumber,
                 DepartureInfo = $"{flight.OriginAirport.City} ({flight.OriginAirport.IATA})",
                 ArrivalInfo = $"{flight.DestinationAirport.City} ({flight.DestinationAirport.IATA})",
-                DepartureTime = flight.DepartureUtc.ToLocalTime(),
-                ArrivalTime = flight.ArrivalUtc.ToLocalTime(),
+                DepartureTime = TimezoneHelper.ConvertToLocal(flight.DepartureUtc),
+                ArrivalTime = TimezoneHelper.ConvertToLocal(flight.ArrivalUtc),
                 OldSeatInfo = $"{oldTicket.Seat.Row}{oldTicket.Seat.Letter}",
                 OldSeatClass = oldTicket.Seat.Class.ToString(),
                 NewSeatInfo = $"{newSeat.Row}{newSeat.Letter}",
@@ -218,14 +221,17 @@ namespace VitoriaAirlinesWeb.Helpers
                 Id = entity.Id,
                 FlightNumber = entity.FlightNumber,
 
+                AirplaneModel = entity.Airplane.Model,
+
                 OriginAirportFullName = entity.OriginAirport.FullName,
                 OriginCountryFlagUrl = entity.OriginAirport.Country?.FlagImageUrl ?? "",
 
                 DestinationAirportFullName = entity.DestinationAirport.FullName,
                 DestinationCountryFlagUrl = entity.DestinationAirport.Country?.FlagImageUrl ?? "",
 
-                DepartureFormatted = entity.DepartureUtc.ToLocalTime().ToString("HH:mm dd MMM"),
-                DepartureIso = entity.DepartureUtc.ToLocalTime().ToString("o")
+                DepartureFormatted = TimezoneHelper.ConvertToLocal(entity.DepartureUtc).ToString("HH:mm dd MMM"),
+                DepartureIso = TimezoneHelper.ConvertToLocal(entity.DepartureUtc).ToString("o"),
+
             };
         }
 
@@ -236,13 +242,14 @@ namespace VitoriaAirlinesWeb.Helpers
             entity.AirplaneId = model.AirplaneId;
             entity.EconomyClassPrice = model.EconomyClassPrice;
             entity.ExecutiveClassPrice = model.ExecutiveClassPrice;
-            entity.DepartureUtc = model.DepartureDate!.Value.ToDateTime(model.DepartureTime!.Value).ToUniversalTime();
+            entity.DepartureUtc = TimezoneHelper.ConvertToUtc(
+            DateTime.SpecifyKind(
+                model.DepartureDate.Value.ToDateTime(model.DepartureTime.Value), DateTimeKind.Unspecified));
             entity.Duration = model.Duration!.Value;
         }
 
         public List<FlightDisplayViewModel> ToFlightDisplayViewModel(IEnumerable<Flight> flights)
         {
-            var timeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Lisbon");
 
             return flights.Select(f => new FlightDisplayViewModel
             {
@@ -253,8 +260,8 @@ namespace VitoriaAirlinesWeb.Helpers
                 OriginFlagUrl = f.OriginAirport.Country?.FlagImageUrl ?? "",
                 Destination = f.DestinationAirport.FullName,
                 DestinationFlagUrl = f.DestinationAirport.Country?.FlagImageUrl ?? "",
-                Departure = TimeZoneInfo.ConvertTimeFromUtc(f.DepartureUtc, timeZone).ToString("yyyy-MM-dd HH:mm"),
-                Arrival = TimeZoneInfo.ConvertTimeFromUtc(f.ArrivalUtc, timeZone).ToString("yyyy-MM-dd HH:mm"),
+                Departure = TimezoneHelper.ConvertToLocal(f.DepartureUtc).ToString("yyyy-MM-dd HH:mm"),
+                Arrival = TimezoneHelper.ConvertToLocal(f.ArrivalUtc).ToString("yyyy-MM-dd HH:mm"),
                 Duration = f.Duration.ToString(@"hh\:mm"),
                 ExecutiveClassPrice = f.ExecutiveClassPrice,
                 EconomyClassPrice = f.EconomyClassPrice,
@@ -264,7 +271,6 @@ namespace VitoriaAirlinesWeb.Helpers
 
         public List<TicketDisplayViewModel> ToTicketDisplayViewModel(IEnumerable<Ticket> tickets)
         {
-            var timeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Lisbon");
 
             return tickets.Select(t => new TicketDisplayViewModel
             {
@@ -274,8 +280,8 @@ namespace VitoriaAirlinesWeb.Helpers
                 OriginFlagUrl = t.Flight.OriginAirport.Country?.FlagImageUrl ?? "",
                 Destination = t.Flight.DestinationAirport.FullName,
                 DestinationFlagUrl = t.Flight.DestinationAirport.Country?.FlagImageUrl ?? "",
-                Departure = TimeZoneInfo.ConvertTimeFromUtc(t.Flight.DepartureUtc, timeZone),
-                Arrival = TimeZoneInfo.ConvertTimeFromUtc(t.Flight.ArrivalUtc, timeZone),
+                Departure = TimezoneHelper.ConvertToLocal(t.Flight.DepartureUtc),
+                Arrival = TimezoneHelper.ConvertToLocal(t.Flight.ArrivalUtc),
                 SeatDisplay = $"{t.Seat.Row}{t.Seat.Letter}",
                 Class = t.Seat.Class.ToString(),
                 PricePaid = t.PricePaid,

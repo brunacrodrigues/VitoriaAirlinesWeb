@@ -2,6 +2,8 @@
 @using Syncfusion.EJ2.DropDowns
 @using VitoriaAirlinesWeb.Data.Enums
 @using VitoriaAirlinesWeb.Helpers
+@using System.Globalization
+
 @{
     ViewData["Title"] = "Home Page";
 
@@ -138,11 +140,11 @@
                                 </p>
                                 <p class="card-text mb-2">
                                     <i class="far fa-calendar-alt me-1"></i>
-                                    <strong>Date:</strong> @flight.DepartureUtc.ToLocalTime().ToString("dd MMM yyyy")
+                                    <strong>Date:</strong> @TimezoneHelper.ConvertToLocal(flight.DepartureUtc).ToString("dd MMM yyyy")
                                 </p>
                                 <p class="card-text mb-2">
                                     <i class="far fa-clock me-1"></i>
-                                    <strong>Time:</strong> @flight.DepartureUtc.ToLocalTime().ToString("HH:mm") → @flight.ArrivalUtc.ToLocalTime().ToString("HH:mm")
+                                    <strong>Time:</strong> @TimezoneHelper.ConvertToLocal(flight.DepartureUtc).ToString("HH:mm") → @TimezoneHelper.ConvertToLocal(flight.ArrivalUtc).ToString("HH:mm")
                                 </p>
 
                                 @if (User.IsInRole(UserRoles.Admin) || User.IsInRole(UserRoles.Employee))
@@ -164,7 +166,7 @@
                             <div class="card-footer d-flex justify-content-between align-items-center">
                                 <div class="flight-price">
                                     <span class="price-label text-light">From</span>
-                                    <span class="fw-bold fs-5 text-light">@flight.EconomyClassPrice.ToString("C2")</span>
+                                    <span class="fw-bold fs-5 text-light">@flight.EconomyClassPrice.ToString("C2", CultureInfo.GetCultureInfo("pt-PT"))</span>
                                 </div>
                                 <div class="d-flex">
                                     @if (User.IsInRole(UserRoles.Employee))
@@ -236,11 +238,11 @@
                                 </p>
                                 <p class="card-text mb-2">
                                     <i class="far fa-calendar-alt me-1"></i>
-                                    <strong>Date:</strong> @flight.DepartureUtc.ToLocalTime().ToString("dd MMM yyyy")
+                                    <strong>Date:</strong> @TimezoneHelper.ConvertToLocal(flight.DepartureUtc).ToString("dd MMM yyyy")
                                 </p>
                                 <p class="card-text mb-2">
                                     <i class="far fa-clock me-1"></i>
-                                    <strong>Time:</strong> @flight.DepartureUtc.ToLocalTime().ToString("HH:mm") → @flight.ArrivalUtc.ToLocalTime().ToString("HH:mm")
+                                    <strong>Time:</strong> @TimezoneHelper.ConvertToLocal(flight.DepartureUtc).ToString("HH:mm") → @TimezoneHelper.ConvertToLocal(flight.ArrivalUtc).ToString("HH:mm")
                                 </p>
 
                                 @if (User.IsInRole(UserRoles.Admin) || User.IsInRole(UserRoles.Employee))
@@ -262,7 +264,7 @@
                             <div class="card-footer d-flex justify-content-between align-items-center">
                                 <div class="flight-price">
                                     <span class="price-label text-light">From</span>
-                                    <span class="fw-bold fs-5 text-light">@flight.EconomyClassPrice.ToString("C2")</span>
+                                    <span class="fw-bold fs-5 text-light">@flight.EconomyClassPrice.ToString("C2", CultureInfo.GetCultureInfo("pt-PT"))</span>
                                 </div>
                                 <div class="d-flex">
                                     @if (User.IsInRole(UserRoles.Employee))

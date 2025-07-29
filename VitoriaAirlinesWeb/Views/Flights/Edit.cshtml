@@ -21,6 +21,14 @@
         <div><strong>${Model}</strong></div>";
 }
 
+@if (TempData["WarningMessage"] != null)
+{
+    <div class="alert alert-warning" role="alert">
+        @TempData["WarningMessage"]
+    </div>
+}
+
+
 <div class="container-fluid py-4" style="background-color: #0e0e0e;">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="dark-title m-0">

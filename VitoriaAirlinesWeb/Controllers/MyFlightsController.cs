@@ -49,9 +49,6 @@ namespace VitoriaAirlinesWeb.Controllers
 
             var tickets = await _ticketRepository.GetUpcomingTicketsByUserAsync(user.Id);
 
-            //var model = _converterHelper.ToTicketDisplayViewModel(tickets);
-
-            //return View(model);
             return View(tickets);
         }
 
@@ -88,7 +85,8 @@ namespace VitoriaAirlinesWeb.Controllers
 
             var body = $@"<p>Hello {user.FullName},</p>
                         <p>Your ticket for flight <strong>{ticket.Flight.FlightNumber}</strong> scheduled on 
-                        <strong>{ticket.Flight.DepartureUtc.ToLocalTime():dd/MM/yyyy HH:mm}</strong> has been successfully canceled.</p>
+                        <strong>{TimezoneHelper.ConvertToLocal(ticket.Flight.DepartureUtc):dd/MM/yyyy HH:mm}</strong>
+                        has been successfully canceled.</p>
                         <p>A refund will be issued to the email used during payment.</p>
                         <p>If you have any questions, feel free to contact us.</p>
                         <p>Thank you,<br/>Vitoria Airlines</p>";

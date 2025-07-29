@@ -8,5 +8,7 @@
         public string? CountryName { get; set; }
         public string? CountryFlagUrl { get; set; }
         public string? PassportNumber { get; set; }
+        public string? Role { get; set; }
+
     }
 }

@@ -404,3 +404,7 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+
+# Ignore config de produção
+appsettings.Production.json

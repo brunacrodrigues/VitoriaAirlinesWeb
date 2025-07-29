@@ -1,6 +1,8 @@
 ﻿@model VitoriaAirlinesWeb.Models.ViewModels.Dashboard.CustomerDashboardViewModel
 @using Microsoft.AspNetCore.Identity
 @using VitoriaAirlinesWeb.Data.Entities
+@using VitoriaAirlinesWeb.Helpers
+@using System.Globalization
 @inject UserManager<User> UserManager
 
 @{
@@ -44,7 +46,7 @@
         <div class="col-md-3">
             <div class="dashboard-summary-card">
                 <h5>Total Spent</h5>
-                <h2 class="dashboard-text-gold">@Model.TotalSpent.ToString("C")</h2>
+                <h2 class="dashboard-text-gold">@Model.TotalSpent.ToString("C2", CultureInfo.GetCultureInfo("pt-PT"))</h2>
                 <span>Across all flights</span>
             </div>
         </div>
@@ -96,12 +98,12 @@
                             </p>
                             <p class="mb-1 text-dark">
                                 <i class="far fa-calendar-alt me-1 text-dark"></i>
-                                @last.DepartureTime.ToLocalTime().ToString("dd MMM yyyy")
+                                @last.DepartureTime.ToString("dd MMM yyyy")
                             </p>
                             <p class="mb-1 text-dark">
                                 <i class="far fa-clock me-1 text-dark"></i>
-                                @last.DepartureTime.ToLocalTime().ToString("HH:mm") →
-                                @last.ArrivalTime.ToLocalTime().ToString("HH:mm")
+                                @last.DepartureTime.ToString("dd MMM yyyy") →
+                                @last.ArrivalTime.ToString("HH:mm")
                             </p>
                             <span class="badge dashboard-badge-success text-dark">
                                 <i class="fas fa-check-circle me-1 text-dark"></i> Completed
@@ -132,12 +134,12 @@
                         </p>
                         <p class="mb-1 text-light">
                             <i class="far fa-calendar-alt me-1"></i>
-                            @next.DepartureTime.ToLocalTime().ToString("dd MMM yyyy")
+                            @next.DepartureTime.ToString("dd MMM yyyy")
                         </p>
                         <p class="mb-1 text-light">
                             <i class="far fa-clock me-1"></i>
-                            @next.DepartureTime.ToLocalTime().ToString("HH:mm") →
-                            @next.ArrivalTime.ToLocalTime().ToString("HH:mm")
+                            @next.DepartureTime.ToString("HH:mm") →
+                            @next.ArrivalTime.ToString("HH:mm")
                         </p>
 
                         @if (!string.IsNullOrWhiteSpace(next.SeatNumber))
@@ -227,8 +229,8 @@
                                                     <img src="@flight.DestinationCountryFlagUrl" width="30" class="me-2" />
                                                     @flight.DestinationAirport
                                                 </td>
-                                                <td>@flight.DepartureTime.ToLocalTime().ToString("dd MMM HH:mm")</td>
-                                                <td>@flight.ArrivalTime.ToLocalTime().ToString("dd MMM HH:mm")</td>
+                                                <td>@flight.DepartureTime.ToString("dd MMM HH:mm")</td>
+                                                <td>@flight.ArrivalTime.ToString("dd MMM HH:mm")</td>
                                             </tr>
                                         }
                                     </tbody>
@@ -269,7 +271,7 @@
                                                     <img src="@flight.DestinationCountryFlagUrl" width="30" class="me-2" />
                                                     @flight.DestinationAirport
                                                 </td>
-                                                <td>@flight.DepartureTime.ToString("dd MMM yyyy")</td>
+                                                  <td>@flight.DepartureTime.ToString("dd MMM HH:mm")</td>
                                                 <td>
                                                     <span class="badge dashboard-badge-success text-dark">
                                                         <i class="fas fa-check-circle me-1 text-dark"></i> Completed

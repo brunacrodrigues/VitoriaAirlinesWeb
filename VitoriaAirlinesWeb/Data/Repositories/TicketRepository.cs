@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Data.Enums;
+using VitoriaAirlinesWeb.Helpers;
 using VitoriaAirlinesWeb.Models.ViewModels.Dashboard;
 
 namespace VitoriaAirlinesWeb.Data.Repositories
@@ -74,10 +75,12 @@ namespace VitoriaAirlinesWeb.Data.Repositories
 
         public async Task<bool> UserHasTicketForFlightAsync(string userId, int flightId)
         {
-            return await _context.Tickets.
-                AnyAsync(t => t.UserId == userId &&
-                t.FlightId == flightId);
+            return await _context.Tickets
+                .AnyAsync(t => t.UserId == userId &&
+                               t.FlightId == flightId &&
+                               !t.IsCanceled);
         }
+
 
         public async Task<int> CountTicketsAsync()
         {
@@ -177,35 +180,203 @@ namespace VitoriaAirlinesWeb.Data.Repositories
         }
 
 
+        //public async Task<List<FlightInfoViewModel>> GetUserUpcomingFlightsAsync(string userId)
+        //{
+        //    return await _context.Tickets
+        //        .Where(t => t.UserId == userId && t.Flight.DepartureUtc > DateTime.UtcNow)
+        //        .Include(t => t.Flight)
+        //            .ThenInclude(f => f.OriginAirport)
+        //                .ThenInclude(a => a.Country)
+        //        .Include(t => t.Flight)
+        //            .ThenInclude(f => f.DestinationAirport)
+        //                .ThenInclude(a => a.Country)
+        //        .OrderBy(t => t.Flight.DepartureUtc)
+        //        .Select(t => new FlightInfoViewModel
+        //        {
+        //            FlightNumber = t.Flight.FlightNumber,
+        //            OriginAirport = t.Flight.OriginAirport.FullName,
+        //            OriginCountryFlagUrl = t.Flight.OriginAirport.Country.FlagImageUrl,
+        //            DestinationAirport = t.Flight.DestinationAirport.FullName,
+        //            DestinationCountryFlagUrl = t.Flight.DestinationAirport.Country.FlagImageUrl,
+        //            DepartureTime = t.Flight.DepartureUtc,
+        //            ArrivalTime = t.Flight.ArrivalUtc
+        //        })
+        //        .ToListAsync();
+        //}
+
+
+        //public async Task<List<FlightInfoViewModel>> GetUserPastFlightsAsync(string userId)
+        //{
+        //    return await _context.Tickets
+        //        .Where(t => t.UserId == userId && t.Flight.DepartureUtc <= DateTime.UtcNow)
+        //        .Include(t => t.Flight)
+        //            .ThenInclude(f => f.OriginAirport)
+        //                .ThenInclude(a => a.Country)
+        //        .Include(t => t.Flight)
+        //            .ThenInclude(f => f.DestinationAirport)
+        //                .ThenInclude(a => a.Country)
+        //        .OrderByDescending(t => t.Flight.DepartureUtc)
+        //        .Select(t => new FlightInfoViewModel
+        //        {
+        //            FlightNumber = t.Flight.FlightNumber,
+        //            OriginAirport = t.Flight.OriginAirport.FullName,
+        //            OriginCountryFlagUrl = t.Flight.OriginAirport.Country.FlagImageUrl,
+        //            DestinationAirport = t.Flight.DestinationAirport.FullName,
+        //            DestinationCountryFlagUrl = t.Flight.DestinationAirport.Country.FlagImageUrl,
+        //            DepartureTime = t.Flight.DepartureUtc,
+        //            ArrivalTime = t.Flight.ArrivalUtc
+        //        })
+        //        .ToListAsync();
+        //}
+
+        //public async Task<FlightInfoViewModel?> GetUserLastCompletedFlightAsync(string userId)
+        //{
+        //    var ticket = await _context.Tickets
+        //        .Include(t => t.Flight)
+        //            .ThenInclude(f => f.OriginAirport)
+        //                .ThenInclude(a => a.Country)
+        //        .Include(t => t.Flight)
+        //            .ThenInclude(f => f.DestinationAirport)
+        //                .ThenInclude(a => a.Country)
+        //        .Where(t => t.UserId == userId && t.Flight.Status == FlightStatus.Completed)
+        //        .OrderByDescending(t => t.Flight.DepartureUtc)
+        //        .FirstOrDefaultAsync();
+
+        //    if (ticket == null) return null;
+
+        //    return new FlightInfoViewModel
+        //    {
+        //        FlightNumber = ticket.Flight.FlightNumber,
+        //        OriginAirport = ticket.Flight.OriginAirport.FullName,
+        //        OriginCountryFlagUrl = ticket.Flight.OriginAirport.Country.FlagImageUrl,
+        //        DestinationAirport = ticket.Flight.DestinationAirport.FullName,
+        //        DestinationCountryFlagUrl = ticket.Flight.DestinationAirport.Country.FlagImageUrl,
+        //        DepartureTime = ticket.Flight.DepartureUtc,
+        //        ArrivalTime = ticket.Flight.DepartureUtc + ticket.Flight.Duration
+        //    };
+        //}
+
+
+
+        //public async Task<FlightInfoViewModel?> GetUserUpcomingFlightAsync(string userId)
+        //{
+        //    var ticket = await _context.Tickets
+        //        .Include(t => t.Seat)
+        //        .Include(t => t.Flight)
+        //            .ThenInclude(f => f.OriginAirport)
+        //                .ThenInclude(a => a.Country)
+        //        .Include(t => t.Flight)
+        //            .ThenInclude(f => f.DestinationAirport)
+        //                .ThenInclude(a => a.Country)
+        //        .Where(t => t.UserId == userId && t.Flight.Status == FlightStatus.Scheduled)
+        //        .OrderBy(t => t.Flight.DepartureUtc)
+        //        .FirstOrDefaultAsync();
+
+        //    if (ticket == null) return null;
+
+        //    return new FlightInfoViewModel
+        //    {
+        //        FlightId = ticket.Flight.Id,
+        //        TicketId = ticket.Id,
+        //        FlightNumber = ticket.Flight.FlightNumber,
+        //        OriginAirport = ticket.Flight.OriginAirport.FullName,
+        //        OriginCountryFlagUrl = ticket.Flight.OriginAirport.Country.FlagImageUrl,
+        //        DestinationAirport = ticket.Flight.DestinationAirport.FullName,
+        //        DestinationCountryFlagUrl = ticket.Flight.DestinationAirport.Country.FlagImageUrl,
+        //        DepartureTime = ticket.Flight.DepartureUtc,
+        //        ArrivalTime = ticket.Flight.DepartureUtc + ticket.Flight.Duration,
+        //        SeatNumber = $"{ticket.Seat.Row}{ticket.Seat.Letter} {ticket.Seat.Class}"
+        //    };
+        //}
+
+        //public async Task<List<FlightInfoViewModel>> GetUserUpcomingFlightsAsync(string userId)
+        //{
+        //    var tickets = await _context.Tickets
+        //        .Where(t => t.UserId == userId &&
+        //                    t.Flight.DepartureUtc > DateTime.UtcNow && t.IsCanceled == false)
+        //        .Include(t => t.Flight)
+        //            .ThenInclude(f => f.OriginAirport)
+        //                .ThenInclude(a => a.Country)
+        //        .Include(t => t.Flight)
+        //            .ThenInclude(f => f.DestinationAirport)
+        //                .ThenInclude(a => a.Country)
+        //        .ToListAsync();
+
+        //    return tickets.Select(t => new FlightInfoViewModel
+        //    {
+        //        FlightNumber = t.Flight.FlightNumber,
+        //        OriginAirport = t.Flight.OriginAirport.FullName,
+        //        OriginCountryFlagUrl = t.Flight.OriginAirport.Country.FlagImageUrl,
+        //        DestinationAirport = t.Flight.DestinationAirport.FullName,
+        //        DestinationCountryFlagUrl = t.Flight.DestinationAirport.Country.FlagImageUrl,
+        //        DepartureTime = TimezoneHelper.ConvertToLocal(t.Flight.DepartureUtc),
+        //        ArrivalTime = TimezoneHelper.ConvertToLocal(t.Flight.DepartureUtc + t.Flight.Duration)
+        //    }).ToList();
+        //}
+
         public async Task<List<FlightInfoViewModel>> GetUserUpcomingFlightsAsync(string userId)
         {
-            return await _context.Tickets
-                .Where(t => t.UserId == userId && t.Flight.DepartureUtc > DateTime.UtcNow)
+            var tickets = await _context.Tickets
+                .Where(t => t.UserId == userId &&
+                            !t.IsCanceled &&
+                            t.Flight.DepartureUtc > DateTime.UtcNow &&
+                            t.Flight.Status == FlightStatus.Scheduled)
                 .Include(t => t.Flight)
                     .ThenInclude(f => f.OriginAirport)
                         .ThenInclude(a => a.Country)
                 .Include(t => t.Flight)
                     .ThenInclude(f => f.DestinationAirport)
                         .ThenInclude(a => a.Country)
-                .OrderBy(t => t.Flight.DepartureUtc)
-                .Select(t => new FlightInfoViewModel
-                {
-                    FlightNumber = t.Flight.FlightNumber,
-                    OriginAirport = t.Flight.OriginAirport.FullName,
-                    OriginCountryFlagUrl = t.Flight.OriginAirport.Country.FlagImageUrl,
-                    DestinationAirport = t.Flight.DestinationAirport.FullName,
-                    DestinationCountryFlagUrl = t.Flight.DestinationAirport.Country.FlagImageUrl,
-                    DepartureTime = t.Flight.DepartureUtc,
-                    ArrivalTime = t.Flight.ArrivalUtc
-                })
                 .ToListAsync();
+
+            return tickets.Select(t => new FlightInfoViewModel
+            {
+                FlightNumber = t.Flight.FlightNumber,
+                OriginAirport = t.Flight.OriginAirport.FullName,
+                OriginCountryFlagUrl = t.Flight.OriginAirport.Country.FlagImageUrl,
+                DestinationAirport = t.Flight.DestinationAirport.FullName,
+                DestinationCountryFlagUrl = t.Flight.DestinationAirport.Country.FlagImageUrl,
+                DepartureTime = TimezoneHelper.ConvertToLocal(t.Flight.DepartureUtc),
+                ArrivalTime = TimezoneHelper.ConvertToLocal(t.Flight.DepartureUtc + t.Flight.Duration)
+            }).ToList();
         }
+
+
+
+        //public async Task<List<FlightInfoViewModel>> GetUserPastFlightsAsync(string userId)
+        //{
+        //    var tickets = await _context.Tickets
+        //        .Where(t => t.UserId == userId &&
+        //                    t.Flight.DepartureUtc <= DateTime.UtcNow)
+        //        .Include(t => t.Flight)
+        //            .ThenInclude(f => f.OriginAirport)
+        //                .ThenInclude(a => a.Country)
+        //        .Include(t => t.Flight)
+        //            .ThenInclude(f => f.DestinationAirport)
+        //                .ThenInclude(a => a.Country)
+        //        .OrderByDescending(t => t.Flight.DepartureUtc)
+        //        .ToListAsync();
+
+        //    return tickets.Select(t => new FlightInfoViewModel
+        //    {
+        //        FlightNumber = t.Flight.FlightNumber,
+        //        OriginAirport = t.Flight.OriginAirport.FullName,
+        //        OriginCountryFlagUrl = t.Flight.OriginAirport.Country.FlagImageUrl,
+        //        DestinationAirport = t.Flight.DestinationAirport.FullName,
+        //        DestinationCountryFlagUrl = t.Flight.DestinationAirport.Country.FlagImageUrl,
+        //        DepartureTime = TimezoneHelper.ConvertToLocal(t.Flight.DepartureUtc),
+        //        ArrivalTime = TimezoneHelper.ConvertToLocal(t.Flight.DepartureUtc + t.Flight.Duration)
+        //    }).ToList();
+        //}
 
 
         public async Task<List<FlightInfoViewModel>> GetUserPastFlightsAsync(string userId)
         {
-            return await _context.Tickets
-                .Where(t => t.UserId == userId && t.Flight.DepartureUtc <= DateTime.UtcNow)
+            var tickets = await _context.Tickets
+                .Where(t => t.UserId == userId &&
+                            !t.IsCanceled &&
+                            t.Flight.Status != FlightStatus.Canceled &&
+                            t.Flight.DepartureUtc <= DateTime.UtcNow)
                 .Include(t => t.Flight)
                     .ThenInclude(f => f.OriginAirport)
                         .ThenInclude(a => a.Country)
@@ -213,18 +384,20 @@ namespace VitoriaAirlinesWeb.Data.Repositories
                     .ThenInclude(f => f.DestinationAirport)
                         .ThenInclude(a => a.Country)
                 .OrderByDescending(t => t.Flight.DepartureUtc)
-                .Select(t => new FlightInfoViewModel
-                {
-                    FlightNumber = t.Flight.FlightNumber,
-                    OriginAirport = t.Flight.OriginAirport.FullName,
-                    OriginCountryFlagUrl = t.Flight.OriginAirport.Country.FlagImageUrl,
-                    DestinationAirport = t.Flight.DestinationAirport.FullName,
-                    DestinationCountryFlagUrl = t.Flight.DestinationAirport.Country.FlagImageUrl,
-                    DepartureTime = t.Flight.DepartureUtc,
-                    ArrivalTime = t.Flight.ArrivalUtc
-                })
                 .ToListAsync();
+
+            return tickets.Select(t => new FlightInfoViewModel
+            {
+                FlightNumber = t.Flight.FlightNumber,
+                OriginAirport = t.Flight.OriginAirport.FullName,
+                OriginCountryFlagUrl = t.Flight.OriginAirport.Country.FlagImageUrl,
+                DestinationAirport = t.Flight.DestinationAirport.FullName,
+                DestinationCountryFlagUrl = t.Flight.DestinationAirport.Country.FlagImageUrl,
+                DepartureTime = TimezoneHelper.ConvertToLocal(t.Flight.DepartureUtc),
+                ArrivalTime = TimezoneHelper.ConvertToLocal(t.Flight.DepartureUtc + t.Flight.Duration)
+            }).ToList();
         }
+
 
         public async Task<FlightInfoViewModel?> GetUserLastCompletedFlightAsync(string userId)
         {
@@ -235,7 +408,9 @@ namespace VitoriaAirlinesWeb.Data.Repositories
                 .Include(t => t.Flight)
                     .ThenInclude(f => f.DestinationAirport)
                         .ThenInclude(a => a.Country)
-                .Where(t => t.UserId == userId && t.Flight.Status == FlightStatus.Completed)
+                .Where(t => t.UserId == userId &&
+                !t.IsCanceled &&
+            t.Flight.Status == FlightStatus.Completed)
                 .OrderByDescending(t => t.Flight.DepartureUtc)
                 .FirstOrDefaultAsync();
 
@@ -248,12 +423,10 @@ namespace VitoriaAirlinesWeb.Data.Repositories
                 OriginCountryFlagUrl = ticket.Flight.OriginAirport.Country.FlagImageUrl,
                 DestinationAirport = ticket.Flight.DestinationAirport.FullName,
                 DestinationCountryFlagUrl = ticket.Flight.DestinationAirport.Country.FlagImageUrl,
-                DepartureTime = ticket.Flight.DepartureUtc,
-                ArrivalTime = ticket.Flight.DepartureUtc + ticket.Flight.Duration
+                DepartureTime = TimezoneHelper.ConvertToLocal(ticket.Flight.DepartureUtc),
+                ArrivalTime = TimezoneHelper.ConvertToLocal(ticket.Flight.DepartureUtc + ticket.Flight.Duration)
             };
         }
-
-
 
         public async Task<FlightInfoViewModel?> GetUserUpcomingFlightAsync(string userId)
         {
@@ -265,7 +438,10 @@ namespace VitoriaAirlinesWeb.Data.Repositories
                 .Include(t => t.Flight)
                     .ThenInclude(f => f.DestinationAirport)
                         .ThenInclude(a => a.Country)
-                .Where(t => t.UserId == userId && t.Flight.Status == FlightStatus.Scheduled)
+                .Where(t => t.UserId == userId &&
+                !t.IsCanceled &&
+                t.Flight.Status == FlightStatus.Scheduled &&
+                t.Flight.DepartureUtc > DateTime.UtcNow)
                 .OrderBy(t => t.Flight.DepartureUtc)
                 .FirstOrDefaultAsync();
 
@@ -280,11 +456,31 @@ namespace VitoriaAirlinesWeb.Data.Repositories
                 OriginCountryFlagUrl = ticket.Flight.OriginAirport.Country.FlagImageUrl,
                 DestinationAirport = ticket.Flight.DestinationAirport.FullName,
                 DestinationCountryFlagUrl = ticket.Flight.DestinationAirport.Country.FlagImageUrl,
-                DepartureTime = ticket.Flight.DepartureUtc,
-                ArrivalTime = ticket.Flight.DepartureUtc + ticket.Flight.Duration,
+                DepartureTime = TimezoneHelper.ConvertToLocal(ticket.Flight.DepartureUtc),
+                ArrivalTime = TimezoneHelper.ConvertToLocal(ticket.Flight.DepartureUtc + ticket.Flight.Duration),
                 SeatNumber = $"{ticket.Seat.Row}{ticket.Seat.Letter} {ticket.Seat.Class}"
             };
         }
+
+        public async Task<bool> HasUpcomingFlightsAsync(string userId)
+        {
+            return await _context.Tickets
+                .Include(t => t.Flight)
+                .AnyAsync(t =>
+                    t.UserId == userId &&
+                    !t.IsCanceled &&
+                    t.Flight.DepartureUtc > DateTime.UtcNow &&
+                    t.Flight.Status == FlightStatus.Scheduled);
+        }
+
+
+        public async Task<Ticket?> GetBySeatAndFlightAsync(int seatId, int flightId)
+        {
+            return await _context.Tickets
+                .FirstOrDefaultAsync(t => t.SeatId == seatId && t.FlightId == flightId && !t.IsCanceled);
+        }
+
+
 
 
     }

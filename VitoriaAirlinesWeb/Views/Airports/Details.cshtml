@@ -5,7 +5,13 @@
 }
 
 <div class="container-fluid py-4" style="background-color: #0e0e0e;">
-    <h2 class="dark-title mb-3">(@Model.IATA) @Model.Name</h2>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="dark-title mb-0">(@Model.IATA) @Model.Name</h2>
+        <a asp-action="Index" class="btn btn-brand-primary">
+            <i class="fas fa-arrow-left me-1"></i> Back to List
+        </a>
+    </div>
+
 
     <div class="row g-4">
         <div class="col-12">
@@ -68,11 +74,7 @@
         </div>
     </div>
 
-    <div class="mt-4">
-        <a asp-action="Index" class="btn btn-brand-primary">
-            <i class="fas fa-arrow-left me-1"></i> Back to List
-        </a>
-    </div>
+    
 </div>
 
 

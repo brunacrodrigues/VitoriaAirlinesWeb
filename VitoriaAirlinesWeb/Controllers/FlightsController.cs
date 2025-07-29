@@ -85,15 +85,20 @@ namespace VitoriaAirlinesWeb.Controllers
             return View(model);
         }
 
-        // POST: FlightsController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(FlightViewModel viewModel, string? returnUrl)
         {
             if (viewModel.DepartureDate.HasValue && viewModel.DepartureTime.HasValue)
             {
-                var departure = viewModel.DepartureDate.Value.ToDateTime(viewModel.DepartureTime.Value);
-                if (departure < DateTime.Now)
+                var localDeparture = DateTime.SpecifyKind(
+    viewModel.DepartureDate.Value.ToDateTime(viewModel.DepartureTime.Value),
+    DateTimeKind.Unspecified
+);
+                var departureUtc = TimezoneHelper.ConvertToUtc(localDeparture);
+
+
+                if (departureUtc < DateTime.UtcNow)
                 {
                     ModelState.AddModelError(nameof(viewModel.DepartureDate), "The departure date and time cannot be in the past.");
                 }
@@ -117,41 +122,40 @@ namespace VitoriaAirlinesWeb.Controllers
             var flightNumber = await _flightHelper.GenerateUniqueFlightNumberAsync();
             viewModel.FlightNumber = flightNumber;
 
-            var departureUtc = viewModel.DepartureDate!.Value.ToDateTime(viewModel.DepartureTime!.Value);
+            var localDepartureFinal = DateTime.SpecifyKind(
+                viewModel.DepartureDate!.Value.ToDateTime(viewModel.DepartureTime!.Value),
+                DateTimeKind.Unspecified
+            );
+            var departureUtcFinal = TimezoneHelper.ConvertToUtc(localDepartureFinal);
+
+
             var isAvailable = await _flightRepository.IsAirplaneAvailableAsync(
                 viewModel.AirplaneId,
-                departureUtc,
+                departureUtcFinal,
                 viewModel.Duration!.Value,
                 viewModel.OriginAirportId!.Value
             );
 
-
             if (!isAvailable)
             {
                 ModelState.AddModelError("", "The selected airplane is either unavailable or not at the origin airport at the scheduled time.");
-
                 return await LoadViewModelCombos(viewModel, returnUrl);
             }
-
-
 
             var flight = _converterHelper.ToFlight(viewModel, isNew: true);
             await _flightRepository.CreateAsync(flight);
 
             flight = await _flightRepository.GetByIdWithDetailsAsync(flight.Id);
-
             var dashboardModel = _converterHelper.ToFlightDashboardViewModel(flight);
 
             await _notificationService.NotifyAdminsAsync($" New flight {flight.FlightNumber} was scheduled.");
             await _notificationService.NotifyEmployeesAsync($" Flight {flight.FlightNumber} was added to the schedule.");
-
             await _notificationService.NotifyNewFlightScheduledAsync(dashboardModel);
-
-
 
             TempData["SuccessMessage"] = "Flight scheduled successfully.";
             return Redirect(returnUrl ?? Url.Action(nameof(Index)));
         }
+
 
 
         // GET: FlightsController/Edit/5
@@ -172,15 +176,20 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
-        // POST: FlightsController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(FlightViewModel viewModel, string? returnUrl)
         {
             if (viewModel.DepartureDate.HasValue && viewModel.DepartureTime.HasValue)
             {
-                var departure = viewModel.DepartureDate.Value.ToDateTime(viewModel.DepartureTime.Value);
-                if (departure < DateTime.Now)
+                var localDeparture = DateTime.SpecifyKind(
+    viewModel.DepartureDate.Value.ToDateTime(viewModel.DepartureTime.Value),
+    DateTimeKind.Unspecified
+);
+                var departureUtc = TimezoneHelper.ConvertToUtc(localDeparture);
+
+
+                if (departureUtc < DateTime.UtcNow)
                 {
                     ModelState.AddModelError(nameof(viewModel.DepartureDate), "The departure date and time cannot be in the past.");
                 }
@@ -201,7 +210,6 @@ namespace VitoriaAirlinesWeb.Controllers
                 return await LoadViewModelCombos(viewModel, returnUrl);
             }
 
-
             var existingFlight = await _flightRepository.GetByIdWithDetailsAsync(viewModel.Id);
             if (existingFlight == null)
             {
@@ -214,11 +222,35 @@ namespace VitoriaAirlinesWeb.Controllers
                 return Redirect(returnUrl ?? Url.Action(nameof(Index)));
             }
 
-
-
             var soldTickets = (await _ticketRepository
-           .GetTicketsByFlightAsync(viewModel.Id))
-           .Count(t => !t.IsCanceled);
+                .GetTicketsByFlightAsync(viewModel.Id))
+                .Count(t => !t.IsCanceled);
+
+
+            if (soldTickets > 0 &&
+                (existingFlight.OriginAirportId != viewModel.OriginAirportId ||
+                existingFlight.DestinationAirportId != viewModel.DestinationAirportId))
+            {
+                //ModelState.AddModelError(string.Empty, "Cannot change origin or destination for flights with sold tickets.");
+                TempData["WarningMessage"] = "This flight already has tickets sold. You cannot change the origin or destination.";
+                return await LoadViewModelCombos(viewModel, returnUrl);
+            }
+
+            var originalDepartureUtc = existingFlight.DepartureUtc;
+
+            var newDepartureUtc = TimezoneHelper.ConvertToUtc(
+                DateTime.SpecifyKind(
+                    viewModel.DepartureDate!.Value.ToDateTime(viewModel.DepartureTime!.Value),
+                    DateTimeKind.Unspecified
+                )
+            );
+
+            if (soldTickets > 0 && originalDepartureUtc != newDepartureUtc)
+            {
+                TempData["WarningMessage"] = "This flight has sold tickets — departure date and time cannot be changed.";
+                return await LoadViewModelCombos(viewModel, returnUrl);
+
+            }
 
             var newAirplane = await _airplaneRepository
                 .GetByIdWithSeatsAsync(viewModel.AirplaneId);
@@ -234,22 +266,26 @@ namespace VitoriaAirlinesWeb.Controllers
             }
 
 
-            var departureUtc = viewModel.DepartureDate!.Value.ToDateTime(viewModel.DepartureTime!.Value);
+            var localDepartureFinal = DateTime.SpecifyKind(
+    viewModel.DepartureDate!.Value.ToDateTime(viewModel.DepartureTime!.Value),
+    DateTimeKind.Unspecified
+);
+            var departureUtcFinal = TimezoneHelper.ConvertToUtc(localDepartureFinal);
+
+
             var isAvailable = await _flightRepository.IsAirplaneAvailableAsync(
                 viewModel.AirplaneId,
-                departureUtc,
+                departureUtcFinal,
                 viewModel.Duration!.Value,
                 viewModel.OriginAirportId!.Value,
-                viewModel.Id // excludes this flight
+                viewModel.Id // exclude self
             );
 
             if (!isAvailable)
             {
-                ModelState.AddModelError("", "The selected airplane is either unavailable or not at the origin airport at the scheduled time.");
+                ModelState.AddModelError(string.Empty, "The selected airplane is either unavailable or not at the origin airport at the scheduled time.");
                 return await LoadViewModelCombos(viewModel, returnUrl);
             }
-
-
 
             var oldAirplaneId = existingFlight.AirplaneId;
             _converterHelper.UpdateFlightFromViewModel(existingFlight, viewModel);
@@ -260,17 +296,17 @@ namespace VitoriaAirlinesWeb.Controllers
                 await ReassignTicketsForFlightAsync(existingFlight.Id, existingFlight.FlightNumber);
             }
 
-
             await _notificationService.NotifyAdminsAsync($"Flight {existingFlight.FlightNumber} has been updated.");
             await _notificationService.NotifyEmployeesAsync($"Flight {existingFlight.FlightNumber} was updated by staff");
             await _notificationService.NotifyFlightCustomersAsync(existingFlight, $"Your flight {existingFlight.FlightNumber} has been updated. Please review the new details.");
 
-            var dashboardModel = _converterHelper.ToFlightDashboardViewModel(existingFlight);
+            var fullFlight = await _flightRepository.GetByIdWithDetailsAsync(existingFlight.Id);
+
+            var dashboardModel = _converterHelper.ToFlightDashboardViewModel(fullFlight);
             await _notificationService.NotifyUpdatedFlightDashboardAsync(dashboardModel);
 
             TempData["SuccessMessage"] = "Flight updated successfully.";
             return Redirect(returnUrl ?? Url.Action(nameof(Index)));
-
         }
 
 
@@ -303,6 +339,25 @@ namespace VitoriaAirlinesWeb.Controllers
             await _notificationService.NotifyFlightStatusChangedAsync(flight.Id, "Canceled");
 
 
+            var tickets = flight.Tickets
+                .Where(t => !t.IsCanceled && t.User != null)
+                .ToList();
+
+            foreach (var ticket in tickets)
+            {
+                var message = $"Dear {ticket.User.FullName},<br/><br/>" +
+                              $"We regret to inform you that your flight <strong>{flight.FlightNumber}</strong> scheduled from " +
+                              $"<strong>{flight.OriginAirport.City}</strong> to <strong>{flight.DestinationAirport.City}</strong> has been <strong>canceled</strong>.<br/><br/>" +
+                              $"You will be issued a full refund automatically.<br/><br/>" +
+                              $"We apologize for the inconvenience.<br/><br/>" +
+                              $"Sincerely,<br/>Vitoria Airlines";
+
+                await _mailHelper.SendEmailAsync(
+                    ticket.User.Email,
+                    $"Flight {flight.FlightNumber} Canceled",
+                    message
+                );
+            }
 
 
             return Redirect(returnUrl ?? Url.Action("Index", "Flights"));

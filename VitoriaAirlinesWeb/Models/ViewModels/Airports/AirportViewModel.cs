@@ -25,7 +25,7 @@ namespace VitoriaAirlinesWeb.Models.Airports
 
         [Display(Name = "Country")]
         [Required(ErrorMessage = "Please select a country.")]
-        public int CountryId { get; set; }
+        public int? CountryId { get; set; }
 
 
         public IEnumerable<SelectListItem>? Countries { get; set; }

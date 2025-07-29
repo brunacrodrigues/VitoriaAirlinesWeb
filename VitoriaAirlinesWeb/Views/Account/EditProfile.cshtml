@@ -25,10 +25,11 @@
     <form method="post" enctype="multipart/form-data" id="editProfileForm">
         <div asp-validation-summary="ModelOnly" class="text-danger mb-3 text-center"></div>
 
-        @if (TempData["UserMessage"] != null)
+        @if (TempData["SuccessMessage"] != null)
         {
-            <div class="alert alert-success text-center">@TempData["UserMessage"]</div>
+            <div class="alert alert-success text-center fade-out-alert">@TempData["SuccessMessage"]</div>
         }
+
 
         <div class="row g-4">
             <div class="col-md-5">
@@ -95,6 +96,14 @@
     @await Html.PartialAsync("_ValidationScriptsPartial")
 
     <script>
+         setTimeout(() => {
+            document.querySelectorAll('.fade-out-alert').forEach(el => {
+                el.style.transition = "opacity 0.6s ease";
+                el.style.opacity = 0;
+                setTimeout(() => el.remove(), 600);
+            });
+        }, 4000);
+
         document.addEventListener("DOMContentLoaded", function () {
             const imageInput = document.getElementById("ImageFile");
             const preview = document.getElementById("profilePicturePreview");

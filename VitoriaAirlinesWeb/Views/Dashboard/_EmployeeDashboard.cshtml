@@ -66,6 +66,7 @@
                 <thead>
                     <tr>
                         <th>Flight</th>
+                        <td>AirplaneModel</td>
                         <th>From</th>
                         <th>To</th>
                         <th>Departure</th>
@@ -85,6 +86,7 @@
                         {
                             <tr data-flight-id="@flight.Id" data-departure-iso="@flight.DepartureIso">
                                 <td>@flight.FlightNumber</td>
+                                <td>@flight.AirplaneModel</td>
                                 <td>
                                     <img src="@flight.OriginCountryFlagUrl" alt="flag" width="30" class="me-2" />
                                     @flight.OriginAirportFullName
@@ -155,7 +157,7 @@
                         {
                             <tr>
                                 <td>@flight.FlightNumber</td>
-                                <td>@flight.DepartureUtc.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                                <td>@TimezoneHelper.ConvertToLocal(flight.DepartureUtc).ToString("dd MMM yyyy HH:mm")</td>
                                 <td>
                                     <img src="@flight.OriginAirport.Country?.FlagImageUrl" alt="flag" width="30" class="me-2" />
                                     @flight.OriginAirport.FullName

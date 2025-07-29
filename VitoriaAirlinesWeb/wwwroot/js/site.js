@@ -1,7 +1,7 @@
-﻿// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
+﻿//// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
+//// for details on configuring this project to bundle and minify static web assets.
 
-// Write your JavaScript code.
+//// Write your JavaScript code.
 document.addEventListener("DOMContentLoaded", () => {
     const table = document.querySelector("#flightTable");
     if (!table || !window.flightConnection) return;
@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
         newRow.setAttribute("data-departure-iso", flight.departureIso);
         newRow.innerHTML = `
             <td>${flight.flightNumber}</td>
+            <td>${flight.airplaneModel}</td>
             <td><img src="${flight.originCountryFlagUrl}" width="30" class="me-2" />${flight.originAirportFullName}</td>
             <td><img src="${flight.destinationCountryFlagUrl}" width="30" class="me-2" />${flight.destinationAirportFullName}</td>
             <td>${flight.departureFormatted}</td>
@@ -68,41 +69,39 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     connection.on("UpdatedFlight", function (flight) {
-        const tbody = table.querySelector("tbody");
+        const row = table.querySelector(`tr[data-flight-id="${flight.id}"]`);
+        if (!row) return;
 
-        const newRow = document.createElement("tr");
-        newRow.setAttribute("data-flight-id", flight.id);
-        newRow.setAttribute("data-departure-iso", flight.departureIso);
-        newRow.innerHTML = `
+        row.setAttribute("data-departure-iso", flight.departureIso);
+        row.innerHTML = `
             <td>${flight.flightNumber}</td>
+            <td>${flight.airplaneModel}</td>
             <td><img src="${flight.originCountryFlagUrl}" width="30" class="me-2" />${flight.originAirportFullName}</td>
             <td><img src="${flight.destinationCountryFlagUrl}" width="30" class="me-2" />${flight.destinationAirportFullName}</td>
             <td>${flight.departureFormatted}</td>
             <td class="status-cell"><span class="badge dashboard-badge-warning"><i class="fas fa-clock me-1"></i> Scheduled</span></td>
         `;
 
+        // Reorder the row if necessary
+        const tbody = table.querySelector("tbody");
         const departureDate = new Date(flight.departureIso);
-        const rows = Array.from(tbody.querySelectorAll("tr[data-departure-iso]"));
-        let inserted = false;
+        const rows = Array.from(tbody.querySelectorAll("tr[data-departure-iso]")).filter(r => r !== row);
 
+        let inserted = false;
         for (let i = 0; i < rows.length; i++) {
             const rowDate = new Date(rows[i].dataset.departureIso);
             if (departureDate < rowDate) {
-                tbody.insertBefore(newRow, rows[i]);
+                tbody.insertBefore(row, rows[i]);
                 inserted = true;
                 break;
             }
         }
 
-        if (!inserted) tbody.appendChild(newRow);
+        if (!inserted) tbody.appendChild(row);
 
-        const emptyRow = tbody.querySelector("td[colspan='5']");
-        if (emptyRow) emptyRow.parentElement.remove();
-
-        newRow.classList.add("highlighted");
-        setTimeout(() => newRow.classList.remove("highlighted"), 1000);
+        row.classList.add("highlighted");
+        setTimeout(() => row.classList.remove("highlighted"), 1000);
     });
-
 
     console.log("Flight dashboard listeners active");
 });

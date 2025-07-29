@@ -1,4 +1,4 @@
-﻿@model IEnumerable<VitoriaAirlinesWeb.Data.Entities.Ticket>
+﻿@* @model IEnumerable<VitoriaAirlinesWeb.Data.Entities.Ticket>
 @using VitoriaAirlinesWeb.Data.Enums
 
 @{
@@ -114,5 +114,181 @@
                 bsAlert.close();
             });
         }, 5000);
+    </script>
+}
+ *@
+
+@model IEnumerable<VitoriaAirlinesWeb.Data.Entities.Ticket>
+@using VitoriaAirlinesWeb.Data.Enums
+
+@{
+    ViewData["Title"] = "Upcoming Flights";
+}
+
+<div class="container-fluid py-4" style="background-color: #0e0e0e; min-height: 100vh;">
+    <div class="mb-4">
+        <h2 class="dark-title mb-1">My Upcoming Flights</h2>
+        <p class="text-darkt">Here you can view your future trips with Vitoria Airlines.</p>
+
+        <a asp-controller="Home" asp-action="Index" class="btn btn-gold btn-sm mt-2">
+            <i class="fas fa-plane me-1"></i> Book a Flight
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (Model != null && !Model.Any())
+    {
+        <p class="text-grey">No upcoming flights found.</p>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            @foreach (var ticket in Model)
+            {
+                var departureDate = VitoriaAirlinesWeb.Helpers.TimezoneHelper.ConvertToLocal(ticket.Flight.DepartureUtc).ToString("dd/MM/yyyy");
+                var departureTime = VitoriaAirlinesWeb.Helpers.TimezoneHelper.ConvertToLocal(ticket.Flight.DepartureUtc).ToString("HH:mm");
+                var arrivalDateTime = VitoriaAirlinesWeb.Helpers.TimezoneHelper.ConvertToLocal(ticket.Flight.ArrivalUtc).ToString("dd/MM/yyyy HH:mm");
+
+                <div class="col">
+                    <div class="card flight-card h-100">
+                        <div class="card-header">
+                            <h3 style="color: #D4A437">
+                                Flight @ticket.Flight.FlightNumber
+                            </h3>
+
+                            <h6>
+                                @ticket.Flight.OriginAirport.IATA -> @ticket.Flight.DestinationAirport.IATA | @departureDate
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <p>
+                                <i class="fas fa-plane-departure me-2"></i>
+                                <strong>Departure:</strong>
+                                <img src="@ticket.Flight.OriginAirport.Country?.FlagImageUrl"
+                                     alt="@ticket.Flight.OriginAirport.Country?.CountryCode"
+                                     width="25" class="me-2" />
+                                @ticket.Flight.OriginAirport.FullName |
+                                @departureTime
+                            </p>
+
+                            <p>
+                                <i class="fas fa-plane-arrival me-2"></i>
+                                <strong>Arrival:</strong>
+                                <img src="@ticket.Flight.DestinationAirport.Country?.FlagImageUrl"
+                                     alt="@ticket.Flight.DestinationAirport.Country?.CountryCode"
+                                     width="25" class="me-2" />
+                                @ticket.Flight.DestinationAirport.FullName |
+                                @arrivalDateTime
+                            </p>
+
+                            <p><i class="fas fa-chair me-2"></i><strong>Seat:</strong> @ticket.Seat.Row@ticket.Seat.Letter (@ticket.Seat.Class)</p>
+                            <p><i class="fas fa-euro-sign me-2"></i><strong>Price:</strong> @($"{ticket.PricePaid:0.00} €")</p>
+                            <p>
+                                <i class="fas fa-info-circle me-2"></i><strong>Status:</strong>
+                                <span class="badge bg-warning text-dark">@ticket.Flight.Status</span>
+                            </p>
+                        </div>
+                        <div class="card-footer d-flex justify-content-between">
+                            <a asp-action="SelectSeat"
+                               asp-controller="Booking"
+                               asp-route-flightId="@ticket.FlightId"
+                               asp-route-ticketId="@ticket.Id"
+                               class="btn btn-gold btn-sm">
+                                <i class="fas fa-exchange-alt me-1"></i>
+                            </a>
+
+                           @*  <form asp-action="CancelTicket"
+                                  asp-route-id="@ticket.Id"
+                                  method="post"
+                                  onsubmit="return confirm('Are you sure you want to cancel this ticket?');">
+                                <button type="submit" class="btn btn-brand-primary btn-sm">
+                                    <i class="fas fa-times me-1"></i> Cancel
+                                </button>
+                            </form> *@
+
+                            <button class="btn btn-brand-primary btn-sm" title="Cancel"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal"
+                                    data-id="@ticket.Id"
+                                    data-model="@ticket.Flight.FlightNumber">
+                                <i class="fas fa-times me-1"></i>
+                            </button>
+
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Modals {
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-white border-0 rounded">
+                <div class="modal-header" style="background-color: #4B0012;">
+                    <h5 class="modal-title text-white" id="deleteModalLabel">Cancel Ticket</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to cancel this ticket for flight <strong id="flightNumber"></strong>?
+                </div>
+                <div class="modal-footer border-0">
+                    <form id="deleteForm" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" id="ticketId" />
+                        <button type="button" class="btn btn-gold btn-sm" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i>No, Keep</button>
+                        <button type="submit" class="btn btn-brand-primary"><i class="fas fa-times me-1"></i>Yes, Cancel</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@section Scripts {
+    <script>
+        setTimeout(function () {
+            var alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function (alert) {
+                var bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const deleteModal = document.getElementById('deleteModal');
+
+            if (!deleteModal) return;
+
+            deleteModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                if (!button) return;
+
+                const id = button.getAttribute('data-id');
+                const model = button.getAttribute('data-model');
+
+                document.getElementById('flightNumber').textContent = model;
+                document.getElementById('ticketId').value = id;
+                document.getElementById('deleteForm').action = `/MyFlights/CancelTicket/${id}`;
+
+            });
+        });
     </script>
 }

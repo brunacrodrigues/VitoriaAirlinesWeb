@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Data.Enums;
 using VitoriaAirlinesWeb.Data.Repositories;
 using VitoriaAirlinesWeb.Helpers;
@@ -124,7 +125,8 @@ namespace VitoriaAirlinesWeb.Controllers
             return View(model);
         }
 
-        // POST: AirplanesController/Edit/5
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(AirplaneViewModel viewModel)
@@ -139,73 +141,29 @@ namespace VitoriaAirlinesWeb.Controllers
             }
 
             var airplane = await _airplaneRepository.GetByIdAsync(viewModel.Id);
-            if (airplane == null)
-                return new NotFoundViewResult("Error404");
+            if (airplane == null) return new NotFoundViewResult("Error404");
 
-            Guid imageId = airplane.ImageId;
-
+            var imageId = airplane.ImageId;
             if (viewModel.ImageFile != null)
-            {
                 imageId = await _blobHelper.UploadBlobAsync(viewModel.ImageFile, "images");
-            }
-
 
             var hasFlights = _airplaneRepository.HasAnyNonCanceledFlights(viewModel.Id);
             var hasFutureFlights = _airplaneRepository.HasFutureScheduledFlights(viewModel.Id);
 
             var hasCapacityChanged = viewModel.TotalExecutiveSeats != airplane.TotalExecutiveSeats
-                       || viewModel.TotalEconomySeats != airplane.TotalEconomySeats;
+                || viewModel.TotalEconomySeats != airplane.TotalEconomySeats;
 
-            if (hasFlights &&
-                (hasCapacityChanged))
+            if (hasFlights && hasCapacityChanged)
             {
                 ModelState.AddModelError("", "Cannot change seat capacity. This airplane has been used in flights.");
                 return View(viewModel);
             }
 
-
             if (viewModel.Status != airplane.Status)
             {
-                if (viewModel.Status == AirplaneStatus.Maintenance)
-                {
-                    var affectedFlights = await _flightRepository.GetFutureFlightsWithSoldTicketsAsync(airplane.Id);
-
-                    if (affectedFlights.Any())
-                    {
-
-                        var flightList = string.Join(
-                            "<br/>", affectedFlights.Select(f => $"- Flight {f.FlightNumber} (ID: {f.Id}) on {f.DepartureUtc:yyyy-MM-dd HH:mm}"));
-
-
-                        var employees = await _userHelper.GetUsersInRoleAsync(UserRoles.Employee);
-
-                        foreach (var employee in employees)
-                        {
-                            var subject = $"URGENT: Airplane {airplane.Model} Requires Maintenance";
-                            var body = $@"
-                                        <p>Hello {employee.FullName},</p>
-                                        <p>The airplane <strong>{airplane.Model}</strong> (ID: {airplane.Id}) 
-                                        has been marked for <strong>Maintenance</strong> but is still assigned to these future flights with sold tickets:</p>
-                                        <p>{flightList}</p>
-                                        <p>Please reassign those flights to another aircraft before taking this one offline for maintenance.</p>
-                                        <p>Thank you,<br/>Operations Team</p>
-                                    ";
-
-                            await _mailHelper.SendEmailAsync(employee.Email, subject, body);
-
-                        }
-
-                        ModelState.AddModelError("", "This airplane is assigned to future flights with sold tickets. Please reassign them before changing the status to Maintenance.");
-                        return View(viewModel);
-                    }
-                }
-                else if (viewModel.Status == AirplaneStatus.Inactive && hasFutureFlights)
-                {
-                    ModelState.AddModelError("", "Cannot inactivate airplane while it's assigned to future flights.");
-                    return View(viewModel);
-                }
+                var result = await HandleStatusChangeAsync(viewModel, airplane);
+                if (result != null) return result;
             }
-
 
             airplane = _converterHelper.ToAirplane(viewModel, imageId, isNew: false);
             await _airplaneRepository.UpdateAsync(airplane);
@@ -213,10 +171,9 @@ namespace VitoriaAirlinesWeb.Controllers
             if (hasCapacityChanged)
             {
                 var newSeats = _seatGeneratorHelper.GenerateSeats(
-                       airplane.Id,
-                       airplane.TotalExecutiveSeats,
-                       airplane.TotalEconomySeats
-                   );
+                    airplane.Id,
+                    airplane.TotalExecutiveSeats,
+                    airplane.TotalEconomySeats);
                 await _airplaneRepository.ReplaceSeatsAsync(airplane.Id, newSeats);
             }
 
@@ -258,5 +215,71 @@ namespace VitoriaAirlinesWeb.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+        private async Task<IActionResult?> HandleStatusChangeAsync(AirplaneViewModel viewModel, Airplane airplane)
+        {
+            if (viewModel.Status == AirplaneStatus.Maintenance)
+            {
+                var affectedWithTickets = await _flightRepository.GetFutureFlightsWithSoldTicketsAsync(airplane.Id);
+
+                if (affectedWithTickets.Any())
+                {
+                    await NotifyEmployeesByEmailAsync(airplane, affectedWithTickets, urgent: true);
+                    await _notificationService.NotifyEmployeesAsync($"Airplane {airplane.Model} cannot enter maintenance yet: active flights with tickets.");
+                    ModelState.AddModelError("", "This airplane is assigned to future flights with sold tickets. Please reassign them before changing the status to Maintenance.");
+                    return View(viewModel);
+                }
+
+                var futureFlights = await _flightRepository.GetFutureFlightsByAirplaneAsync(airplane.Id);
+                if (futureFlights.Any())
+                {
+                    await NotifyEmployeesByEmailAsync(airplane, futureFlights, urgent: false);
+                    await _notificationService.NotifyEmployeesAsync($"Airplane {airplane.Model} cannot enter maintenance: assigned to scheduled flights.");
+                    ModelState.AddModelError("", "This airplane is assigned to future flights. Please reassign them before changing the status to Maintenance.");
+                    return View(viewModel);
+                }
+
+            }
+            else if (viewModel.Status == AirplaneStatus.Inactive && _airplaneRepository.HasFutureScheduledFlights(viewModel.Id))
+            {
+                ModelState.AddModelError("", "Cannot inactivate airplane while it's assigned to future flights.");
+                return View(viewModel);
+            }
+
+            return null;
+        }
+
+        private async Task NotifyEmployeesByEmailAsync(Airplane airplane, IEnumerable<Flight> flights, bool urgent)
+        {
+            var flightList = string.Join("<br/>", flights.Select(f =>
+                $"- Flight {f.FlightNumber} (ID: {f.Id}) on {f.DepartureUtc:yyyy-MM-dd HH:mm}"));
+
+            var subject = urgent
+                ? $"URGENT: Airplane {airplane.Model} Requires Maintenance"
+                : $"Heads-up: Airplane {airplane.Model} set to Maintenance";
+
+            var intro = urgent
+                ? "<p>The airplane has been marked for <strong>Maintenance</strong> but is still assigned to these future flights with sold tickets:</p>"
+                : "<p>The airplane has been set to <strong>Maintenance</strong> and is assigned to the following flights (no tickets sold yet):</p>";
+
+            var employees = await _userHelper.GetUsersInRoleAsync(UserRoles.Employee);
+
+            foreach (var employee in employees)
+            {
+                var body = $@"
+            <p>Hello {employee.FullName},</p>
+            <p>The airplane <strong>{airplane.Model}</strong> (ID: {airplane.Id})</p>
+            {intro}
+            <p>{flightList}</p>
+            <p>Please take the appropriate actions.</p>
+            <p>Thank you,<br/>Operations Team</p>";
+
+                await _mailHelper.SendEmailAsync(employee.Email, subject, body);
+            }
+        }
+
+
+
+
     }
 }

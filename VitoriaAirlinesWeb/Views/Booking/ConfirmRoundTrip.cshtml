@@ -1,4 +1,6 @@
 ﻿@model VitoriaAirlinesWeb.Models.ViewModels.Booking.ConfirmRoundTripViewModel
+@using System.Globalization
+
 
 <div class="container-fluid py-5" style="background-color: #0e0e0e; min-height: 100vh;">
     <div class="row justify-content-center">
@@ -24,7 +26,7 @@
                         <dd class="col-7">@Model.OutboundSeat.Row@Model.OutboundSeat.Letter (@Model.OutboundSeat.Class)</dd>
 
                         <dt class="col-5">Price:</dt>
-                        <dd class="col-7">€@Model.OutboundPrice.ToString("F2")</dd>
+                        <dd class="col-7">€@Model.OutboundPrice.ToString("C2", CultureInfo.GetCultureInfo("pt-PT"))</dd>
                     </dl>
 
                     <h5 class="text-light">Return Flight</h5>
@@ -42,7 +44,7 @@
                         <dd class="col-7">@Model.ReturnSeat.Row@Model.ReturnSeat.Letter (@Model.ReturnSeat.Class)</dd>
 
                         <dt class="col-5">Price:</dt>
-                        <dd class="col-7">€@Model.ReturnPrice.ToString("F2")</dd>
+                        <dd class="col-7">€@Model.ReturnPrice.ToString("C2", CultureInfo.GetCultureInfo("pt-PT"))</dd>
                     </dl>
 
                     <form asp-action="CreateRoundTripCheckoutSession" method="post">
@@ -50,7 +52,7 @@
 
                         <div class="row mb-4">
                             <dt class="col-5 fw-bold">Total Price:</dt>
-                            <dd class="col-7 fw-bold">€@Model.TotalPrice.ToString("F2")</dd>
+                            <dd class="col-7 fw-bold">€@Model.TotalPrice.ToString("C2", CultureInfo.GetCultureInfo("pt-PT"))</dd>
                         </div>
 
                         @if (!Model.IsCustomer)

@@ -96,6 +96,12 @@ namespace VitoriaAirlinesWeb.Controllers
         {
             if (id != viewModel.Id) return new NotFoundViewResult("Error404");
 
+            if (await _airportRepository.HasAssociatedFlightsAsync(id))
+            {
+                TempData["ErrorMessage"] = "Cannot update airport because it is associated with existing flights.";
+                return RedirectToAction(nameof(Index));
+            }
+
             if (!ModelState.IsValid)
             {
                 viewModel.Countries = _countryRepository.GetComboCountries();

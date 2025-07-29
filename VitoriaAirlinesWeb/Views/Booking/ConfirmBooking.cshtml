@@ -1,4 +1,6 @@
 ﻿@model VitoriaAirlinesWeb.Models.ViewModels.Booking.ConfirmBookingViewModel
+@using System.Globalization
+
 
 <div class="container-fluid py-5" style="background-color: #0e0e0e; min-height: 100vh;">
     <div class="row justify-content-center">
@@ -23,7 +25,7 @@
                         <dd class="col-7">@Model.SeatInfo (@Model.SeatClass)</dd>
 
                         <dt class="col-5">Price:</dt>
-                        <dd class="col-7">€@Model.FinalPrice.ToString("F2")</dd>
+                        <dd class="col-7">€@Model.FinalPrice.ToString("C2", CultureInfo.GetCultureInfo("pt-PT"))</dd>
                     </dl>
 
 

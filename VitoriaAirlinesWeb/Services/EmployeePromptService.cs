@@ -24,7 +24,7 @@ namespace VitoriaAirlinesWeb.Services
         }
 
 
-      
+
         public async Task<ApiResponse?> ProcessPromptAsync(string prompt)
         {
             prompt = prompt.ToLower();

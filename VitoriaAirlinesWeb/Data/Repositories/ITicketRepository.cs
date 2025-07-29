@@ -39,5 +39,10 @@ namespace VitoriaAirlinesWeb.Data.Repositories
 
         Task<FlightInfoViewModel?> GetUserUpcomingFlightAsync(string userId);
 
+        Task<bool> HasUpcomingFlightsAsync(string userId);
+
+        Task<Ticket?> GetBySeatAndFlightAsync(int seatId, int flightId);
+
+
     }
 }

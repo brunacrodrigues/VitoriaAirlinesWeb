@@ -130,7 +130,7 @@ namespace VitoriaAirlinesWeb.Controllers
             HttpContext.Session.Remove("OutboundSeatId");
 
             HttpContext.Session.SetInt32("ReturnFlightId", returnFlightId);
-            return Ok(); // Retorna um status 200 OK, sem conteúdo JSON
+            return Ok();
         }
 
     }

@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Data.Repositories;
@@ -89,58 +88,63 @@ namespace VitoriaAirlinesWeb.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = await _userHelper.GetUserByEmailAsync(model.Username);
-                if (user == null)
+                var existingUser = await _userHelper.GetUserByEmailAsync(model.Username);
+                if (existingUser != null)
                 {
-                    user = new User
-                    {
-                        FirstName = model.FirstName,
-                        LastName = model.LastName,
-                        Email = model.Username,
-                        UserName = model.Username
-                    };
-
-                    var result = await _userHelper.AddUserAsync(user, model.Password);
-                    if (result != IdentityResult.Success)
-                    {
-                        ModelState.AddModelError(string.Empty, "The user couldn't be created.");
-                        return View(model);
-                    }
-
-
-                    await _userHelper.CheckRoleAsync(UserRoles.Customer);
-                    await _userHelper.AddUserToRoleAsync(user, UserRoles.Customer);
-
-                    await _customerRepository.CreateAsync(new CustomerProfile
-                    {
-                        UserId = user.Id
-                    });
-
-                    string myToken = await _userHelper.GenerateEmailConfirmationTokenAsync(user);
-                    var scheme = Request?.Scheme ?? "https";
-                    var tokenLink = Url.Action("ConfirmEmail", "Account", new
-                    {
-                        userid = user.Id,
-                        token = myToken
-                    }, protocol: scheme);
-
-
-                    ApiResponse response = await _mailHelper.SendEmailAsync(model.Username, "Email confirmation", $"<h1>Email Confirmation</h1>" +
-                                                       $"Please confirm your email by clicking this link:</br></br><a href = \"{tokenLink}\">Confirm Email</a>");
-
-                    if (response.IsSuccess)
-                    {
-                        ViewBag.Message = "The instructions to allow you user has been sent to email";
-                        return View(model);
-                    }
-
-                    ModelState.AddModelError(string.Empty, "The user couldn't be logged.");
-
+                    ModelState.AddModelError(string.Empty, "The user couldn't be registered.");
+                    return View(model);
                 }
+
+                var user = new User
+                {
+                    FirstName = model.FirstName,
+                    LastName = model.LastName,
+                    Email = model.Username,
+                    UserName = model.Username
+                };
+
+                var result = await _userHelper.AddUserAsync(user, model.Password);
+                if (!result.Succeeded)
+                {
+                    ModelState.AddModelError(string.Empty, "The user couldn't be created.");
+                    return View(model);
+                }
+
+                await _userHelper.CheckRoleAsync(UserRoles.Customer);
+                await _userHelper.AddUserToRoleAsync(user, UserRoles.Customer);
+
+                await _customerRepository.CreateAsync(new CustomerProfile
+                {
+                    UserId = user.Id
+                });
+
+                string myToken = await _userHelper.GenerateEmailConfirmationTokenAsync(user);
+                var scheme = Request?.Scheme ?? "https";
+                var tokenLink = Url.Action("ConfirmEmail", "Account", new
+                {
+                    userid = user.Id,
+                    token = myToken
+                }, protocol: scheme);
+
+                ApiResponse response = await _mailHelper.SendEmailAsync(
+                    model.Username,
+                    "Email confirmation",
+                    $"<h1>Email Confirmation</h1>" +
+                    $"Please confirm your email by clicking this link:</br></br>" +
+                    $"<a href=\"{tokenLink}\">Confirm Email</a>");
+
+                if (response.IsSuccess)
+                {
+                    ViewBag.Message = "The instructions to allow your user have been sent to your email.";
+                    return View(model);
+                }
+
+                ModelState.AddModelError(string.Empty, "The user couldn't be registered.");
             }
 
             return View(model);
         }
+
 
 
         public async Task<IActionResult> ConfirmEmail(string userId, string token)
@@ -184,6 +188,11 @@ namespace VitoriaAirlinesWeb.Controllers
         [HttpPost]
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
         {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
             var user = await _userHelper.GetUserByEmailAsync(model.Username);
             if (user != null)
             {
@@ -216,7 +225,7 @@ namespace VitoriaAirlinesWeb.Controllers
                 var user = await _userHelper.GetUserByEmailAsync(model.Email);
                 if (user == null)
                 {
-                    ModelState.AddModelError(string.Empty, "The email doesn't correspond to a registered user.");
+                    ModelState.AddModelError(string.Empty, "Invalid email.");
                     return View(model);
                 }
 
@@ -265,16 +274,22 @@ namespace VitoriaAirlinesWeb.Controllers
                 if (user != null)
                 {
                     var roles = await _userHelper.GetUserRolesAsync(user);
-                    ViewData["Role"] = roles.FirstOrDefault();
 
                     var result = await _userHelper.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
                     if (result.Succeeded)
                     {
-                        return RedirectToAction("EditProfile");
+                        TempData["SuccessMessage"] = "Password changed successfully.";
+
+                        if (roles.Contains(UserRoles.Customer))
+                        {
+                            return RedirectToAction("EditTravellerProfile", "Customers");
+                        }
+
+                        return RedirectToAction("EditProfile", "Account");
                     }
                     else
                     {
-                        ModelState.AddModelError(string.Empty, result.Errors.FirstOrDefault().Description);
+                        ModelState.AddModelError(string.Empty, result.Errors.FirstOrDefault()?.Description ?? "Password change failed.");
                     }
                 }
                 else
@@ -282,8 +297,10 @@ namespace VitoriaAirlinesWeb.Controllers
                     ModelState.AddModelError(string.Empty, "User not found.");
                 }
             }
+
             return View(model);
         }
+
 
 
         [Authorize]
@@ -339,7 +356,7 @@ namespace VitoriaAirlinesWeb.Controllers
 
             if (response.Succeeded)
             {
-                TempData["UserMessage"] = "Profile updated successfully!";
+                TempData["SuccessMessage"] = "Profile updated successfully!";
                 return RedirectToAction(nameof(EditProfile));
             }
             else

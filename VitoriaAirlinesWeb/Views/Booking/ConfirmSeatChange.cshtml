@@ -1,4 +1,6 @@
 ﻿@model VitoriaAirlinesWeb.Models.ViewModels.Booking.ConfirmSeatChangeViewModel
+@using System.Globalization
+
 
 @{
     ViewData["Title"] = "Confirm Seat Change";
@@ -52,10 +54,10 @@
                 <h5 class="text-gold">Price Summary</h5>
                 <dl class="row">
                     <dt class="col-sm-5">Original Price Paid:</dt>
-                    <dd class="col-sm-7">@Model.OldPricePaid.ToString("C")</dd>
+                    <dd class="col-sm-7">@Model.OldPricePaid.ToString("C2", CultureInfo.GetCultureInfo("pt-PT"))</dd>
 
                     <dt class="col-sm-5">New Seat Price:</dt>
-                    <dd class="col-sm-7">@Model.NewPrice.ToString("C")</dd>
+                    <dd class="col-sm-7">@Model.NewPrice.ToString("C2", CultureInfo.GetCultureInfo("pt-PT"))</dd>
 
                     <dt class="col-sm-5 border-top pt-2 mt-2" style="border-color: #444 !important;">
                         @if (Model.PriceDifference > 0)

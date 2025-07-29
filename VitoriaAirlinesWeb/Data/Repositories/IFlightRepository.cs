@@ -39,5 +39,7 @@ namespace VitoriaAirlinesWeb.Data.Repositories
         Task<List<Flight>> GetRecentFlightsAsync(int count);
 
         Task<List<LowOccupancyFlightViewModel>> GetLowOccupancyUpcomingFlightsAsync(double threshold = 50.0, int maxResults = 5);
+
+        Task<IEnumerable<Flight>> GetFutureFlightsByAirplaneAsync(int airplaneId);
     }
 }

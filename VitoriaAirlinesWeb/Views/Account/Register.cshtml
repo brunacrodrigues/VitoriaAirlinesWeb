@@ -30,15 +30,16 @@
         }
 
         <form method="post">
-            @if (!ViewData.ModelState.IsValid)
+            @if (ViewData.ModelState[string.Empty]?.Errors?.Count > 0)
             {
                 <div class="login-error-message">
-                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    @foreach (var error in ViewData.ModelState[string.Empty].Errors)
                     {
                         <div>@error.ErrorMessage</div>
                     }
                 </div>
             }
+
 
             <div class="row g-3">
                 <div class="col-md-6">
