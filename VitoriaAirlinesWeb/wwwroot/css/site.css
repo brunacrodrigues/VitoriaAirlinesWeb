@@ -14,7 +14,7 @@ html {
 
 body {
     font-family: 'Outfit', sans-serif;
-    background-color: #0e0e0e; 
+    background-color: #0e0e0e;
     color: #ffffff;
     overflow-y: auto;
 }
@@ -179,11 +179,13 @@ body {
     }
 
 
+/* === EDIÇÃO: Estrutura principal para o Sticky Footer === */
 .app-container {
     display: flex;
-    height: 100vh;
+    height: 100vh; /* Ocupa 100% da altura da janela */
 }
 
+/* === EDIÇÃO: Contentor da página para o Sticky Footer === */
 .page-container {
     flex-grow: 1;
     display: flex;
@@ -192,9 +194,15 @@ body {
     background-color: #0d0d0d;
 }
 
+/* === EDIÇÃO: Faz o conteúdo principal crescer === */
 main {
     flex-grow: 1;
 }
+
+    /* === ADICIONADO: Garante que o conteúdo não fica escondido atrás do footer === */
+    main[role="main"] {
+        padding-bottom: 150px;
+    }
 
 .form-grid {
     display: grid;
@@ -357,25 +365,33 @@ main {
 }
 
 
-
 /* Header and footer */
-header .navbar {
-    background-color: #4B0012 !important;
-    border-bottom: 1px solid #333 !important;
+
+/* === EDIÇÃO: Resolve sobreposição do conteúdo === */
+header {
+    position: relative;
+    z-index: 10;
 }
 
-header .navbar-brand, header .nav-link {
-    color: #ffffff !important;
-}
-
-    header .nav-link:hover {
-        color: #f0b400 !important;
+    header .navbar {
+        background-color: #4B0012 !important;
+        border-bottom: 1px solid #333 !important;
     }
+
+    header .navbar-brand, header .nav-link {
+        color: #ffffff !important;
+    }
+
+        header .nav-link:hover {
+            color: #f0b400 !important;
+        }
 
 .footer {
     background-color: #4B0012;
     border-top: 1px solid #333 !important;
     color: #888;
+    position: relative; /* === ADICIONADO: Essencial para z-index === */
+    z-index: 10; /* === ADICIONADO: Corrige sobreposição === */
 }
 
     .footer a {
@@ -1026,7 +1042,7 @@ header .navbar-brand, header .nav-link {
 .dashboard-summary-card {
     border: none;
     border-radius: 1rem;
-   /* background-color: #ffffff;*/
+    /* background-color: #ffffff;*/
     background-color: #4B0012;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
     text-align: center;
@@ -1175,16 +1191,16 @@ header .navbar-brand, header .nav-link {
         text-align: center;
         padding: 3rem 1rem;
         width: 100%;
-        max-width: none; 
-        padding-left: 5%; 
-        padding-right: 5%; 
+        max-width: none;
+        padding-left: 5%;
+        padding-right: 5%;
     }
 
     .hero-section h1 {
         font-size: 3.2rem;
         color: #ffffff;
         text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        font-family: 'Outfit', sans-serif; 
+        font-family: 'Outfit', sans-serif;
     }
 
     .hero-section p {
@@ -1192,18 +1208,18 @@ header .navbar-brand, header .nav-link {
         color: #f0b400;
         margin-bottom: 2rem;
         text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
-        font-family: 'Outfit', sans-serif; 
+        font-family: 'Outfit', sans-serif;
     }
 
 .search-form-container {
-    background-color: rgba(0, 0, 0, 0.75); 
+    background-color: rgba(0, 0, 0, 0.75);
     border: 2px solid #D4A437;
-    border-radius: 16px; 
-    backdrop-filter: blur(10px); 
-    padding: 4rem !important; 
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9); 
-    width: 100%; 
-    max-width: none; 
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    padding: 4rem !important;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9);
+    width: 100%;
+    max-width: none;
 }
 
 /* Estilos para os botões de Trip Type (Tabs) */
@@ -1211,16 +1227,16 @@ header .navbar-brand, header .nav-link {
     display: flex;
     justify-content: center;
     margin-bottom: 1.5rem;
-    background-color: rgba(75, 0, 18, 0.3); 
+    background-color: rgba(75, 0, 18, 0.3);
     border-radius: 8px;
     padding: 5px;
-    border: 1px solid rgba(75, 0, 18, 0.5); 
+    border: 1px solid rgba(75, 0, 18, 0.5);
 }
 
 .trip-type-btn {
     flex-grow: 1;
     border: none;
-    background-color: rgba(75, 0, 18, 0.15); 
+    background-color: rgba(75, 0, 18, 0.15);
     color: #ffffff;
     padding: 10px 15px;
     border-radius: 6px;
@@ -1229,7 +1245,7 @@ header .navbar-brand, header .nav-link {
 }
 
     .trip-type-btn:hover {
-        background-color: rgba(75, 0, 18, 0.5); 
+        background-color: rgba(75, 0, 18, 0.5);
         color: #f0b400;
     }
 
@@ -1255,8 +1271,8 @@ section.bg-dark {
 
     .card.bg-maroon:hover {
         transform: translateY(-8px);
-        box-shadow: 0 12px 30px rgba(75, 0, 18, 0.4); 
-        border: 1px solid #D4A437; 
+        box-shadow: 0 12px 30px rgba(75, 0, 18, 0.4);
+        border: 1px solid #D4A437;
     }
 
     .card.bg-maroon .card-img-top {
@@ -1310,7 +1326,7 @@ section.bg-dark {
             color: #4B0012;
         }
 
-        .feature-card:hover .feature-text { 
+        .feature-card:hover .feature-text {
             color: #4B0012;
         }
 
@@ -1522,13 +1538,13 @@ section {
             }
 
     /* === QUANDO A GRID ESTÁ VAZIA === */
-.e-grid .e-emptyrow td {
-    background-color: #0e0e0e !important;
-    color: #6c757d !important;
-    font-weight: 500;
-    padding: 1rem;
-    font-family: 'Outfit', sans-serif !important;
-}
+    .e-grid .e-emptyrow td {
+        background-color: #0e0e0e !important;
+        color: #6c757d !important;
+        font-weight: 500;
+        padding: 1rem;
+        font-family: 'Outfit', sans-serif !important;
+    }
 
 
 /* === ÍCONES FUNCIONAIS === */
@@ -1595,7 +1611,7 @@ input[type="number"],
     border-radius: 6px;
     padding: 0.75rem 1rem !important;
     font-size: 1rem;
-    height: 42px !important; 
+    height: 42px !important;
 }
 
 
@@ -1606,7 +1622,7 @@ input[type="number"],
     height: 42px !important;
     line-height: 42px !important;
     box-sizing: border-box;
-    font-family: 'Outfit', sans-serif !important; 
+    font-family: 'Outfit', sans-serif !important;
 }
 
 /* Classe para o ComboBox */
@@ -1752,7 +1768,7 @@ input[type="number"],
         }
 
     #aiAssistView .e-content-body {
-        color: white !important; 
+        color: white !important;
         background-color: #0e0e0e !important;
     }
 
@@ -1780,7 +1796,7 @@ table thead.sticky-top th {
 
 
 .btn-brand-primary.btn-gold {
-    background-color: #D4A437 !important; 
+    background-color: #D4A437 !important;
     color: #333 !important;
     border-color: #FFD700 !important;
 }
@@ -1792,7 +1808,7 @@ table thead.sticky-top th {
 .toast .toast-body {
     font-family: 'Outfit', sans-serif;
     color: black;
-    font-weight:bold;
+    font-weight: bold;
 }
 
 /* Custom dropdown styles */
@@ -1862,10 +1878,6 @@ table thead.sticky-top th {
     }
 
 
-
-
-
-
 .nav-tabs {
     background-color: #4B0012;
     border-bottom: 2px solid #4B0012;
@@ -1883,9 +1895,41 @@ table thead.sticky-top th {
         .nav-tabs .nav-link.active {
             background-color: #D4A437; /* fundo aba ativa */
             color: #4B0012;
-            font-weight:bold;
+            font-weight: bold;
             border-color: #4B0012 #4B0012 #1a1a1a;
         }
+
+.custom-accordion .accordion-item {
+    background-color: #1a1a1a;
+    border: 1px solid #4B0012;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.custom-accordion .accordion-button {
+    background-color: #4B0012;
+    color: white;
+    font-weight: bold;
+    border-radius: 6px;
+    box-shadow: none;
+}
+
+    .custom-accordion .accordion-button:not(.collapsed) {
+        background-color: #A67C26;
+        color: black;
+    }
+
+.custom-accordion .accordion-body {
+    background-color: #1a1a1a;
+    color: #ffffff;
+    padding: 1rem;
+    line-height: 1.6;
+    border-top: 1px solid #4B0012;
+}
+
+
+
+
 
 
 

@@ -111,6 +111,18 @@ namespace VitoriaAirlinesWeb.Controllers
 
 
 
+        public IActionResult About()
+        {
+            return View();
+        }
+
+
+        public IActionResult FAQS()
+        {
+            return View();
+        }
+
+
         public IActionResult Privacy()
         {
             return View();

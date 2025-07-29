@@ -2,6 +2,9 @@
 @using VitoriaAirlinesWeb.Data.Entities 
 @using VitoriaAirlinesWeb.Helpers
 @inject UserManager<User> UserManager
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+
+
 
 @{
     var user = await UserManager.GetUserAsync(User);
@@ -143,8 +146,9 @@ else if (role == "Customer") { <partial name="_CustomerSidebar" /> }
                             <div class="d-flex flex-column flex-md-row gap-2 gap-md-3 small">
                                 <a class="text-darkt text-decoration-none" asp-controller="Home" asp-action="About">About</a>
                                 <a class="text-darkt text-decoration-none" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                                <a class="text-darkt text-decoration-none" asp-controller="Home" asp-action="Faq">FAQs</a>
-                                <a class="text-darkt text-decoration-none" asp-controller="Home" asp-action="Contact">Contact</a>
+                                <a class="text-darkt text-decoration-none" asp-controller="Home" asp-action="FAQS">FAQs</a>
+                               <a class="text-darkt text-decoration-none" href="@Configuration["BaseUrl"]/api" target="_blank" rel="noopener noreferrer">API</a>
+
                             </div>
                         </div>
                     </div>
