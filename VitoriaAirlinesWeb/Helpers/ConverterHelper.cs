@@ -12,20 +12,41 @@ using VitoriaAirlinesWeb.Models.ViewModels.Tickets;
 
 namespace VitoriaAirlinesWeb.Helpers
 {
+    /// <summary>
+    /// Provides helper methods for converting between data entities and view models,
+    /// and for updating entity properties from view model data.
+    /// </summary>
     public class ConverterHelper : IConverterHelper
     {
+        /// <summary>
+        /// Updates a CustomerProfile entity with data from a CustomerProfileViewModel.
+        /// </summary>
+        /// <param name="entity">The CustomerProfile entity to update.</param>
+        /// <param name="model">The CustomerProfileViewModel containing the new data.</param>
         public void UpdateCustomerProfile(CustomerProfile entity, CustomerProfileViewModel model)
         {
             entity.CountryId = model.CountryId;
             entity.PassportNumber = model.PassportNumber;
         }
 
+
+        /// <summary>
+        /// Updates a CustomerProfile entity with data from a CustomerProfileAdminViewModel.
+        /// </summary>
+        /// <param name="entity">The CustomerProfile entity to update.</param>
+        /// <param name="model">The CustomerProfileAdminViewModel containing the new data.</param>
         public void UpdateCustomerProfile(CustomerProfile entity, CustomerProfileAdminViewModel model)
         {
             entity.CountryId = model.CountryId;
             entity.PassportNumber = model.PassportNumber;
         }
 
+
+        /// <summary>
+        /// Converts a CustomerProfile entity to a CustomerProfileAdminViewModel.
+        /// </summary>
+        /// <param name="entity">The CustomerProfile entity to convert.</param>
+        /// <returns>A new CustomerProfileAdminViewModel.</returns>
         public CustomerProfileAdminViewModel ToCustomerProfileAdminViewModel(CustomerProfile entity)
         {
             return new CustomerProfileAdminViewModel
@@ -39,6 +60,12 @@ namespace VitoriaAirlinesWeb.Helpers
         }
 
 
+        /// <summary>
+        /// Converts a CustomerProfile entity and a User entity to a CustomerProfileViewModel.
+        /// </summary>
+        /// <param name="profile">The CustomerProfile entity.</param>
+        /// <param name="user">The User entity.</param>
+        /// <returns>A new CustomerProfileViewModel.</returns>
         public CustomerProfileViewModel ToCustomerProfileViewModel(CustomerProfile profile, User user)
         {
             return new CustomerProfileViewModel
@@ -52,6 +79,13 @@ namespace VitoriaAirlinesWeb.Helpers
         }
 
 
+        /// <summary>
+        /// Converts an AirplaneViewModel to an Airplane entity.
+        /// </summary>
+        /// <param name="model">The AirplaneViewModel to convert.</param>
+        /// <param name="imageId">The GUID of the airplane's image.</param>
+        /// <param name="isNew">A flag indicating if this is a new airplane (true) or an existing one (false).</param>
+        /// <returns>A new Airplane entity.</returns>
         public Airplane ToAirplane(AirplaneViewModel model, Guid imageId, bool isNew)
         {
             return new Airplane
@@ -65,6 +99,12 @@ namespace VitoriaAirlinesWeb.Helpers
             };
         }
 
+
+        /// <summary>
+        /// Converts an Airplane entity to an AirplaneViewModel.
+        /// </summary>
+        /// <param name="entity">The Airplane entity to convert.</param>
+        /// <returns>A new AirplaneViewModel.</returns>
         public AirplaneViewModel ToAirplaneViewModel(Airplane entity)
         {
             return new AirplaneViewModel
@@ -78,6 +118,13 @@ namespace VitoriaAirlinesWeb.Helpers
             };
         }
 
+
+        /// <summary>
+        /// Converts an AirportViewModel to an Airport entity.
+        /// </summary>
+        /// <param name="model">The AirportViewModel to convert.</param>
+        /// <param name="isNew">A flag indicating if this is a new airport (true) or an existing one (false).</param>
+        /// <returns>A new Airport entity.</returns>
         public Airport ToAirport(AirportViewModel model, bool isNew)
         {
             return new Airport
@@ -90,6 +137,12 @@ namespace VitoriaAirlinesWeb.Helpers
             };
         }
 
+
+        /// <summary>
+        /// Converts an Airport entity to an AirportViewModel.
+        /// </summary>
+        /// <param name="entity">The Airport entity to convert.</param>
+        /// <returns>A new AirportViewModel.</returns>
         public AirportViewModel ToAirportViewModel(Airport entity)
         {
             return new AirportViewModel
@@ -102,6 +155,13 @@ namespace VitoriaAirlinesWeb.Helpers
             };
         }
 
+
+        /// <summary>
+        /// Converts a FlightViewModel to a Flight entity.
+        /// </summary>
+        /// <param name="model">The FlightViewModel to convert.</param>
+        /// <param name="isNew">A flag indicating if this is a new flight (true) or an existing one (false).</param>
+        /// <returns>A new Flight entity.</returns>
         public Flight ToFlight(FlightViewModel model, bool isNew)
         {
             return new Flight
@@ -120,6 +180,12 @@ namespace VitoriaAirlinesWeb.Helpers
             };
         }
 
+
+        /// <summary>
+        /// Converts a Flight entity to a FlightViewModel.
+        /// </summary>
+        /// <param name="entity">The Flight entity to convert.</param>
+        /// <returns>A new FlightViewModel.</returns>
         public FlightViewModel ToFlightViewModel(Flight entity)
         {
             var localDeparture = TimezoneHelper.ConvertToLocal(entity.DepartureUtc);
@@ -140,6 +206,13 @@ namespace VitoriaAirlinesWeb.Helpers
             };
         }
 
+
+        /// <summary>
+        /// Updates a User entity with data from an EditEmployeeViewModel.
+        /// </summary>
+        /// <param name="model">The EditEmployeeViewModel containing the new data.</param>
+        /// <param name="user">The User entity to update.</param>
+        /// <returns>The updated User entity.</returns>
         public User ToUser(EditEmployeeViewModel model, User user)
         {
             user.FirstName = model.FirstName;
@@ -147,6 +220,13 @@ namespace VitoriaAirlinesWeb.Helpers
             return user;
         }
 
+
+
+        /// <summary>
+        /// Converts a User entity to an EditEmployeeViewModel.
+        /// </summary>
+        /// <param name="entity">The User entity to convert.</param>
+        /// <returns>A new EditEmployeeViewModel.</returns>
         public EditEmployeeViewModel ToEditEmployeeViewModel(User entity)
         {
             return new EditEmployeeViewModel
@@ -157,7 +237,14 @@ namespace VitoriaAirlinesWeb.Helpers
             };
         }
 
-        public SelectSeatViewModel ToSelectSeatViewModelAsync(Flight entity, IEnumerable<int> occupiedSeatsIds)
+
+        /// <summary>
+        /// Converts a Flight entity and a list of occupied seat IDs to a SelectSeatViewModel.
+        /// </summary>
+        /// <param name="entity">The Flight entity.</param>
+        /// <param name="occupiedSeatsIds">A collection of IDs for occupied seats on the flight.</param>
+        /// <returns>A new SelectSeatViewModel.</returns>
+        public SelectSeatViewModel ToSelectSeatViewModel(Flight entity, IEnumerable<int> occupiedSeatsIds)
         {
             return new SelectSeatViewModel
             {
@@ -172,6 +259,13 @@ namespace VitoriaAirlinesWeb.Helpers
             };
         }
 
+
+        /// <summary>
+        /// Converts a Flight entity and a Seat entity to a ConfirmBookingViewModel.
+        /// </summary>
+        /// <param name="flight">The Flight entity.</param>
+        /// <param name="seat">The Seat entity.</param>
+        /// <returns>A new ConfirmBookingViewModel.</returns>
         public ConfirmBookingViewModel ToConfirmBookingViewModel(Flight flight, Seat seat)
         {
             return new ConfirmBookingViewModel
@@ -189,6 +283,15 @@ namespace VitoriaAirlinesWeb.Helpers
             };
         }
 
+
+
+        /// <summary>
+        /// Converts old ticket details and a new seat to a ConfirmSeatChangeViewModel.
+        /// </summary>
+        /// <param name="oldTicket">The original Ticket entity.</param>
+        /// <param name="newSeat">The newly selected Seat entity.</param>
+        /// <param name="newPrice">The price of the new seat.</param>
+        /// <returns>A new ConfirmSeatChangeViewModel.</returns>
         public ConfirmSeatChangeViewModel ToConfirmSeatChangeViewModel(Ticket oldTicket, Seat newSeat, decimal newPrice)
         {
             var flight = oldTicket.Flight;
@@ -214,6 +317,12 @@ namespace VitoriaAirlinesWeb.Helpers
             };
         }
 
+
+        /// <summary>
+        /// Converts a Flight entity to a FlightDashboardViewModel.
+        /// </summary>
+        /// <param name="entity">The Flight entity to convert.</param>
+        /// <returns>A new FlightDashboardViewModel.</returns>
         public FlightDashboardViewModel ToFlightDashboardViewModel(Flight entity)
         {
             return new FlightDashboardViewModel
@@ -235,6 +344,12 @@ namespace VitoriaAirlinesWeb.Helpers
             };
         }
 
+
+        /// <summary>
+        /// Updates a Flight entity with data from a FlightViewModel.
+        /// </summary>
+        /// <param name="entity">The Flight entity to update.</param>
+        /// <param name="model">The FlightViewModel containing the new data.</param>
         public void UpdateFlightFromViewModel(Flight entity, FlightViewModel model)
         {
             entity.OriginAirportId = model.OriginAirportId!.Value;
@@ -248,6 +363,12 @@ namespace VitoriaAirlinesWeb.Helpers
             entity.Duration = model.Duration!.Value;
         }
 
+
+        /// <summary>
+        /// Converts a collection of Flight entities to a list of FlightDisplayViewModel.
+        /// </summary>
+        /// <param name="flights">The collection of Flight entities to convert.</param>
+        /// <returns>A list of new FlightDisplayViewModel objects.</returns>
         public List<FlightDisplayViewModel> ToFlightDisplayViewModel(IEnumerable<Flight> flights)
         {
 
@@ -269,6 +390,12 @@ namespace VitoriaAirlinesWeb.Helpers
             }).ToList();
         }
 
+
+        /// <summary>
+        /// Converts a collection of Ticket entities to a list of TicketDisplayViewModel.
+        /// </summary>
+        /// <param name="tickets">The collection of Ticket entities to convert.</param>
+        /// <returns>A list of new TicketDisplayViewModel objects.</returns>
         public List<TicketDisplayViewModel> ToTicketDisplayViewModel(IEnumerable<Ticket> tickets)
         {
 

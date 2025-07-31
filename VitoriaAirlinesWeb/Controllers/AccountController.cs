@@ -8,6 +8,10 @@ using VitoriaAirlinesWeb.Responses;
 
 namespace VitoriaAirlinesWeb.Controllers
 {
+    /// <summary>
+    /// Handles all user account-related actions such as login, registration, password management,
+    /// email confirmation, and profile updates.
+    /// </summary>
     public class AccountController : Controller
     {
         private readonly IUserHelper _userHelper;
@@ -15,6 +19,16 @@ namespace VitoriaAirlinesWeb.Controllers
         private readonly IBlobHelper _blobHelper;
         private readonly ICustomerProfileRepository _customerRepository;
 
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AccountController"/> class with necessary
+        /// helper services and repositories for user management, email communication, blob storage,
+        /// and customer profile operations.
+        /// </summary>
+        /// <param name="userHelper">Helper for user-related operations, including authentication and authorization.</param>
+        /// <param name="mailHelper">Helper for sending emails, such as confirmation and password reset emails.</param>
+        /// <param name="blobHelper">Helper for interacting with blob storage, specifically for user profile images.</param>
+        /// <param name="customerRepository">Repository for managing customer profile data.</param>
         public AccountController(
             IUserHelper userHelper,
             IMailHelper mailHelper,
@@ -28,6 +42,13 @@ namespace VitoriaAirlinesWeb.Controllers
             _customerRepository = customerRepository;
         }
 
+
+        /// <summary>
+        /// Displays the login form.
+        /// </summary>
+        /// <returns>
+        /// IActionResult: The login view (ViewResult).
+        /// </returns>
         public IActionResult Login()
         {
 
@@ -35,6 +56,13 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
+        /// <summary>
+        /// Handles user login submission.
+        /// </summary>
+        /// <param name="model">Login credentials.</param>
+        /// <returns>
+        /// Task: Redirects on success (Dashboard or ReturnUrl), or returns view with errors on failure.
+        /// </returns>
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
@@ -70,6 +98,12 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
+        /// <summary>
+        /// Logs out the current user.
+        /// </summary>
+        /// <returns>
+        /// Task: Redirects to Home/Index (RedirectToActionResult).
+        /// </returns>
         public async Task<IActionResult> Logout()
         {
             await _userHelper.LogoutAsync();
@@ -77,12 +111,26 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
+        /// <summary>
+        /// Displays the registration form.
+        /// </summary>
+        /// <returns>
+        /// IActionResult: The registration view (ViewResult).
+        /// </returns>
         public IActionResult Register()
         {
             return View();
         }
 
 
+
+        /// <summary>
+        /// Handles new user registration and sends a confirmation email.
+        /// </summary>
+        /// <param name="model">Registration data.</param>
+        /// <returns>
+        /// Task: Returns view with success message or errors.
+        /// </returns>
         [HttpPost]
         public async Task<IActionResult> Register(RegisterNewUserViewModel model)
         {
@@ -146,7 +194,14 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
-
+        /// <summary>
+        /// Confirms a user's email address.
+        /// </summary>
+        /// <param name="userId">User identifier.</param>
+        /// <param name="token">Email confirmation token.</param>
+        /// <returns>
+        /// Task: Returns the confirmation view on success, or a 404 error view on failure.
+        /// </returns>
         public async Task<IActionResult> ConfirmEmail(string userId, string token)
         {
             if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
@@ -169,6 +224,15 @@ namespace VitoriaAirlinesWeb.Controllers
             return View();
         }
 
+
+        /// <summary>
+        /// Displays the reset password form.
+        /// </summary>
+        /// <param name="token">Password reset token.</param>
+        /// <param name="email">User's email.</param>
+        /// <returns>
+        /// IActionResult: Returns the reset password view with token/email, or redirects to error page if parameters are invalid.
+        /// </returns>
         public IActionResult ResetPassword(string token, string email)
         {
             if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(email))
@@ -185,6 +249,14 @@ namespace VitoriaAirlinesWeb.Controllers
             return View(model);
         }
 
+
+        /// <summary>
+        /// Handles reset password submission.
+        /// </summary>
+        /// <param name="model">Reset password data.</param>
+        /// <returns>
+        /// Task: Redirects to Login on success, or returns view with errors.
+        /// </returns>
         [HttpPost]
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
         {
@@ -212,11 +284,25 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
+        /// <summary>
+        /// Displays the recover password form.
+        /// </summary>
+        /// <returns>
+        /// IActionResult: The recover password view (ViewResult).
+        /// </returns>
         public IActionResult RecoverPassword()
         {
             return View();
         }
 
+
+        /// <summary>
+        /// Handles recover password submission.
+        /// </summary>
+        /// <param name="model">Email for password recovery.</param>
+        /// <returns>
+        /// Task: Sends reset email if user exists, returns view with messages.
+        /// </returns>
         [HttpPost]
         public async Task<IActionResult> RecoverPassword(RecoverPasswordViewModel model)
         {
@@ -251,6 +337,13 @@ namespace VitoriaAirlinesWeb.Controllers
             return View(model);
         }
 
+
+        /// <summary>
+        /// Displays the form to change the current user's password. Requires authorization.
+        /// </summary>
+        /// <returns>
+        /// Task: Returns view with user role, or 404 error if user not found.
+        /// </returns>
         [Authorize]
         public async Task<IActionResult> ChangePassword()
         {
@@ -264,6 +357,14 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
+
+        /// <summary>
+        /// Handles change password submission. Requires authorization.
+        /// </summary>
+        /// <param name="model">Change password data.</param>
+        /// <returns>
+        /// Task: Redirects on success, or returns view with errors.
+        /// </returns>
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
@@ -302,7 +403,12 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
-
+        /// <summary>
+        /// Displays the form for the current user to edit their profile. Requires authorization.
+        /// </summary>
+        /// <returns>
+        /// Task: Returns view with profile data, or 404 error if user not found.
+        /// </returns>
         [Authorize]
         public async Task<IActionResult> EditProfile()
         {
@@ -322,6 +428,14 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
+
+        /// <summary>
+        /// Handles edit profile submission. Requires authorization.
+        /// </summary>
+        /// <param name="model">Edit profile data.</param>
+        /// <returns>
+        /// Task: Redirects to self on success, or returns view with errors.
+        /// </returns>
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> EditProfile(EditUserProfileViewModel model)
@@ -369,6 +483,12 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
+        /// <summary>
+        /// Displays a view indicating unauthorized access.
+        /// </summary>
+        /// <returns>
+        /// IActionResult: The "NotAuthorized" view (ViewResult).
+        /// </returns>
         public IActionResult NotAuthorized()
         {
             return View();

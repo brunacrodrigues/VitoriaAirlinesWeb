@@ -1,0 +1,280 @@
+﻿@model VitoriaAirlinesWeb.Models.ViewModels.Booking.SelectRoundTripSeatViewModel
+@using VitoriaAirlinesWeb.Data.Enums
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "Select Your Seats (Round Trip)";
+    var allLetters = new[] { "A", "B", "C", "D", "E", "F" };
+}
+
+<div class="container my-5">
+    <div class="text-center mb-5">
+        <h2 class="display-5">@ViewData["Title"]</h2>
+    </div>
+
+    <form asp-action="ConfirmRoundTrip" asp-controller="Booking" method="post">
+        <!-- === OUTBOUND FLIGHT SEAT SELECTION === -->
+        <div class="mb-5">
+            <h4 class="text-center mb-4">Select seat for your <span class="fw-semibold">outbound flight</span> @Model.Outbound.FlightInfo</h4>
+
+            @Html.Hidden("OutboundFlightId", Model.Outbound.FlightId)
+            <input type="hidden" name="OutboundSeatId" id="selectedSeatId-Outbound" />
+
+            @* Fare Selection *@
+            <div class="row justify-content-center mb-4">
+                <div class="col-md-4">
+                    <div class="fare-card card-economy selectable-card text-center py-4 px-3" data-class-filter="Economy" data-prefix="Outbound">
+                        <div class="fare-card-header mb-2">
+                            <i class="fas fa-couch fa-2x"></i>
+                            <h4 class="mt-2 mb-1">Economy Class</h4>
+                            <p class="price">From <strong>@Model.Outbound.EconomyPrice.ToString("C2", CultureInfo.GetCultureInfo("pt-PT"))</strong></p>
+                        </div>
+                        <span class="btn btn-economy mt-2">Select This Fare</span>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="fare-card card-executive selectable-card text-center py-4 px-3" data-class-filter="Executive" data-prefix="Outbound">
+                        <div class="fare-card-header mb-2">
+                            <i class="fas fa-crown fa-2x"></i>
+                            <h4 class="mt-2 mb-1">Executive Class</h4>
+                            <p class="price">From <strong>@Model.Outbound.ExecutivePrice.ToString("C2", CultureInfo.GetCultureInfo("pt-PT"))</strong></p>
+                        </div>
+                        <span class="btn btn-executive mt-2">Select This Fare</span>
+                    </div>
+                </div>
+            </div>
+
+            @* Seats *@
+            <div id="plane-section-Outbound" class="plane-container container" style="display: none;">
+                <div class="row justify-content-center">
+                    <div class="col-12 col-lg-7 mb-4">
+                        <h5 id="plane-section-title-Outbound" class="text-center mb-4 fw-light"></h5>
+
+                        <div class="legend-container mb-4">
+                            <div class="legend-item"><div class="seat-sample executive"></div> Executive Class</div>
+                            <div class="legend-item"><div class="seat-sample economy"></div> Economy Class</div>
+                            <div class="legend-item"><div class="seat-sample occupied"></div> Occupied</div>
+                        </div>
+
+                        <div class="plane">
+                            <div class="cockpit">Cockpit</div>
+                            @foreach (var rowGroup in Model.Outbound.Seats.OrderBy(s => s.Row).GroupBy(s => s.Row))
+                            {
+                                var seats = rowGroup.ToList();
+                                <div class="seat-row" data-row-class="@seats.First().Class.ToString()" data-prefix="Outbound">
+                                    <div class="row-label">@rowGroup.Key</div>
+                                    @foreach (var letter in allLetters)
+                                    {
+                                        if (letter == "D")
+                                        {
+                                            <div class="aisle"></div>
+                                            ;
+                                        }
+
+                                        var seat = seats.FirstOrDefault(s => s.Letter == letter);
+                                        if (seat != null)
+                                        {
+                                            bool isOccupied = Model.Outbound.OccupiedSeatsIds.Contains(seat.Id);
+                                            string seatStateClass = isOccupied ? "occupied" : "available";
+                                            string seatTypeClass = seat.Class == SeatClass.Executive ? "executive" : "economy";
+
+                                            <a href="#"
+                                               class="booking-seat @seatStateClass @seatTypeClass"
+                                               data-seat-id="@seat.Id"
+                                               data-seat-class="@seat.Class.ToString()"
+                                               data-prefix="Outbound"
+                                               title="@(isOccupied ? "Occupied" : $"Row {seat.Row}, Seat {seat.Letter} ({seat.Class})")"
+                                               @(isOccupied ? "tabindex=\"-1\" aria-disabled=\"true\"" : "")>
+                                                @seat.Letter
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <div style="width: 40px;"></div>
+                                        }
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div id="confirm-seat-container-Outbound" class="col-12 col-lg-4 d-flex flex-column align-items-center justify-content-start" style="display: none;">
+                        <h5>Selected Seat</h5>
+                        <div id="selected-seat-info-Outbound" class="mb-3 fw-semibold" style="font-size: 1.2rem;">None</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === RETURN FLIGHT SEAT SELECTION === -->
+        <div>
+            <h4 class="text-center mb-4">Select seat for your <span class="fw-semibold">return flight</span> @Model.Return.FlightInfo</h4>
+
+            @Html.Hidden("ReturnFlightId", Model.Return.FlightId)
+            <input type="hidden" name="ReturnSeatId" id="selectedSeatId-Return" />
+
+            @* Fare Selection *@
+            <div class="row justify-content-center mb-4">
+                <div class="col-md-4">
+                    <div class="fare-card card-economy selectable-card text-center py-4 px-3" data-class-filter="Economy" data-prefix="Return">
+                        <div class="fare-card-header mb-2">
+                            <i class="fas fa-couch fa-2x"></i>
+                            <h4 class="mt-2 mb-1">Economy Class</h4>
+                            <p class="price">From <strong>@Model.Return.EconomyPrice.ToString("C2", CultureInfo.GetCultureInfo("pt-PT"))</strong></p>
+                        </div>
+                        <span class="btn btn-economy mt-2">Select This Fare</span>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="fare-card card-executive selectable-card text-center py-4 px-3" data-class-filter="Executive" data-prefix="Return">
+                        <div class="fare-card-header mb-2">
+                            <i class="fas fa-crown fa-2x"></i>
+                            <h4 class="mt-2 mb-1">Executive Class</h4>
+                            <p class="price">From <strong>@Model.Return.ExecutivePrice.ToString("C2", CultureInfo.GetCultureInfo("pt-PT"))</strong></p>
+                        </div>
+                        <span class="btn btn-executive mt-2">Select This Fare</span>
+                    </div>
+                </div>
+            </div>
+
+            @* Seats *@
+            <div id="plane-section-Return" class="plane-container container" style="display: none;">
+                <div class="row justify-content-center">
+                    <div class="col-12 col-lg-7 mb-4">
+                        <h5 id="plane-section-title-Return" class="text-center mb-4 fw-light"></h5>
+
+                        <div class="legend-container mb-4">
+                            <div class="legend-item"><div class="seat-sample executive"></div> Executive Class</div>
+                            <div class="legend-item"><div class="seat-sample economy"></div> Economy Class</div>
+                            <div class="legend-item"><div class="seat-sample occupied"></div> Occupied</div>
+                        </div>
+
+                        <div class="plane">
+                            <div class="cockpit">Cockpit</div>
+                            @foreach (var rowGroup in Model.Return.Seats.OrderBy(s => s.Row).GroupBy(s => s.Row))
+                            {
+                                var seats = rowGroup.ToList();
+                                <div class="seat-row" data-row-class="@seats.First().Class.ToString()" data-prefix="Return">
+                                    <div class="row-label">@rowGroup.Key</div>
+                                    @foreach (var letter in allLetters)
+                                    {
+                                        if (letter == "D")
+                                        {
+                                            <div class="aisle"></div>
+                                            ;
+                                        }
+
+                                        var seat = seats.FirstOrDefault(s => s.Letter == letter);
+                                        if (seat != null)
+                                        {
+                                            bool isOccupied = Model.Return.OccupiedSeatsIds.Contains(seat.Id);
+                                            string seatStateClass = isOccupied ? "occupied" : "available";
+                                            string seatTypeClass = seat.Class == SeatClass.Executive ? "executive" : "economy";
+
+                                            <a href="#"
+                                               class="booking-seat @seatStateClass @seatTypeClass"
+                                               data-seat-id="@seat.Id"
+                                               data-seat-class="@seat.Class.ToString()"
+                                               data-prefix="Return"
+                                               title="@(isOccupied ? "Occupied" : $"Row {seat.Row}, Seat {seat.Letter} ({seat.Class})")"
+                                               @(isOccupied ? "tabindex=\"-1\" aria-disabled=\"true\"" : "")>
+                                                @seat.Letter
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <div style="width: 40px;"></div>
+                                        }
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div id="confirm-seat-container-Return" class="col-12 col-lg-4 d-flex flex-column align-items-center justify-content-start" style="display: none;">
+                        <h5>Selected Seat</h5>
+                        <div id="selected-seat-info-Return" class="mb-3 fw-semibold" style="font-size: 1.2rem;">None</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FINAL BUTTON -->
+        <div class="text-center mt-5">
+            <button type="submit" class="btn btn-gold btn-lg" id="confirmBothBtn" disabled>Confirm Round Trip Booking</button>
+        </div>
+
+        @Html.AntiForgeryToken()
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const fareCards = document.querySelectorAll('.fare-card');
+
+            fareCards.forEach(card => {
+                card.addEventListener('click', function () {
+                    const prefix = this.getAttribute('data-prefix');
+                    const selectedClass = this.getAttribute('data-class-filter');
+
+                    document.querySelectorAll(`.fare-card[data-prefix="${prefix}"]`).forEach(c => {
+                        c.classList.remove('selected', 'border-primary', 'border-warning', 'border-3');
+                    });
+
+                    this.classList.add('selected', selectedClass === 'Executive' ? 'border-warning' : 'border-primary', 'border-3');
+
+                    const title = document.getElementById(`plane-section-title-${prefix}`);
+                    title.textContent = `Now, please select your ${selectedClass} seat`;
+
+                    document.querySelectorAll(`.seat-row[data-prefix="${prefix}"]`).forEach(row => {
+                        const rowClass = row.getAttribute('data-row-class');
+                        row.style.display = rowClass === selectedClass ? 'grid' : 'none';
+                    });
+
+                    const section = document.getElementById(`plane-section-${prefix}`);
+                    section.style.display = 'block';
+                    section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    clearSelection(prefix);
+                });
+            });
+
+            function clearSelection(prefix) {
+                const selected = document.querySelector(`.booking-seat.selected-seat[data-prefix="${prefix}"]`);
+                if (selected) selected.classList.remove('selected-seat');
+
+                document.getElementById(`selected-seat-info-${prefix}`).textContent = 'None';
+                document.getElementById(`selectedSeatId-${prefix}`).value = '';
+                checkIfBothSelected();
+            }
+
+            const seatLinks = document.querySelectorAll('.booking-seat.available');
+            seatLinks.forEach(seat => {
+                seat.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const prefix = this.getAttribute('data-prefix');
+
+                    const previouslySelected = document.querySelector(`.booking-seat.selected-seat[data-prefix="${prefix}"]`);
+                    if (previouslySelected) previouslySelected.classList.remove('selected-seat');
+
+                    this.classList.add('selected-seat');
+                    document.getElementById(`selected-seat-info-${prefix}`).textContent = this.title;
+                    document.getElementById(`selectedSeatId-${prefix}`).value = this.getAttribute('data-seat-id');
+
+                    document.getElementById(`confirm-seat-container-${prefix}`).style.display = 'flex';
+                    checkIfBothSelected();
+                });
+            });
+
+            function checkIfBothSelected() {
+                const out = document.getElementById("selectedSeatId-Outbound").value;
+                const ret = document.getElementById("selectedSeatId-Return").value;
+                const btn = document.getElementById("confirmBothBtn");
+                btn.disabled = !(out && ret);
+            }
+        });
+    </script>
+}

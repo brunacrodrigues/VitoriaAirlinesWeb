@@ -7,6 +7,9 @@ using VitoriaAirlinesWeb.Models.ViewModels.Customers;
 
 namespace VitoriaAirlinesWeb.Controllers
 {
+    /// <summary>
+    /// Manages customer profiles and related operations. Requires user authorization.
+    /// </summary>
     [Authorize]
     public class CustomersController : Controller
     {
@@ -17,6 +20,16 @@ namespace VitoriaAirlinesWeb.Controllers
         private readonly ITicketRepository _ticketRepository;
         private readonly IBlobHelper _blobHelper;
 
+
+        /// <summary>
+        /// Initializes a new instance of the CustomersController with necessary repositories and helpers.
+        /// </summary>
+        /// <param name="userHelper">Helper for user-related operations.</param>
+        /// <param name="customerRepository">Repository for customer profile data access.</param>
+        /// <param name="converterHelper">Helper for converting between entities and view models.</param>
+        /// <param name="countryRepository">Repository for country data access.</param>
+        /// <param name="ticketRepository">Repository for ticket data access.</param>
+        /// <param name="blobHelper">Helper for blob storage operations, e.g., profile images.</param>
         public CustomersController(
             IUserHelper userHelper,
             ICustomerProfileRepository customerRepository,
@@ -34,6 +47,14 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
+
+        /// <summary>
+        /// Displays a list of all customer profiles, including user details, country, and roles.
+        /// Only accessible by users with the Admin role.
+        /// </summary>
+        /// <returns>
+        /// Task: A view displaying a collection of customer view models.
+        /// </returns>
         // GET: CustomersController
         [Authorize(Roles = UserRoles.Admin)]
         public async Task<IActionResult> Index()
@@ -68,6 +89,15 @@ namespace VitoriaAirlinesWeb.Controllers
 
         }
 
+
+        /// <summary>
+        /// Displays the detailed profile of a specific customer, including flight history and upcoming flights.
+        /// Only accessible by users with the Admin role.
+        /// </summary>
+        /// <param name="id">The ID of the customer profile.</param>
+        /// <returns>
+        /// Task: A view displaying the customer's detailed profile, or a 404 error if not found.
+        /// </returns>
         // GET: CustomersController/Details/5
         [Authorize(Roles = UserRoles.Admin)]
         public async Task<IActionResult> Details(int id)
@@ -110,7 +140,14 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
-
+        /// <summary>
+        /// Displays the form to edit a customer's profile from an administrator's perspective.
+        /// Only accessible by users with the Admin role.
+        /// </summary>
+        /// <param name="id">The ID of the customer profile to edit.</param>
+        /// <returns>
+        /// Task: The edit customer profile view, pre-populated with customer data and country options, or a 404 error if not found.
+        /// </returns>
         [Authorize(Roles = UserRoles.Admin)]
         public async Task<IActionResult> EditCustomerProfile(int id)
         {
@@ -123,6 +160,16 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
+        /// <summary>
+        /// Handles the submission of the customer profile edit form by an administrator.
+        /// Updates customer details and validates passport number uniqueness.
+        /// Only accessible by users with the Admin role.
+        /// </summary>
+        /// <param name="id">The ID of the customer being edited.</param>
+        /// <param name="model">The updated customer profile data from the form.</param>
+        /// <returns>
+        /// Task: Redirects to the Index on success, or returns the view with validation errors and country options.
+        /// </returns>
         [HttpPost]
         [Authorize(Roles = UserRoles.Admin)]
         [ValidateAntiForgeryToken]
@@ -176,6 +223,13 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
+        /// <summary>
+        /// Displays the form for a logged-in customer to edit their own profile.
+        /// Only accessible by users with the Customer role.
+        /// </summary>
+        /// <returns>
+        /// Task: The edit traveller profile view, pre-populated with user and profile data, and country options, or a 404 error if not found.
+        /// </returns>
         [Authorize(Roles = UserRoles.Customer)]
         public async Task<IActionResult> EditTravellerProfile()
         {
@@ -192,6 +246,16 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
+
+        /// <summary>
+        /// Handles the submission of the traveller profile edit form by a customer.
+        /// Updates user and customer profile details, including profile image and passport number.
+        /// Only accessible by users with the Customer role.
+        /// </summary>
+        /// <param name="model">The updated customer profile data from the form.</param>
+        /// <returns>
+        /// Task: Redirects to the same action on success, or returns the view with validation errors and country options.
+        /// </returns>
         [HttpPost]
         [Authorize(Roles = UserRoles.Customer)]
         [ValidateAntiForgeryToken]
@@ -268,6 +332,15 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
+
+        /// <summary>
+        /// Deactivates a customer's account. Checks for upcoming flights before deactivation.
+        /// Only accessible by users with the Admin role.
+        /// </summary>
+        /// <param name="id">The ID of the customer profile to deactivate.</param>
+        /// <returns>
+        /// Task: Redirects to the Index with a success or warning message, or returns an error view on failure.
+        /// </returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = UserRoles.Admin)]

@@ -9,6 +9,9 @@ namespace VitoriaAirlinesWeb.Controllers
 {
     public class AssistBotController : Controller
     {
+        /// <summary>
+        /// Handles interactions with an AI-powered assistant bot, providing tailored responses based on user roles.
+        /// </summary>
         private readonly IGeminiApiService _geminiService;
         private readonly IUserHelper _userHelper;
         private readonly IAdminPromptService _adminPrompt;
@@ -16,6 +19,17 @@ namespace VitoriaAirlinesWeb.Controllers
         private readonly ICustomerPromptService _customerPrompt;
         private readonly IAnonymousPromptService _anonymousPrompt;
 
+
+        /// <summary>
+        /// Initializes a new instance of the AssistBotController with necessary services for AI interaction,
+        /// user management, and role-specific prompt processing.
+        /// </summary>
+        /// <param name="geminiService">Service for interacting with the Gemini AI model.</param>
+        /// <param name="userHelper">Helper for user-related operations, including role retrieval.</param>
+        /// <param name="adminPrompt">Service for processing prompts from Admin users.</param>
+        /// <param name="employeePrompt">Service for processing prompts from Employee users.</param>
+        /// <param name="customerPrompt">Service for processing prompts from Customer users.</param>
+        /// <param name="anonymousPrompt">Service for processing prompts from anonymous users.</param>
         public AssistBotController(
             IGeminiApiService geminiService,
             IUserHelper userHelper,
@@ -32,6 +46,13 @@ namespace VitoriaAirlinesWeb.Controllers
             _anonymousPrompt = anonymousPrompt;
         }
 
+
+        /// <summary>
+        /// Displays the main page for the AI assistant bot, providing suggested prompts based on the user's role.
+        /// </summary>
+        /// <returns>
+        /// Task: A view displaying the bot interface with role-specific prompt suggestions.
+        /// </returns>
         [HttpGet]
         public async Task<IActionResult> Index()
         {
@@ -94,6 +115,16 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
+
+        /// <summary>
+        /// Receives a chat prompt from the client, processes it based on the user's role,
+        /// and returns an AI-generated response.
+        /// </summary>
+        /// <param name="dto">The chat request data, including the prompt and chat history.</param>
+        /// <returns>
+        /// Task: An IActionResult containing a JSON response with the AI's message and results,
+        /// or a BadRequest/StatusCode 500 on error.
+        /// </returns>
         [HttpPost]
         [Route("AssistBot/Ask")]
         [IgnoreAntiforgeryToken]
@@ -111,7 +142,7 @@ namespace VitoriaAirlinesWeb.Controllers
             try
             {
                 var user = await _userHelper.GetUserAsync(User);
-                 string? role = null;
+                string? role = null;
                 if (user != null)
                 {
                     var roles = await _userHelper.GetUserRolesAsync(user);

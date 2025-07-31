@@ -140,7 +140,7 @@
                         <i class="fas fa-calendar-day me-2"></i> Departure Date
                     </div>
                     <div class="card-body">
-                        <input asp-for="DepartureDate" class="form-control custom-input" type="date" />
+                        <input asp-for="DepartureDate" class="form-control custom-input" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
                         <span asp-validation-for="DepartureDate" class="text-danger"></span>
                     </div>
                 </div>

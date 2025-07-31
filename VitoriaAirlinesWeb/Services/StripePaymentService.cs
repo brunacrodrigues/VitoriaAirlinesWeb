@@ -5,15 +5,41 @@ using VitoriaAirlinesWeb.Data.Entities;
 
 namespace VitoriaAirlinesWeb.Services
 {
+    /// <summary>
+    /// Provides payment processing services using Stripe Checkout.
+    /// It creates Stripe Checkout Sessions for single tickets, seat upgrades, and round-trip bookings.
+    /// </summary>
     public class StripePaymentService : IPaymentService
     {
         private readonly StripeSettings _stripeSettings;
 
+        /// <summary>
+        /// Initializes a new instance of the StripePaymentService class.
+        /// </summary>
+        /// <param name="options">Options containing Stripe API settings.</param>
         public StripePaymentService(IOptions<StripeSettings> options)
         {
             _stripeSettings = options.Value;
         }
 
+
+        /// <summary>
+        /// Asynchronously creates a Stripe Checkout Session for a single flight ticket purchase.
+        /// </summary>
+        /// <param name="flightNumber">The flight number.</param>
+        /// <param name="seatLabel">The label of the selected seat (e.g., "12A").</param>
+        /// <param name="originIATA">The IATA code of the origin airport.</param>
+        /// <param name="originName">The full name of the origin airport.</param>
+        /// <param name="destinationIATA">The IATA code of the destination airport.</param>
+        /// <param name="destinationName">The full name of the destination airport.</param>
+        /// <param name="seatClass">The class of the seat (e.g., "Economy", "Executive").</param>
+        /// <param name="departureTime">The local departure time of the flight.</param>
+        /// <param name="price">The price of the ticket in decimal (e.g., 100.50).</param>
+        /// <param name="successUrl">The URL to redirect to upon successful payment.</param>
+        /// <param name="cancelUrl">The URL to redirect to if payment is canceled.</param>
+        /// <returns>
+        /// Task: A string representing the URL for the Stripe Checkout Session. The customer will be redirected to this URL.
+        /// </returns>
         public async Task<string> CreateCheckoutSessionAsync(
             string flightNumber,
             string seatLabel,
@@ -29,35 +55,47 @@ namespace VitoriaAirlinesWeb.Services
         {
             var options = new SessionCreateOptions
             {
-                PaymentMethodTypes = new List<string> { "card" },
+                PaymentMethodTypes = new List<string> { "card" }, // Only accept card payments.
                 LineItems = new List<SessionLineItemOptions>
             {
                 new SessionLineItemOptions
                 {
-                    PriceData = new SessionLineItemPriceDataOptions
+                    PriceData = new SessionLineItemPriceDataOptions // Defines the product and its pricing.
                     {
-                        Currency = "eur",
-                        UnitAmount = (long)(price * 100),
-                        ProductData = new SessionLineItemPriceDataProductDataOptions
+                        Currency = "eur", // Currency is Euro.
+                        UnitAmount = (long)(price * 100), // Price must be in cents.
+                        ProductData = new SessionLineItemPriceDataProductDataOptions // Product details displayed to customer.
                         {
                             Name = $"Flight {flightNumber} – Seat {seatLabel} ({seatClass})",
                             Description = $"From {originIATA} ({originName}) to {destinationIATA} ({destinationName})\n" +
                             $"{departureTime:dd MMM yyyy 'at' HH:mm}"
                         }
                     },
-                    Quantity = 1
+                    Quantity = 1 // Only one unit of this product.
                 }
             },
-                Mode = "payment",
-                SuccessUrl = successUrl,
-                CancelUrl = cancelUrl
+                Mode = "payment", // Session is for a one-time payment.
+                SuccessUrl = successUrl, // URL for successful payment redirect.
+                CancelUrl = cancelUrl // URL for canceled payment redirect.
             };
 
-            var service = new SessionService();
-            var session = await service.CreateAsync(options);
-            return session.Url;
+            var service = new SessionService(); // Stripe service for creating sessions.
+            var session = await service.CreateAsync(options); // Create the session.
+            return session.Url; // Return the URL to redirect the customer to.
         }
 
+
+
+        /// <summary>
+        /// Asynchronously creates a Stripe Checkout Session for a seat upgrade.
+        /// </summary>
+        /// <param name="description">A textual description of the seat upgrade (e.g., "Upgrade to Executive Class").</param>
+        /// <param name="priceDifference">The monetary difference (can be positive or negative, but typically positive for upgrade) for the upgrade in decimal.</param>
+        /// <param name="successUrl">The URL to redirect to upon successful payment.</param>
+        /// <param name="cancelUrl">The URL to redirect to if payment is canceled.</param>
+        /// <returns>
+        /// Task: A string representing the URL for the Stripe Checkout Session.
+        /// </returns>
         public async Task<string> CreateSeatUpgradeCheckoutSessionAsync(
             string description,
             decimal priceDifference,
@@ -74,7 +112,7 @@ namespace VitoriaAirlinesWeb.Services
                     PriceData = new SessionLineItemPriceDataOptions
                     {
                         Currency = "eur",
-                        UnitAmount = (long)(priceDifference * 100),
+                        UnitAmount = (long)(priceDifference * 100), // Price must be in cents.
                         ProductData = new SessionLineItemPriceDataProductDataOptions
                         {
                             Name = "Seat Upgrade",
@@ -94,6 +132,23 @@ namespace VitoriaAirlinesWeb.Services
             return session.Url;
         }
 
+
+
+        /// <summary>
+        /// Asynchronously creates a Stripe Checkout Session for a round-trip flight booking.
+        /// This session includes two line items, one for the outbound flight and one for the return flight.
+        /// </summary>
+        /// <param name="outboundFlight">The Flight entity for the outbound journey.</param>
+        /// <param name="returnFlight">The Flight entity for the return journey.</param>
+        /// <param name="outboundSeat">The selected Seat for the outbound flight.</param>
+        /// <param name="returnSeat">The selected Seat for the return flight.</param>
+        /// <param name="outboundPrice">The calculated price for the outbound ticket.</param>
+        /// <param name="returnPrice">The calculated price for the return ticket.</param>
+        /// <param name="successUrl">The URL to redirect to upon successful payment.</param>
+        /// <param name="cancelUrl">The URL to redirect to if payment is canceled.</param>
+        /// <returns>
+        /// Task: A string representing the URL for the Stripe Checkout Session.
+        /// </returns>
         public async Task<string> CreateRoundTripCheckoutSessionAsync(
             Flight outboundFlight,
             Flight returnFlight,
@@ -107,10 +162,9 @@ namespace VitoriaAirlinesWeb.Services
             var options = new SessionCreateOptions
             {
                 PaymentMethodTypes = new List<string> { "card" },
-                LineItems = new List<SessionLineItemOptions>
-
+                LineItems = new List<SessionLineItemOptions> // List of products/services being paid for.
                 {
-                    new SessionLineItemOptions
+                    new SessionLineItemOptions // Outbound flight details.
                     {
                         PriceData = new SessionLineItemPriceDataOptions
                         {
@@ -125,7 +179,7 @@ namespace VitoriaAirlinesWeb.Services
                         },
                         Quantity = 1
                     },
-                    new SessionLineItemOptions
+                    new SessionLineItemOptions // Return flight details.
                     {
                         PriceData = new SessionLineItemPriceDataOptions
                         {

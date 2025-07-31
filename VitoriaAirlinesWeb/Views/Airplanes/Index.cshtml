@@ -35,6 +35,7 @@
               dataSource="@Model"
               allowPaging="true"
               allowSorting="true"
+              searchSettings="@(new GridSearchSettings { Fields = new[] { "Model", "Status", "TotalExecutiveSeats", "TotalEconomySeats"} })"
               toolbar="@(new List<string>() { "Search" })"
               gridLines="Horizontal"
               height="500">

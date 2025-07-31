@@ -9,6 +9,9 @@ using VitoriaAirlinesWeb.Models.ViewModels.FlightSearch;
 
 namespace VitoriaAirlinesWeb.Controllers
 {
+    /// <summary>
+    /// Handles the main public-facing pages of the application, including the flight search functionality.
+    /// </summary>
     public class HomeController : Controller
     {
         private readonly IFlightRepository _flightRepository;
@@ -16,6 +19,13 @@ namespace VitoriaAirlinesWeb.Controllers
         private readonly ITicketRepository _ticketRepository;
         private readonly IUserHelper _userHelper;
 
+        /// <summary>
+        /// Initializes a new instance of the HomeController with necessary repositories and helpers.
+        /// </summary>
+        /// <param name="flightRepository">Repository for flight data access.</param>
+        /// <param name="airportRepository">Repository for airport data access.</param>
+        /// <param name="ticketRepository">Repository for ticket data access.</param>
+        /// <param name="userHelper">Helper for user-related operations.</param>
         public HomeController(
             IFlightRepository flightRepository,
             IAirportRepository airportRepository,
@@ -29,7 +39,15 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
-
+        /// <summary>
+        /// Displays the home page with flight search functionality.
+        /// Handles search queries, validates input, performs flight searches,
+        /// and marks flights already booked by the current customer.
+        /// </summary>
+        /// <param name="viewModel">The view model containing search parameters and results.</param>
+        /// <returns>
+        /// Task: A view displaying the flight search interface and results.
+        /// </returns>
         [HttpGet]
         public async Task<IActionResult> Index(SearchFlightViewModel viewModel)
         {
@@ -110,40 +128,54 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
-
+        /// <summary>
+        /// Displays the "About Us" page.
+        /// </summary>
+        /// <returns>
+        /// IActionResult: The About view.
+        /// </returns>
         public IActionResult About()
         {
             return View();
         }
 
 
+        /// <summary>
+        /// Displays the "Frequently Asked Questions" (FAQs) page.
+        /// </summary>
+        /// <returns>
+        /// IActionResult: The FAQS view.
+        /// </returns>
         public IActionResult FAQS()
         {
             return View();
         }
 
 
+
+        /// <summary>
+        /// Displays the "Privacy Policy" page.
+        /// </summary>
+        /// <returns>
+        /// IActionResult: The Privacy view.
+        /// </returns>
         public IActionResult Privacy()
         {
             return View();
         }
 
+
+
+        /// <summary>
+        /// Displays a generic error page. This action is used to show details about the request error.
+        /// </summary>
+        /// <returns>
+        /// IActionResult: The Error view with request ID information.
+        /// </returns>
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
-
-
-        [HttpPost]
-        public IActionResult SetReturnFlightId(int returnFlightId)
-        {
-            HttpContext.Session.Remove("OutboundFlightId");
-            HttpContext.Session.Remove("OutboundSeatId");
-
-            HttpContext.Session.SetInt32("ReturnFlightId", returnFlightId);
-            return Ok();
-        }
-
     }
 }

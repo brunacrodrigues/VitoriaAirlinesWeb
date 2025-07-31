@@ -12,6 +12,10 @@ using VitoriaAirlinesWeb.Services;
 
 namespace VitoriaAirlinesWeb.Controllers
 {
+    /// <summary>
+    /// Handles flight booking processes, including seat selection, booking confirmation, payment integration with Stripe,
+    /// and managing seat changes for customers.
+    /// </summary>
     public class BookingController : Controller
     {
         private readonly IFlightRepository _flightRepository;
@@ -22,6 +26,17 @@ namespace VitoriaAirlinesWeb.Controllers
         private readonly ICustomerProfileRepository _customerProfileRepository;
         private readonly IMailHelper _mailHelper;
 
+
+        /// <summary>
+        /// Initializes a new instance of the BookingController with necessary repositories and helpers.
+        /// </summary>
+        /// <param name="flightRepository">Repository for flight data access.</param>
+        /// <param name="ticketRepository">Repository for ticket data access.</param>
+        /// <param name="converterHelper">Helper for converting between entities and view models.</param>
+        /// <param name="paymentService">Service for processing payments (e.g., Stripe).</param>
+        /// <param name="userHelper">Helper for user-related operations.</param>
+        /// <param name="customerProfileRepository">Repository for customer profile data access.</param>
+        /// <param name="mailHelper">Helper for sending emails.</param>
         public BookingController(
             IFlightRepository flightRepository,
             ITicketRepository ticketRepository,
@@ -40,19 +55,27 @@ namespace VitoriaAirlinesWeb.Controllers
             _mailHelper = mailHelper;
         }
 
+
+
+        /// <summary>
+        /// Displays the seat selection interface for a given flight.
+        /// Clears previous session booking data for new one-way bookings, validates user roles,
+        /// checks flight availability, and identifies already booked seats.
+        /// </summary>
+        /// <param name="flightId">The ID of the flight for which seats are to be selected.</param>
+        /// <param name="ticketId">Optional: The ID of an existing ticket if the user is changing a seat.</param>
+        /// <returns>
+        /// Task: A view displaying the SelectSeatViewModel, or a redirection to Home/Index with an error, or a NotFoundViewResult.
+        /// </returns>
         [HttpGet]
         public async Task<IActionResult> SelectSeat(int flightId, int? ticketId = null)
         {
-            // Limpa sessão de voos se não estiver a alterar assento
-            // Só limpa se estivermos num voo isolado e não houver volta prevista
-            if (!ticketId.HasValue && HttpContext.Session.GetInt32("ReturnFlightId") == null)
+            // Clear session if this is a fresh booking (not a seat change)
+            if (!ticketId.HasValue)
             {
                 HttpContext.Session.Remove("OutboundFlightId");
                 HttpContext.Session.Remove("OutboundSeatId");
-                HttpContext.Session.Remove("ReturnFlightId");
-                HttpContext.Session.Remove("ReturnSeatId");
             }
-
 
             if (User.Identity.IsAuthenticated && (User.IsInRole(UserRoles.Admin) || User.IsInRole(UserRoles.Employee)))
             {
@@ -60,14 +83,12 @@ namespace VitoriaAirlinesWeb.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-
             var flight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(flightId);
             if (flight == null || flight.Status != FlightStatus.Scheduled)
             {
                 TempData["Error"] = "This flight is no longer available for booking.";
                 return RedirectToAction("Index", "Home");
             }
-
 
             if (User.Identity.IsAuthenticated && User.IsInRole(UserRoles.Customer))
             {
@@ -84,8 +105,6 @@ namespace VitoriaAirlinesWeb.Controllers
             }
 
             var allTickets = await _ticketRepository.GetTicketsByFlightAsync(flightId);
-
-
             var validTickets = allTickets.Where(t => !t.IsCanceled);
 
             if (ticketId.HasValue)
@@ -93,14 +112,9 @@ namespace VitoriaAirlinesWeb.Controllers
                 validTickets = validTickets.Where(t => t.Id != ticketId.Value);
             }
 
-            var occupiedSeatIds = validTickets
-                .Select(t => t.SeatId)
-                .ToList();
+            var occupiedSeatIds = validTickets.Select(t => t.SeatId).ToList();
 
-
-
-            var viewModel = _converterHelper.ToSelectSeatViewModelAsync(flight, occupiedSeatIds);
-
+            var viewModel = _converterHelper.ToSelectSeatViewModel(flight, occupiedSeatIds);
             viewModel.IsChangingSeat = ticketId.HasValue;
             viewModel.TicketId = ticketId;
 
@@ -108,6 +122,18 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
+
+        /// <summary>
+        /// Handles the submission of a seat selection for a **one-way flight booking**.
+        /// Stores the selected flight and seat in session and proceeds to the confirmation view.
+        /// This method is specifically for the flow of a single outbound flight booking.
+        /// For round-trip bookings, the flow should typically go through `SelectRoundTripSeats` and its subsequent POST.
+        /// </summary>
+        /// <param name="flightId">The ID of the selected flight.</param>
+        /// <param name="seatId">The ID of the selected seat.</param>
+        /// <returns>
+        /// Task: A view for confirming a one-way booking, or a redirection to Home/Index with an error.
+        /// </returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ConfirmBooking(int flightId, int seatId)
@@ -132,43 +158,42 @@ namespace VitoriaAirlinesWeb.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            // Se ainda não temos ida registada na sessão, tratamos como voo de ida
-            if (HttpContext.Session.GetInt32("OutboundFlightId") == null)
+            // Store selection in session for checkout
+            HttpContext.Session.SetInt32("FlightId", flightId);
+            HttpContext.Session.SetInt32("SeatId", seatId);
+
+            var model = _converterHelper.ToConfirmBookingViewModel(flight, seat);
+            model.IsCustomer = User.Identity.IsAuthenticated && User.IsInRole(UserRoles.Customer);
+
+            if (model.IsCustomer)
             {
-                HttpContext.Session.SetInt32("OutboundFlightId", flightId);
-                HttpContext.Session.SetInt32("OutboundSeatId", seatId);
-
-                var returnFlightId = HttpContext.Session.GetInt32("ReturnFlightId");
-
-                if (returnFlightId.HasValue)
-                {
-                    // Round-trip: ir selecionar o lugar da volta
-                    return RedirectToAction("SelectSeat", new { flightId = returnFlightId.Value });
-                }
-                else
-                {
-                    // One-way: ir direto para confirmação da compra
-                    var model = _converterHelper.ToConfirmBookingViewModel(flight, seat);
-                    model.IsCustomer = User.Identity.IsAuthenticated && User.IsInRole(UserRoles.Customer);
-
-                    if (model.IsCustomer)
-                    {
-                        var user = await _userHelper.GetUserAsync(User);
-                        var profile = await _customerProfileRepository.GetByUserIdAsync(user.Id);
-                        model.ExistingPassportNumber = profile?.PassportNumber;
-                    }
-
-                    return View("ConfirmBooking", model);
-                }
+                var user = await _userHelper.GetUserAsync(User);
+                var profile = await _customerProfileRepository.GetByUserIdAsync(user.Id);
+                model.ExistingPassportNumber = profile?.PassportNumber;
             }
 
-            HttpContext.Session.SetInt32("ReturnFlightId", flightId);
-            HttpContext.Session.SetInt32("ReturnSeatId", seatId);
-
-            return RedirectToAction("ConfirmRoundTrip");
+            return View("ConfirmBooking", model);
         }
 
 
+
+
+        /// <summary>
+        /// Initiates a Stripe Checkout Session for a one-way flight booking.
+        /// Validates personal data (first name, last name, email, passport number)
+        /// based on whether the user is a registered customer or an anonymous guest.
+        /// Stores guest data in session for potential user account creation after successful payment.
+        /// </summary>
+        /// <param name="flightId">The ID of the flight to book.</param>
+        /// <param name="seatId">The ID of the selected seat.</param>
+        /// <param name="price">The final price of the ticket.</param>
+        /// <param name="firstName">First name of the passenger (required for anonymous).</param>
+        /// <param name="lastName">Last name of the passenger (required for anonymous).</param>
+        /// <param name="email">Email of the passenger (required for anonymous).</param>
+        /// <param name="passportNumber">Passport number of the passenger (required for anonymous, or if not in customer profile).</param>
+        /// <returns>
+        /// Task: Redirects to the Stripe checkout page, or returns the ConfirmBooking view with validation errors.
+        /// </returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateCheckoutSession(int flightId, int seatId, decimal price, string? firstName, string? lastName, string? email, string? passportNumber)
@@ -324,6 +349,16 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
+
+        /// <summary>
+        /// Handles the success callback from Stripe after a single (one-way) booking payment.
+        /// Verifies payment status, retrieves booking data from session, creates the ticket,
+        /// and for anonymous users, creates a new user account. Finally, sends a confirmation email.
+        /// </summary>
+        /// <param name="session_id">The Stripe Checkout Session ID provided by Stripe after successful payment.</param>
+        /// <returns>
+        /// Task: A success view, or a redirection to Home/Index with an error message if payment fails or data is missing/invalid.
+        /// </returns>
         public async Task<IActionResult> Success(string session_id)
         {
             var sessionService = new SessionService();
@@ -444,11 +479,14 @@ namespace VitoriaAirlinesWeb.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
+            var flight = await _flightRepository.GetByIdWithDetailsAsync(flightId.Value); // Inclui FlightNumber
+            var seat = flight.Airplane.Seats.FirstOrDefault(s => s.Id == seatId.Value);   // Inclui Row/Letter
+
             await _mailHelper.SendBookingConfirmationEmailAsync(
                 email,
                 fullName,
-                ticket.Flight.FlightNumber,
-                $"{ticket.Seat?.Row}{ticket.Seat?.Letter}",
+                flight.FlightNumber,
+                $"{seat?.Row}{seat?.Letter}",
                 price,
                 ticket.PurchaseDateUtc
             );
@@ -465,7 +503,13 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
-
+        /// <summary>
+        /// Displays the payment cancellation page.
+        /// This action is typically redirected to when a user cancels the payment process on Stripe.
+        /// </summary>
+        /// <returns>
+        /// IActionResult: The "Cancel" view.
+        /// </returns>
         [HttpGet]
         public IActionResult Cancel()
         {
@@ -474,6 +518,17 @@ namespace VitoriaAirlinesWeb.Controllers
 
 
 
+
+        /// <summary>
+        /// Displays the confirmation page for a seat change. It fetches the necessary ticket and seat details,
+        /// calculates the price difference, and presents this information to the customer for review before proceeding.
+        /// Only accessible by authenticated customers.
+        /// </summary>
+        /// <param name="oldTicketId">The ID of the original ticket whose seat is being changed.</param>
+        /// <param name="newSeatId">The ID of the newly selected seat.</param>
+        /// <returns>
+        /// Task: A view displaying the ConfirmSeatChangeViewModel, or a 404 error/ForbidResult if data is invalid or unauthorized.
+        /// </returns>
         [HttpGet]
         [Authorize(Roles = UserRoles.Customer)]
         public async Task<IActionResult> ConfirmSeatChange(int oldTicketId, int newSeatId)
@@ -500,6 +555,16 @@ namespace VitoriaAirlinesWeb.Controllers
 
 
 
+        /// <summary>
+        /// Executes the seat change operation. This is a POST action that handles three scenarios
+        /// based on the price difference: zero difference, negative difference (refund), and positive
+        /// difference (upgrade via Stripe).
+        /// </summary>
+        /// <param name="oldTicketId">The ID of the original ticket.</param>
+        /// <param name="newSeatId">The ID of the newly selected seat.</param>
+        /// <returns>
+        /// Task: Redirects to MyFlights/Upcoming with a success/error message, or redirects to Stripe for payment.
+        /// </returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ExecuteSeatChange(int oldTicketId, int newSeatId)
@@ -548,7 +613,7 @@ namespace VitoriaAirlinesWeb.Controllers
                 TempData["Success"] = $"Your seat has been successfully changed to {newSeat.Row}{newSeat.Letter} at no extra cost.";
                 return RedirectToAction("Upcoming", "MyFlights");
             }
-            else if (priceDifference < 0)
+            else if (priceDifference < 0) // downgrade
             {
                 var amountToRefund = Math.Abs(priceDifference);
                 ticket.SeatId = newSeatId;
@@ -576,7 +641,7 @@ namespace VitoriaAirlinesWeb.Controllers
                 TempData["Success"] = $"Seat changed to {newSeat.Row}{newSeat.Letter}! A refund of {amountToRefund:C} has been issued.";
                 return RedirectToAction("Upcoming", "MyFlights");
             }
-            else // priceDifference > 0 → upgrade
+            else // priceDifference > 0 - upgrade
             {
                 HttpContext.Session.SetInt32("OldTicketId", oldTicketId);
                 HttpContext.Session.SetInt32("NewSeatId", newSeatId);
@@ -599,6 +664,16 @@ namespace VitoriaAirlinesWeb.Controllers
             }
         }
 
+
+
+        /// <summary>
+        /// Handles the success callback from Stripe after a seat upgrade payment.
+        /// Updates the ticket with the new seat and price, sends a confirmation email, and clears session data.
+        /// </summary>
+        /// <param name="session_id">The Stripe Checkout Session ID provided by Stripe after successful payment.</param>
+        /// <returns>
+        /// Task: A success view, or a redirection to MyFlights/Upcoming with an error message.
+        /// </returns>
         public async Task<IActionResult> ChangeSeatSuccess(string session_id)
         {
             var sessionService = new SessionService();
@@ -677,72 +752,87 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
-        [HttpGet]
-        public async Task<IActionResult> ConfirmRoundTrip()
+
+        /// <summary>
+        /// Displays the round-trip booking confirmation page.
+        /// It retrieves the outbound and return flight/seat selections from the session
+        /// and presents them to the user for final review before payment.
+        /// </summary>
+        /// <returns>
+        /// Task: A view with the ConfirmRoundTripViewModel, or a redirection to Home/Index with an error if data is incomplete.
+        /// </returns>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmRoundTrip(int outboundFlightId, int returnFlightId, int outboundSeatId, int returnSeatId)
         {
-            var outboundFlightId = HttpContext.Session.GetInt32("OutboundFlightId");
-            var returnFlightId = HttpContext.Session.GetInt32("ReturnFlightId");
-            var outboundSeatId = HttpContext.Session.GetInt32("OutboundSeatId");
-            var returnSeatId = HttpContext.Session.GetInt32("ReturnSeatId");
 
-            if (outboundFlightId == null || returnFlightId == null || outboundSeatId == null || returnSeatId == null)
+            var outboundFlight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(outboundFlightId);
+            var returnFlight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(returnFlightId);
+            if (outboundFlight == null || returnFlight == null)
             {
-                TempData["Error"] = "Booking information is incomplete.";
+                TempData["Error"] = "Flight not found.";
                 return RedirectToAction("Index", "Home");
             }
 
-            var outboundFlight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(outboundFlightId.Value);
-            var returnFlight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(returnFlightId.Value);
-
-            var outboundSeat = outboundFlight?.Airplane.Seats.FirstOrDefault(s => s.Id == outboundSeatId.Value);
-            var returnSeat = returnFlight?.Airplane.Seats.FirstOrDefault(s => s.Id == returnSeatId.Value);
-
-            if (outboundFlight == null || returnFlight == null || outboundSeat == null || returnSeat == null)
+            var outboundSeat = outboundFlight.Airplane.Seats.FirstOrDefault(s => s.Id == outboundSeatId);
+            var returnSeat = returnFlight.Airplane.Seats.FirstOrDefault(s => s.Id == returnSeatId);
+            if (outboundSeat == null || returnSeat == null)
             {
-                TempData["Error"] = "Some booking data could not be loaded.";
+                TempData["Error"] = "Selected seat not found.";
                 return RedirectToAction("Index", "Home");
             }
 
-            var viewModel = new ConfirmRoundTripViewModel
+            var model = new ConfirmRoundTripViewModel
             {
                 OutboundFlight = outboundFlight,
                 ReturnFlight = returnFlight,
                 OutboundSeat = outboundSeat,
                 ReturnSeat = returnSeat,
+                OutboundFlightId = outboundFlight.Id,
+                ReturnFlightId = returnFlight.Id,
+                OutboundSeatId = outboundSeat.Id,
+                ReturnSeatId = returnSeat.Id,
                 IsCustomer = User.Identity.IsAuthenticated && User.IsInRole(UserRoles.Customer)
-
             };
 
-            if (viewModel.IsCustomer)
+            if (model.IsCustomer)
             {
                 var user = await _userHelper.GetUserAsync(User);
                 var profile = await _customerProfileRepository.GetByUserIdAsync(user.Id);
-                viewModel.ExistingPassportNumber = profile?.PassportNumber;
+                model.ExistingPassportNumber = profile?.PassportNumber;
             }
 
-            return View(viewModel);
+            return View(model);
         }
 
+
+
+        /// <summary>
+        /// Initiates a Stripe Checkout Session for a round-trip flight booking.
+        /// Validates personal data (first name, last name, email, passport number)
+        /// based on user authentication status (customer vs. anonymous guest).
+        /// Stores guest data in session for potential user account creation after successful payment.
+        /// </summary>
+        /// <param name="outboundFlightId">The ID of the selected outbound flight.</param>
+        /// <param name="returnFlightId">The ID of the selected return flight.</param>
+        /// <param name="outboundSeatId">The ID of the selected outbound seat.</param>
+        /// <param name="returnSeatId">The ID of the selected return seat.</param>
+        /// <param name="firstName">First name of the passenger (required for anonymous).</param>
+        /// <param name="lastName">Last name of the passenger (required for anonymous).</param>
+        /// <param name="email">Email of the passenger (required for anonymous).</param>
+        /// <param name="passportNumber">Passport number of the passenger (required for anonymous, or if not in customer profile).</param>
+        /// <returns>
+        /// Task: Redirects to the Stripe checkout page, or returns the ConfirmRoundTrip view with validation errors.
+        /// </returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateRoundTripCheckoutSession(string? firstName, string? lastName, string? email, string? passportNumber)
+        public async Task<IActionResult> CreateRoundTripCheckoutSession(int outboundFlightId, int returnFlightId, int outboundSeatId, int returnSeatId, string? firstName, string? lastName, string? email, string? passportNumber)
         {
-            // 1. Obtenção de dados da sessão e verificação inicial
-            var outboundFlightId = HttpContext.Session.GetInt32("OutboundFlightId");
-            var returnFlightId = HttpContext.Session.GetInt32("ReturnFlightId");
-            var outboundSeatId = HttpContext.Session.GetInt32("OutboundSeatId");
-            var returnSeatId = HttpContext.Session.GetInt32("ReturnSeatId");
 
-            if (outboundFlightId == null || returnFlightId == null || outboundSeatId == null || returnSeatId == null)
-            {
-                ModelState.AddModelError(string.Empty, "Booking information is incomplete.");
-                return RedirectToAction("Index", "Home");
-            }
-
-            var outboundFlight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(outboundFlightId.Value);
-            var returnFlight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(returnFlightId.Value);
-            var outboundSeat = outboundFlight?.Airplane.Seats.FirstOrDefault(s => s.Id == outboundSeatId.Value);
-            var returnSeat = returnFlight?.Airplane.Seats.FirstOrDefault(s => s.Id == returnSeatId.Value);
+            var outboundFlight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(outboundFlightId);
+            var returnFlight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(returnFlightId);
+            var outboundSeat = outboundFlight?.Airplane.Seats.FirstOrDefault(s => s.Id == outboundSeatId);
+            var returnSeat = returnFlight?.Airplane.Seats.FirstOrDefault(s => s.Id == returnSeatId);
 
             if (outboundFlight == null || returnFlight == null || outboundSeat == null || returnSeat == null)
             {
@@ -753,6 +843,10 @@ namespace VitoriaAirlinesWeb.Controllers
             // Preparar o ViewModel para, potencialmente, retornar à View com erros ou dados preenchidos
             var model = new ConfirmRoundTripViewModel
             {
+                OutboundFlightId = outboundFlight.Id,
+                ReturnFlightId = returnFlight.Id,
+                OutboundSeatId = outboundSeat.Id,
+                ReturnSeatId = returnSeat.Id,
                 OutboundFlight = outboundFlight,
                 ReturnFlight = returnFlight,
                 OutboundSeat = outboundSeat,
@@ -766,7 +860,6 @@ namespace VitoriaAirlinesWeb.Controllers
             model.PassportNumber = passportNumber;
 
 
-            // 2. Lógica de validação condicional para dados pessoais (IDÊNTICA à de CreateCheckoutSession)
             if (model.IsCustomer)
             {
                 var user = await _userHelper.GetUserAsync(User);
@@ -792,12 +885,12 @@ namespace VitoriaAirlinesWeb.Controllers
                         }
                     }
                 }
-                else
+                else // If the profile already has a passport number, reuse it if none was submitted
                 {
                     if (string.IsNullOrWhiteSpace(passportNumber))
                     {
                         passportNumber = profile.PassportNumber;
-                        model.PassportNumber = profile.PassportNumber; // Atualiza o modelo para a view
+                        model.PassportNumber = profile.PassportNumber; // Keep model in sync for the view
                     }
                 }
             }
@@ -843,11 +936,16 @@ namespace VitoriaAirlinesWeb.Controllers
                 return View("ConfirmRoundTrip", model);
             }
 
-            // 4. Se tudo válido, procede com a criação da sessão de pagamento
+            // Se tudo válido, procede com a criação da sessão de pagamento
             var priceOutbound = model.OutboundPrice;
             var priceReturn = model.ReturnPrice;
             var totalPrice = model.TotalPrice;
 
+
+            HttpContext.Session.SetInt32("OutboundFlightId", outboundFlightId);
+            HttpContext.Session.SetInt32("ReturnFlightId", returnFlightId);
+            HttpContext.Session.SetInt32("OutboundSeatId", outboundSeatId);
+            HttpContext.Session.SetInt32("ReturnSeatId", returnSeatId);
             HttpContext.Session.SetString("OutboundPrice", priceOutbound.ToString(CultureInfo.InvariantCulture));
             HttpContext.Session.SetString("ReturnPrice", priceReturn.ToString(CultureInfo.InvariantCulture));
 
@@ -871,6 +969,16 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
+
+        /// <summary>
+        /// Handles the success callback from Stripe after a round-trip booking payment.
+        /// Verifies payment status, retrieves booking data from session, creates both outbound and return tickets,
+        /// and for anonymous users, creates a new user account. Finally, sends confirmation emails.
+        /// </summary>
+        /// <param name="session_id">The Stripe Checkout Session ID provided by Stripe after successful payment.</param>
+        /// <returns>
+        /// Task: A success view, or a redirection to Home/Index with an error message if payment fails or data is missing/invalid.
+        /// </returns>
         public async Task<IActionResult> RoundTripSuccess(string session_id)
         {
             var sessionService = new SessionService();
@@ -896,8 +1004,26 @@ namespace VitoriaAirlinesWeb.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            decimal priceOutbound = decimal.Parse(outboundPriceStr, CultureInfo.InvariantCulture);
-            decimal priceReturn = decimal.Parse(returnPriceStr, CultureInfo.InvariantCulture);
+            decimal outboundPrice = decimal.Parse(outboundPriceStr, CultureInfo.InvariantCulture);
+            decimal returnPrice = decimal.Parse(returnPriceStr, CultureInfo.InvariantCulture);
+
+            var outboundFlight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(outboundFlightId.Value);
+            var returnFlight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(returnFlightId.Value);
+
+            if (outboundFlight == null || returnFlight == null)
+            {
+                TempData["Error"] = "Flight data missing.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var outboundSeat = outboundFlight.Airplane.Seats.FirstOrDefault(s => s.Id == outboundSeatId.Value);
+            var returnSeat = returnFlight.Airplane.Seats.FirstOrDefault(s => s.Id == returnSeatId.Value);
+
+            if (outboundSeat == null || returnSeat == null)
+            {
+                TempData["Error"] = "Seat data missing.";
+                return RedirectToAction("Index", "Home");
+            }
 
             string userId;
             string email;
@@ -916,14 +1042,14 @@ namespace VitoriaAirlinesWeb.Controllers
                 email = user.Email;
                 fullName = user.FullName;
             }
-            else
+            else // é anonimo 
             {
-                var sessionEmail = HttpContext.Session.GetString("Email");
+                var emailSession = HttpContext.Session.GetString("Email");
                 var firstName = HttpContext.Session.GetString("FirstName");
                 var lastName = HttpContext.Session.GetString("LastName");
                 var passportNumber = HttpContext.Session.GetString("PassportNumber");
 
-                if (string.IsNullOrWhiteSpace(sessionEmail))
+                if (string.IsNullOrWhiteSpace(emailSession))
                 {
                     TempData["Error"] = "Missing user email.";
                     return RedirectToAction("Index", "Home");
@@ -931,14 +1057,14 @@ namespace VitoriaAirlinesWeb.Controllers
 
                 var newUser = new User
                 {
-                    UserName = sessionEmail,
-                    Email = sessionEmail,
+                    UserName = emailSession,
+                    Email = emailSession,
                     FirstName = firstName,
                     LastName = lastName
                 };
 
-                var createResult = await _userHelper.AddUserAsync(newUser, "Temp1234!");
-                if (!createResult.Succeeded)
+                var result = await _userHelper.AddUserAsync(newUser, "Temp1234!");
+                if (!result.Succeeded)
                 {
                     TempData["Error"] = "User creation failed.";
                     return RedirectToAction("Index", "Home");
@@ -972,34 +1098,16 @@ namespace VitoriaAirlinesWeb.Controllers
 
             var ticket1Exists = await _ticketRepository.UserHasTicketForFlightAsync(userId, outboundFlightId.Value);
             var ticket2Exists = await _ticketRepository.UserHasTicketForFlightAsync(userId, returnFlightId.Value);
-
             if (ticket1Exists || ticket2Exists)
             {
                 TempData["Error"] = "You already have a ticket for one of the selected flights.";
                 return RedirectToAction("Index", "Home");
             }
 
-            var outboundFlight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(outboundFlightId.Value);
-            var returnFlight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(returnFlightId.Value);
-            if (outboundFlight == null || returnFlight == null)
-            {
-                TempData["Error"] = "Flight data missing.";
-                return RedirectToAction("Index", "Home");
-            }
-
-            var outboundSeat = outboundFlight.Airplane.Seats.FirstOrDefault(s => s.Id == outboundSeatId.Value);
-            var returnSeat = returnFlight.Airplane.Seats.FirstOrDefault(s => s.Id == returnSeatId.Value);
-            if (outboundSeat == null || returnSeat == null)
-            {
-                TempData["Error"] = "Seat data missing.";
-                return RedirectToAction("Index", "Home");
-            }
-
             var outboundConflict = await _ticketRepository.GetBySeatAndFlightAsync(outboundSeatId.Value, outboundFlightId.Value);
             var returnConflict = await _ticketRepository.GetBySeatAndFlightAsync(returnSeatId.Value, returnFlightId.Value);
 
-            if ((outboundConflict != null && !outboundConflict.IsCanceled) ||
-                (returnConflict != null && !returnConflict.IsCanceled))
+            if ((outboundConflict != null && !outboundConflict.IsCanceled) || (returnConflict != null && !returnConflict.IsCanceled))
             {
                 TempData["Error"] = "One or both of the selected seats have already been taken.";
                 return RedirectToAction("Index", "Home");
@@ -1007,19 +1115,19 @@ namespace VitoriaAirlinesWeb.Controllers
 
             var ticketOutbound = new Ticket
             {
-                FlightId = outboundFlightId.Value,
-                SeatId = outboundSeatId.Value,
+                FlightId = outboundFlight.Id,
+                SeatId = outboundSeat.Id,
                 UserId = userId,
-                PricePaid = priceOutbound,
+                PricePaid = outboundPrice,
                 PurchaseDateUtc = DateTime.UtcNow
             };
 
             var ticketReturn = new Ticket
             {
-                FlightId = returnFlightId.Value,
-                SeatId = returnSeatId.Value,
+                FlightId = returnFlight.Id,
+                SeatId = returnSeat.Id,
                 UserId = userId,
-                PricePaid = priceReturn,
+                PricePaid = returnPrice,
                 PurchaseDateUtc = DateTime.UtcNow
             };
 
@@ -1039,7 +1147,7 @@ namespace VitoriaAirlinesWeb.Controllers
                 fullName,
                 outboundFlight.FlightNumber,
                 $"{outboundSeat.Row}{outboundSeat.Letter}",
-                priceOutbound,
+                outboundPrice,
                 ticketOutbound.PurchaseDateUtc
             );
 
@@ -1048,7 +1156,7 @@ namespace VitoriaAirlinesWeb.Controllers
                 fullName,
                 returnFlight.FlightNumber,
                 $"{returnSeat.Row}{returnSeat.Letter}",
-                priceReturn,
+                returnPrice,
                 ticketReturn.PurchaseDateUtc
             );
 
@@ -1066,6 +1174,70 @@ namespace VitoriaAirlinesWeb.Controllers
             return View("Success");
         }
 
+
+
+        /// <summary>
+        /// Displays the view for selecting seats for both outbound and return flights of a round trip.
+        /// This action is typically accessed after the user searches for round-trip flights and selects them.
+        /// </summary>
+        /// <param name="outboundFlightId">The ID of the selected outbound flight.</param>
+        /// <param name="returnFlightId">The ID of the selected return flight.</param>
+        /// <returns>
+        /// Task: A view with the SelectRoundTripSeatViewModel, or a redirection to Home/Index with an error.
+        /// </returns>
+
+        [HttpGet]
+        public async Task<IActionResult> SelectRoundTripSeats(int outboundFlightId, int returnFlightId)
+        {
+            if (User.Identity.IsAuthenticated && (User.IsInRole(UserRoles.Admin) || User.IsInRole(UserRoles.Employee)))
+            {
+                TempData["Error"] = "This functionality is reserved for customers only.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var outboundFlight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(outboundFlightId);
+            var returnFlight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(returnFlightId);
+
+            if (outboundFlight == null || outboundFlight.Status != FlightStatus.Scheduled ||
+                returnFlight == null || returnFlight.Status != FlightStatus.Scheduled)
+            {
+                TempData["Error"] = "One or both of the selected flights are not available for booking.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            if (User.Identity.IsAuthenticated && User.IsInRole(UserRoles.Customer))
+            {
+                var user = await _userHelper.GetUserAsync(User);
+                if (user != null)
+                {
+                    var alreadyBookedOutbound = await _ticketRepository.UserHasTicketForFlightAsync(user.Id, outboundFlightId);
+                    var alreadyBookedReturn = await _ticketRepository.UserHasTicketForFlightAsync(user.Id, returnFlightId);
+
+                    if (alreadyBookedOutbound || alreadyBookedReturn)
+                    {
+                        TempData["Error"] = "You have already booked one of the selected flights.";
+                        return RedirectToAction("Index", "Home");
+                    }
+                }
+            }
+
+            var outboundTickets = await _ticketRepository.GetTicketsByFlightAsync(outboundFlightId);
+            var returnTickets = await _ticketRepository.GetTicketsByFlightAsync(returnFlightId);
+
+            var validOutboundTickets = outboundTickets.Where(t => !t.IsCanceled);
+            var validReturnTickets = returnTickets.Where(t => !t.IsCanceled);
+
+            var occupiedOutbound = validOutboundTickets.Select(t => t.SeatId).ToList();
+            var occupiedReturn = validReturnTickets.Select(t => t.SeatId).ToList();
+
+            var model = new SelectRoundTripSeatViewModel
+            {
+                Outbound = _converterHelper.ToSelectSeatViewModel(outboundFlight, occupiedOutbound),
+                Return = _converterHelper.ToSelectSeatViewModel(returnFlight, occupiedReturn)
+            };
+
+            return View("SelectRoundTripSeats", model);
+        }
 
 
     }

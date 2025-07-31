@@ -5,6 +5,10 @@ using VitoriaAirlinesWeb.Helpers;
 
 namespace VitoriaAirlinesWeb.Controllers
 {
+    /// <summary>
+    /// Manages flight-related functionalities for authenticated customers, such as viewing flight history and upcoming flights, and canceling tickets.
+    /// Only accessible by users with the Customer role.
+    /// </summary>
     [Authorize(Roles = UserRoles.Customer)]
     public class MyFlightsController : Controller
     {
@@ -13,6 +17,14 @@ namespace VitoriaAirlinesWeb.Controllers
         private readonly IMailHelper _mailHelper;
         private readonly IConverterHelper _converterHelper;
 
+
+        /// <summary>
+        /// Initializes a new instance of the MyFlightsController with necessary helpers and repositories.
+        /// </summary>
+        /// <param name="userHelper">Helper for user-related operations.</param>
+        /// <param name="ticketRepository">Repository for ticket data access.</param>
+        /// <param name="mailHelper">Helper for sending emails.</param>
+        /// <param name="converterHelper">Helper for converting entities to view models.</param>
         public MyFlightsController(
             IUserHelper userHelper,
             ITicketRepository ticketRepository,
@@ -25,6 +37,13 @@ namespace VitoriaAirlinesWeb.Controllers
             _converterHelper = converterHelper;
         }
 
+
+        /// <summary>
+        /// Displays the history of past flights for the current authenticated customer.
+        /// </summary>
+        /// <returns>
+        /// Task: A view displaying a list of past tickets, or a 404 error if the user is not found.
+        /// </returns>
         [HttpGet]
         public async Task<IActionResult> History()
         {
@@ -40,6 +59,12 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
+        /// <summary>
+        /// Displays the upcoming flights for the current authenticated customer.
+        /// </summary>
+        /// <returns>
+        /// Task: A view displaying a list of upcoming tickets, or a 404 error if the user is not found.
+        /// </returns>
         [HttpGet]
         public async Task<IActionResult> Upcoming()
         {
@@ -53,6 +78,15 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
+        /// <summary>
+        /// Handles the cancellation of a customer's ticket.
+        /// A ticket can only be canceled if it's not already canceled and is more than 24 hours before departure.
+        /// Sends a confirmation email upon successful cancellation.
+        /// </summary>
+        /// <param name="id">The ID of the ticket to cancel.</param>
+        /// <returns>
+        /// Task: Redirects to the Upcoming flights page with a success or error message.
+        /// </returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CancelTicket(int id)

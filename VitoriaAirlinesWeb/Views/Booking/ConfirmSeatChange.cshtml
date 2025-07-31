@@ -78,11 +78,11 @@
                     <dd class="col-sm-7 border-top pt-2 mt-2 fw-bold fs-5 @(Model.PriceDifference > 0 ? "text-danger" : "text-success")" style="border-color: #444 !important;">
                         @if (Model.PriceDifference != 0)
                         {
-                            @Math.Abs(Model.PriceDifference).ToString("C")
+                            @Math.Abs(Model.PriceDifference).ToString("C2", CultureInfo.GetCultureInfo("pt-PT"))
                         }
                         else
                         {
-                            @Model.PriceDifference.ToString("C")
+                            @Model.PriceDifference.ToString("C2", CultureInfo.GetCultureInfo("pt-PT"))
                         }
                     </dd>
                 </dl>

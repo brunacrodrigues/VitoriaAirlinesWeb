@@ -11,10 +11,20 @@ namespace VitoriaAirlinesWeb.Controllers
     [Authorize(Roles = UserRoles.Admin)]
     public class EmployeesController : Controller
     {
+        /// <summary>
+        /// Manages employee accounts. Only accessible by users with the Admin role.
+        /// </summary>
         private readonly IUserHelper _userHelper;
         private readonly IMailHelper _mailHelper;
         private readonly IConverterHelper _converterHelper;
 
+
+        /// <summary>
+        /// Initializes a new instance of the EmployeesController with necessary helpers.
+        /// </summary>
+        /// <param name="userHelper">Helper for user-related operations.</param>
+        /// <param name="mailHelper">Helper for sending emails.</param>
+        /// <param name="converterHelper">Helper for converting between entities and view models.</param>
         public EmployeesController(
             IUserHelper userHelper,
             IMailHelper mailHelper,
@@ -25,6 +35,13 @@ namespace VitoriaAirlinesWeb.Controllers
             _converterHelper = converterHelper;
         }
 
+
+        /// <summary>
+        /// Displays a list of all users with the Employee role.
+        /// </summary>
+        /// <returns>
+        /// Task: A view displaying a collection of employee users.
+        /// </returns>
         public async Task<IActionResult> Index()
         {
             var employees = await _userHelper.GetUsersInRoleAsync(UserRoles.Employee);
@@ -32,12 +49,29 @@ namespace VitoriaAirlinesWeb.Controllers
             return View(employees);
         }
 
+
+        /// <summary>
+        /// Displays the form to register a new employee.
+        /// </summary>
+        /// <returns>
+        /// IActionResult: The register employee view.
+        /// </returns>
         public IActionResult Register()
         {
             return View();
         }
 
 
+
+        /// <summary>
+        /// Handles the submission of the new employee registration form.
+        /// Creates a new user with the Employee role, sets a temporary password,
+        /// confirms their email, and sends a password reset link via email.
+        /// </summary>
+        /// <param name="model">The registration data for the new employee.</param>
+        /// <returns>
+        /// Task: Redirects to the Index on success, or returns the view with validation/error messages.
+        /// </returns>
         [HttpPost]
         public async Task<IActionResult> Register(RegisterEmployeeViewModel model)
         {
@@ -99,6 +133,14 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
+
+        /// <summary>
+        /// Displays the form to edit an existing employee's profile.
+        /// </summary>
+        /// <param name="email">The email of the employee to edit.</param>
+        /// <returns>
+        /// Task: The edit employee view, pre-populated with employee data, or a 404 error if not found.
+        /// </returns>
         public async Task<IActionResult> Edit(string email)
         {
             var employee = await _userHelper.GetUserByEmailAsync(email);
@@ -108,6 +150,16 @@ namespace VitoriaAirlinesWeb.Controllers
             return View(model);
         }
 
+
+        /// <summary>
+        /// Handles the submission of the employee edit form.
+        /// Updates the employee's first name and last name.
+        /// </summary>
+        /// <param name="email">The original email of the employee (used for lookup).</param>
+        /// <param name="model">The updated employee data from the form.</param>
+        /// <returns>
+        /// Task: Redirects to the Index on success, or returns the view with validation errors.
+        /// </returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(string email, EditEmployeeViewModel model)
@@ -131,6 +183,14 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
+
+        /// <summary>
+        /// Deactivates an employee's account by changing their role to 'Deactivated'.
+        /// </summary>
+        /// <param name="id">The ID of the employee user to deactivate.</param>
+        /// <returns>
+        /// Task: Redirects to the Index with a success message.
+        /// </returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(string id)

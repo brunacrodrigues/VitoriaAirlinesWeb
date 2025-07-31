@@ -6,19 +6,40 @@ using VitoriaAirlinesWeb.Responses;
 
 namespace VitoriaAirlinesWeb.Services
 {
+    /// <summary>
+    /// Provides services for interacting with the Google Gemini API to generate AI responses.
+    /// It handles API calls, request body construction, and response parsing.
+    /// </summary>
     public class GeminiApiService : IGeminiApiService
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly string _apiKey;
-        private const string GeminiModel = "gemini-2.5-flash";
+        private const string GeminiModel = "gemini-2.5-flash"; // Defines the specific Gemini model to use.
 
+
+        /// <summary>
+        /// Initializes a new instance of the GeminiApiService class.
+        /// </summary>
+        /// <param name="httpClientFactory">Factory for creating HttpClient instances.</param>
+        /// <param name="configuration">Application configuration to retrieve the Gemini API key.</param>
         public GeminiApiService(IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
             _httpClientFactory = httpClientFactory;
-            _apiKey = configuration["GoogleGemini:ApiKey"];
+            _apiKey = configuration["GoogleGemini:ApiKey"] ?? throw new InvalidOperationException("Google Gemini API Key not configured.");
         }
 
 
+        /// <summary>
+        /// Asynchronously sends a prompt to the Google Gemini API and returns the AI's response.
+        /// Includes conversation history and a system instruction based on the user's role.
+        /// </summary>
+        /// <param name="prompt">The user's current prompt.</param>
+        /// <param name="history">A collection of previous chat messages to provide conversation context.</param>
+        /// <param name="userRole">The role of the current user (e.g., "Admin", "Customer"), used to tailor AI's behavior.</param>
+        /// <returns>
+        /// Task: An ApiResponse containing the success status, message, and the AI's generated text result.
+        /// Returns IsSuccess = false if there's an HTTP error or parsing issue.
+        /// </returns>
         public async Task<ApiResponse> AskAsync(string prompt, IEnumerable<ChatMessageDto> history, string? userRole)
         {
             var apiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{GeminiModel}:generateContent?key={_apiKey}";
@@ -30,14 +51,15 @@ namespace VitoriaAirlinesWeb.Services
 
             try
             {
-                var response = await client.PostAsync(apiUrl, content);
-                response.EnsureSuccessStatusCode();
-                var responseString = await response.Content.ReadAsStringAsync();
+                var response = await client.PostAsync(apiUrl, content); // Sends the POST request to Gemini API.
+                response.EnsureSuccessStatusCode(); // Throws HttpRequestException for non-success status codes.
+                var responseString = await response.Content.ReadAsStringAsync(); // Reads the response content as a string.
 
-                return ParseResponse(responseString);
+                return ParseResponse(responseString); // Parses the JSON response.
             }
             catch (HttpRequestException httpEx)
             {
+                // Handles HTTP-specific errors during the API call.
                 return new ApiResponse
                 {
                     IsSuccess = false,
@@ -54,28 +76,43 @@ namespace VitoriaAirlinesWeb.Services
             }
         }
 
+
+
+        /// <summary>
+        /// Builds the request body for the Gemini API call, including the conversation history
+        /// and a system instruction based on the user's role.
+        /// </summary>
+        /// <param name="prompt">The current user prompt.</param>
+        /// <param name="history">The list of previous chat messages.</param>
+        /// <param name="userRole">The role of the user, influencing the system instruction.</param>
+        /// <returns>An anonymous object representing the JSON request body structure.</returns>
         private object BuildRequestBody(string prompt, IEnumerable<ChatMessageDto> history, string? userRole)
         {
-            var systemInstructionText = GetPromptByRole(userRole);
+            var systemInstructionText = GetPromptByRole(userRole); // Get the role-specific system instruction.
             var contents = new List<object>();
 
+            // Helper function to add content to the list.
             void AddContent(string role, string text)
                 => contents.Add(new { role, parts = new[] { new { text } } });
 
+            // Add historical messages to the contents.
             if (history != null)
             {
                 foreach (var msg in history)
                 {
                     if (!string.IsNullOrWhiteSpace(msg.Content))
                     {
+                        // Map incoming role to Gemini's expected roles ("user" or "model").
                         var role = msg.Role.Equals("user", StringComparison.OrdinalIgnoreCase) ? "user" : "model";
                         AddContent(role, msg.Content);
                     }
                 }
             }
 
+            // Add the current user prompt.
             AddContent("user", prompt);
 
+            // Return the final request body object.
             return new
             {
                 contents,
@@ -84,6 +121,12 @@ namespace VitoriaAirlinesWeb.Services
         }
 
 
+        /// <summary>
+        /// Parses the JSON response string from the Gemini API and converts it into an ApiResponse.
+        /// Extracts the AI's generated text or identifies blocking reasons.
+        /// </summary>
+        /// <param name="responseString">The raw JSON response string from the Gemini API.</param>
+        /// <returns>An ApiResponse indicating the success, message, and results of the parsing.</returns>
         private ApiResponse ParseResponse(string responseString)
         {
             try
@@ -91,11 +134,13 @@ namespace VitoriaAirlinesWeb.Services
                 using var doc = JsonDocument.Parse(responseString);
                 var root = doc.RootElement;
 
+                // Check if candidates (AI generated responses) are available.
                 if (root.TryGetProperty("candidates", out var candidates) && candidates.GetArrayLength() > 0)
                 {
-                    var candidate = candidates[0];
+                    var candidate = candidates[0]; // Get the first candidate response.
                     var content = candidate.GetProperty("content");
 
+                    // Extract the text content from the response parts.
                     var text = content.TryGetProperty("parts", out var parts) && parts.GetArrayLength() > 0
                         ? parts[0].GetProperty("text").GetString()
                         : null;
@@ -125,6 +170,7 @@ namespace VitoriaAirlinesWeb.Services
             }
             catch (JsonException ex)
             {
+                // Handles errors during JSON parsing.
                 return new ApiResponse
                 {
                     IsSuccess = false,
@@ -134,6 +180,12 @@ namespace VitoriaAirlinesWeb.Services
         }
 
 
+        /// <summary>
+        /// Provides a role-specific system instruction string for the Gemini AI.
+        /// This guides the AI's persona and response style based on the user's role.
+        /// </summary>
+        /// <param name="role">The user's role (e.g., "Admin", "Employee", "Customer", or null for anonymous).</param>
+        /// <returns>A string containing the system instruction for the AI.</returns>
         private static string GetPromptByRole(string? role)
         {
             return role switch

@@ -1567,7 +1567,7 @@ section {
 }
 
 .text-darkt {
-    color: #D4A437;
+    color: #D4A437 !important;
 }
 
 .text-grey {

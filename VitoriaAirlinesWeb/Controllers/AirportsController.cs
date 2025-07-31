@@ -9,10 +9,20 @@ namespace VitoriaAirlinesWeb.Controllers
     [Authorize(Roles = UserRoles.Admin)]
     public class AirportsController : Controller
     {
+        /// <summary>
+        /// Manages airport-related operations. Only accessible by users with the Admin role.
+        /// </summary>
         private readonly IAirportRepository _airportRepository;
         private readonly IConverterHelper _converterHelper;
         private readonly ICountryRepository _countryRepository;
 
+
+        /// <summary>
+        /// Initializes a new instance of the AirportsController with necessary repositories and helpers.
+        /// </summary>
+        /// <param name="airportRepository">Repository for airport data access.</param>
+        /// <param name="converterHelper">Helper for converting between entities and view models.</param>
+        /// <param name="countryRepository">Repository for country data access.</param>
         public AirportsController(
             IAirportRepository airportRepository,
             IConverterHelper converterHelper,
@@ -24,12 +34,26 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
+        /// <summary>
+        /// Displays a list of all airports, including their associated countries.
+        /// </summary>
+        /// <returns>
+        /// IActionResult: A view displaying a collection of airports.
+        /// </returns>
         // GET: AirportsController
         public IActionResult Index()
         {
             return View(_airportRepository.GetAllWithCountries());
         }
 
+
+        /// <summary>
+        /// Displays the details of a specific airport, including its country.
+        /// </summary>
+        /// <param name="id">The ID of the airport.</param>
+        /// <returns>
+        /// Task: A view displaying the airport details, or a 404 error if not found.
+        /// </returns>
         // GET: AirportsController/Details/5
         public async Task<IActionResult> Details(int id)
         {
@@ -39,6 +63,13 @@ namespace VitoriaAirlinesWeb.Controllers
             return View(airport);
         }
 
+
+        /// <summary>
+        /// Displays the form to create a new airport.
+        /// </summary>
+        /// <returns>
+        /// IActionResult: The create airport view, pre-populated with country options.
+        /// </returns>
         // GET: AirportsController/Create
         public IActionResult Create()
         {
@@ -50,6 +81,16 @@ namespace VitoriaAirlinesWeb.Controllers
             return View(model);
         }
 
+
+
+        /// <summary>
+        /// Handles the submission of the new airport creation form.
+        /// Validates input, checks for duplicate IATA codes, and creates the airport.
+        /// </summary>
+        /// <param name="viewModel">The airport data from the form.</param>
+        /// <returns>
+        /// Task: Redirects to the Index on success, or returns the view with validation errors and country options.
+        /// </returns>
         // POST: AirportsController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -78,6 +119,15 @@ namespace VitoriaAirlinesWeb.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+
+        /// <summary>
+        /// Displays the form to edit an existing airport.
+        /// </summary>
+        /// <param name="id">The ID of the airport to edit.</param>
+        /// <returns>
+        /// Task: The edit airport view, pre-populated with airport data and country options, or a 404 error if not found.
+        /// </returns>
+
         // GET: AirportsController/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
@@ -89,6 +139,17 @@ namespace VitoriaAirlinesWeb.Controllers
             return View(model);
         }
 
+
+
+        /// <summary>
+        /// Handles the submission of the airport edit form.
+        /// Validates input, checks for associated flights, and updates the airport.
+        /// </summary>
+        /// <param name="id">The ID of the airport being edited.</param>
+        /// <param name="viewModel">The updated airport data from the form.</param>
+        /// <returns>
+        /// Task: Redirects to the Index on success, or returns the view with validation/error messages and country options.
+        /// </returns>
         // POST: AirportsController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -126,6 +187,14 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
+        /// <summary>
+        /// Handles the deletion of an airport.
+        /// Checks for associated flights before proceeding with deletion.
+        /// </summary>
+        /// <param name="id">The ID of the airport to delete.</param>
+        /// <returns>
+        /// Task: Redirects to the Index with a success or error message.
+        /// </returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
@@ -141,7 +210,7 @@ namespace VitoriaAirlinesWeb.Controllers
 
             await _airportRepository.DeleteAsync(airport);
 
-            TempData["SuccessMessage"] = "Airplane deleted successfully.";
+            TempData["SuccessMessage"] = "Airport deleted successfully.";
             return RedirectToAction(nameof(Index));
         }
     }

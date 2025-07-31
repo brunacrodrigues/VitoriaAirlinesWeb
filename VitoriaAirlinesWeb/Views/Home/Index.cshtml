@@ -83,14 +83,14 @@
                     <label asp-for="DepartureDate" class="form-label text-light">
                         Departure Date <span class="text-muted">(optional)</span>
                     </label>
-                    <input asp-for="DepartureDate" class="form-control custom-input" type="date" />
+                    <input asp-for="DepartureDate" class="form-control custom-input" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
                 </div>
 
                 <div class="col-md-3" id="returnDateContainer" style="@(Model.TripType == TripType.RoundTrip ? "" : "display: none;")">
                     <label asp-for="ReturnDate" class="form-label text-light">
                         Return Date <span class="text-muted">(optional)</span>
                     </label>
-                    <input asp-for="ReturnDate" class="form-control custom-input" type="date" />
+                    <input asp-for="ReturnDate" class="form-control custom-input" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
                 </div>
             </div>
             <br />
@@ -281,7 +281,6 @@
                                         }
                                         else
                                         {
-                                            @* Para voos de volta, SEMPRE queremos um botão de seleção para o round trip. *@
                                             <button type="button" class="btn btn-brand-primary fw-bold select-flight-btn"
                                                     data-flight-id="@flight.Id"
                                                     data-direction="return"
@@ -445,41 +444,26 @@
             function updateContinueButtonVisibility() {
                 if (selectedOutbound && selectedReturn) {
                     continueBtn?.classList.remove('d-none');
-                    continueBtn.href = "#";
+                    continueBtn.href = `/Booking/SelectRoundTripSeats?outboundFlightId=${selectedOutbound}&returnFlightId=${selectedReturn}`;
                 } else {
                     continueBtn?.classList.add('d-none');
                     continueBtn.href = "#";
                 }
             }
 
-            if (continueBtn) {
-                continueBtn.addEventListener('click', async function (e) {
-                    e.preventDefault();
+                if (continueBtn) {
+            continueBtn.addEventListener('click', function (e) {
+                e.preventDefault();
 
-                    if (!selectedOutbound || !selectedReturn) {
-                        showToast("Please select both the outbound and return flights before continuing.");
-                        return;
-                    }
+                if (!selectedOutbound || !selectedReturn) {
+                    showToast("Please select both the outbound and return flights before continuing.");
+                    return;
+                }
 
-                    this.disabled = true;
-
-                    try {
-                        const response = await fetch(`/Home/SetReturnFlightId?returnFlightId=${selectedReturn}`, { method: 'POST' });
-
-                        if (response.ok) {
-                            window.location.href = `/Booking/SelectSeat?flightId=${selectedOutbound}`;
-                        } else {
-                            showToast("An error occurred while preparing your booking. Please try again.");
-                        }
-                    } catch (error) {
-                        console.error("Erro ao enviar ReturnFlightId para a sessão:", error);
-                        showToast("Network error. Please try again.");
-                    } finally {
-                        this.disabled = false;
-                        this.innerHTML = '<i class="fas fa-arrow-right me-1"></i> Continue to Booking';
-                    }
-                });
-            }
+                const url = `/Booking/SelectRoundTripSeats?outboundFlightId=${selectedOutbound}&returnFlightId=${selectedReturn}`;
+                window.location.href = url;
+            });
+        }
 
             selectButtons.forEach(button => {
                 button.addEventListener('click', function () {

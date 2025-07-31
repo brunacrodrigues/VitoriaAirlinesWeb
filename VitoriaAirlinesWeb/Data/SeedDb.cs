@@ -6,17 +6,33 @@ using VitoriaAirlinesWeb.Helpers;
 
 namespace VitoriaAirlinesWeb.Data
 {
+    /// <summary>
+    /// Populates the database with initial data (seeding) required for the application.
+    /// This includes roles, a default admin user, and customer profiles for existing customer users.
+    /// </summary>
     public class SeedDb
     {
         private readonly DataContext _context;
         private readonly IUserHelper _userHelper;
 
+
+        /// <summary>
+        /// Initializes a new instance of the SeedDb class.
+        /// </summary>
+        /// <param name="context">The data context for database operations.</param>
+        /// <param name="userHelper">Helper for user-related operations, including role management.</param>
         public SeedDb(DataContext context, IUserHelper userHelper)
         {
             _context = context;
             _userHelper = userHelper;
         }
 
+
+        /// <summary>
+        /// Asynchronously seeds the database with initial data.
+        /// This includes applying migrations, checking and adding countries, roles, a default admin user, and customer profiles.
+        /// </summary>
+        /// <returns>Task: A Task representing the asynchronous seeding operation.</returns>
         public async Task SeedAsync()
         {
             await _context.Database.MigrateAsync();
@@ -58,6 +74,12 @@ namespace VitoriaAirlinesWeb.Data
             await AddCustomerProfilesAsync();
         }
 
+
+        /// <summary>
+        /// Checks if countries already exist in the database. If not, reads countries from a JSON file
+        /// and adds them to the database.
+        /// </summary>
+        /// <returns>Task: A Task representing the asynchronous operation.</returns>
         private async Task CheckCountriesAsync()
         {
             if (!_context.Countries.Any())
@@ -77,6 +99,12 @@ namespace VitoriaAirlinesWeb.Data
             }
         }
 
+
+        /// <summary>
+        /// Ensures that all users currently in the 'Customer' role have an associated CustomerProfile.
+        /// Creates new profiles for any customers missing one.
+        /// </summary>
+        /// <returns>Task: A Task representing the asynchronous operation.</returns>
         private async Task AddCustomerProfilesAsync()
         {
             var customers = await _userHelper.GetUsersInRoleAsync(UserRoles.Customer);

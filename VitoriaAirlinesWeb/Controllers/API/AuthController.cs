@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -9,6 +8,9 @@ using VitoriaAirlinesWeb.Models.ViewModels.Account;
 
 namespace VitoriaAirlinesWeb.Controllers.API
 {
+    /// <summary>
+    /// API controller responsible for handling authentication-related operations.
+    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
@@ -16,6 +18,12 @@ namespace VitoriaAirlinesWeb.Controllers.API
         private readonly IUserHelper _userHelper;
         private readonly IConfiguration _configuration;
 
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AuthController"/> class.
+        /// </summary>
+        /// <param name="userHelper">Helper service for user management operations.</param>
+        /// <param name="configuration">Application configuration used to retrieve JWT settings.</param>
         public AuthController(
             IUserHelper userHelper,
             IConfiguration configuration)
@@ -25,6 +33,14 @@ namespace VitoriaAirlinesWeb.Controllers.API
         }
 
 
+        /// <summary>
+        /// Authenticates a user using their email and password, and returns a JWT token if valid.
+        /// </summary>
+        /// <param name="model">The login credentials (email and password).</param>
+        /// <returns>
+        /// A 200 OK response containing the JWT token and its expiration time,
+        /// or 400 Bad Request if authentication fails.
+        /// </returns>
         [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] LoginViewModel model)
         {

@@ -6,6 +6,9 @@ using VitoriaAirlinesWeb.Models.ViewModels.Dashboard;
 
 namespace VitoriaAirlinesWeb.Controllers
 {
+    /// <summary>
+    /// Handles dashboard display based on user roles. Accessible by authenticated users.
+    /// </summary>
     [Authorize]
     public class DashboardController : Controller
     {
@@ -16,6 +19,16 @@ namespace VitoriaAirlinesWeb.Controllers
         private readonly ICustomerProfileRepository _customerRepository;
         private readonly IConverterHelper _converterHelper;
 
+
+        /// <summary>
+        /// Initializes a new instance of the DashboardController with necessary helpers and repositories.
+        /// </summary>
+        /// <param name="userHelper">Helper for user-related operations.</param>
+        /// <param name="flightRepository">Repository for flight data access.</param>
+        /// <param name="ticketRepository">Repository for ticket data access.</param>
+        /// <param name="airplaneRepository">Repository for airplane data access.</param>
+        /// <param name="customerRepository">Repository for customer profile data access.</param>
+        /// <param name="converterHelper">Helper for converting entities to view models.</param>
         public DashboardController(
             IUserHelper userHelper,
             IFlightRepository flightRepository,
@@ -32,6 +45,14 @@ namespace VitoriaAirlinesWeb.Controllers
             _converterHelper = converterHelper;
         }
 
+
+        /// <summary>
+        /// Displays the appropriate dashboard view based on the authenticated user's role (Admin, Employee, or Customer).
+        /// Redirects to login if the user is not authenticated.
+        /// </summary>
+        /// <returns>
+        /// Task: An IActionResult representing the dashboard view for the specific role, or a redirection to the login page.
+        /// </returns>
         public async Task<IActionResult> Index()
         {
             if (!User.Identity?.IsAuthenticated ?? true)
