@@ -91,5 +91,46 @@ namespace VitoriaAirlinesWeb.Data.Repositories
         }
 
 
+        public async Task<List<Airport>> GetAllWithCountryAsync()
+        {
+            return await _context.Airports
+                .Include(a => a.Country)
+                .Include(a => a.City)
+                .OrderBy(a => a.IATA)
+                .ToListAsync();
+        }
+
+        public async Task<List<Airport>> SearchAsync(string? term, string? countryCode, int limit = 50)
+        {
+            var query = _context.Airports
+                .AsNoTracking()
+                .Include(a => a.Country)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(term))
+            {
+                var t = term.Trim();
+                query = query.Where(a =>
+                    EF.Functions.Like(a.IATA, $"%{t}%") ||
+                    EF.Functions.Like(a.Name, $"%{t}%") ||
+                    EF.Functions.Like(a.City, $"%{t}%") ||
+                    EF.Functions.Like(a.Country.Name, $"%{t}%") ||
+                    EF.Functions.Like(a.Country.CountryCode, $"%{t}%"));
+            }
+
+            if (!string.IsNullOrWhiteSpace(countryCode))
+            {
+                var cc = countryCode.Trim().ToUpperInvariant();
+                query = query.Where(a => a.Country.CountryCode == cc);
+            }
+
+            limit = Math.Clamp(limit, 1, 200);
+
+            return await query
+                .OrderBy(a => a.IATA)
+                .ThenBy(a => a.Name)
+                .Take(limit)
+                .ToListAsync();
+        }
     }
 }

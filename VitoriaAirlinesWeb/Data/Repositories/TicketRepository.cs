@@ -82,6 +82,19 @@ namespace VitoriaAirlinesWeb.Data.Repositories
         }
 
 
+        public async Task<IEnumerable<Ticket>> GetCompletedFlightsByUserAsync(string userId)
+        {
+            return await _context.Tickets
+                .Include(t => t.Flight).ThenInclude(f => f.OriginAirport).ThenInclude(a => a.Country)
+                .Include(t => t.Flight).ThenInclude(f => f.DestinationAirport).ThenInclude(a => a.Country)
+                .Include(t => t.Seat)
+                .Where(t => t.UserId == userId &&
+                t.Flight.DepartureUtc <= DateTime.UtcNow &&
+                t.Flight.Status == FlightStatus.Completed)
+                .OrderByDescending(t => t.Flight.DepartureUtc)
+                .ToListAsync();
+        }
+
 
         /// <summary>
         /// Retrieves all upcoming tickets (scheduled and not canceled, with future departure) for a specific user.
@@ -105,6 +118,17 @@ namespace VitoriaAirlinesWeb.Data.Repositories
                 .OrderBy(t => t.Flight.DepartureUtc)
                 .ToListAsync();
         }
+
+
+        public async Task<IEnumerable<int>> GetFlightIdsForUserAsync(string userId)
+        {
+            return await _context.Tickets
+                .Where(t => t.UserId == userId && !t.IsCanceled)
+                .Select(t => t.FlightId)
+                .Distinct()
+                .ToListAsync();
+        }
+
 
 
         /// <summary>

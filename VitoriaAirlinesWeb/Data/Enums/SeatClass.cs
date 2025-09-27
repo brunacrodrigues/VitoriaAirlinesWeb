@@ -8,10 +8,10 @@
         /// <summary>
         /// Standard economy class seat.
         /// </summary>
-        Economy,
+        Economy = 1,
         /// <summary>
         /// Premium executive class seat.
         /// </summary>
-        Executive
+        Executive = 2
     }
 }

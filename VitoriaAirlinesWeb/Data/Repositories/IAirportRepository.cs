@@ -37,5 +37,10 @@ namespace VitoriaAirlinesWeb.Data.Repositories
         /// <param name="id">The ID of the airport.</param>
         /// <returns>Task: True if the airport has associated flights, false otherwise.</returns>
         Task<bool> HasAssociatedFlightsAsync(int id);
+
+
+        Task<List<Airport>> GetAllWithCountryAsync();
+        Task<List<Airport>> SearchAsync(string? term, string? countryCode, int limit = 50);
+
     }
 }

@@ -462,5 +462,36 @@ namespace VitoriaAirlinesWeb.Data.Repositories
                 .ToList();
         }
 
+
+        public async Task<IEnumerable<Flight>> GetScheduledFlightsByCriteriaAsync(
+       int originAirportId,
+       int destinationAirportId,
+       DateTime date,
+       int minPassengers)
+        {
+            var query = _context.Flights
+                .Where(f => f.DepartureUtc > DateTime.UtcNow && f.Status == FlightStatus.Scheduled)
+                .Include(f => f.OriginAirport).ThenInclude(a => a.Country)
+                .Include(f => f.DestinationAirport).ThenInclude(a => a.Country)
+                .Include(f => f.Airplane)
+                .ThenInclude(a => a.Seats) // Include seats for capacity calculation
+                .Include(f => f.Tickets)   // Include tickets to count sold seats
+                .AsQueryable();
+
+            // Apply origin and destination filters
+            query = query.Where(f => f.OriginAirportId == originAirportId && f.DestinationAirportId == destinationAirportId);
+
+            // Apply date filter (for the specified day)
+            var dateUtcStart = TimezoneHelper.ConvertToUtc(date.Date);
+            var dateUtcEnd = TimezoneHelper.ConvertToUtc(date.Date.AddDays(1).AddTicks(-1));
+            query = query.Where(f => f.DepartureUtc >= dateUtcStart && f.DepartureUtc <= dateUtcEnd);
+
+            // Filter by minimum passenger count (checking available seats)
+            // Assuming the Airplane entity has TotalEconomySeats and TotalExecutiveSeats for total capacity calculation.
+            query = query.Where(f => (f.Airplane.TotalEconomySeats + f.Airplane.TotalExecutiveSeats - (f.Tickets != null ? f.Tickets.Count : 0)) >= minPassengers);
+
+            return await query.OrderBy(f => f.DepartureUtc).ToListAsync();
+        }
     }
+
 }

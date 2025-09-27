@@ -172,5 +172,11 @@ namespace VitoriaAirlinesWeb.Data.Repositories
         /// <param name="flightId">The ID of the flight.</param>
         /// <returns>Task: The Ticket entity, or null if not found.</returns>
         Task<Ticket?> GetBySeatAndFlightAsync(int seatId, int flightId);
+
+
+        Task<IEnumerable<Ticket>> GetCompletedFlightsByUserAsync(string userId);
+
+
+        Task<IEnumerable<int>> GetFlightIdsForUserAsync(string userId);
     }
 }

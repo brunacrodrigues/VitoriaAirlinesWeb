@@ -408,3 +408,8 @@ FodyWeavers.xsd
 
 # Ignore config de produção
 appsettings.Production.json
+
+
+# Ignora qualquer ficheiro de appsettings (produção, desenvolvimento, customizados)
+**/appsettings.json
+**/appsettings.*.json

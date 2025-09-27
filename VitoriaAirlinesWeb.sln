@@ -5,6 +5,8 @@ VisualStudioVersion = 17.11.35327.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VitoriaAirlinesWeb", "VitoriaAirlinesWeb\VitoriaAirlinesWeb.csproj", "{151A5F18-0E10-48A3-B359-3F6A63DE3DC4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VitoriaAirlinesAPI", "VitoriaAirlinesAPI\VitoriaAirlinesAPI.csproj", "{2A21AF1C-7261-4B62-A5C5-8295E74D24A8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{151A5F18-0E10-48A3-B359-3F6A63DE3DC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{151A5F18-0E10-48A3-B359-3F6A63DE3DC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{151A5F18-0E10-48A3-B359-3F6A63DE3DC4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A21AF1C-7261-4B62-A5C5-8295E74D24A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A21AF1C-7261-4B62-A5C5-8295E74D24A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A21AF1C-7261-4B62-A5C5-8295E74D24A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A21AF1C-7261-4B62-A5C5-8295E74D24A8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

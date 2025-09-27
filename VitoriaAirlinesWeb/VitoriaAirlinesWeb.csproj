@@ -31,4 +31,8 @@
     <PackageReference Include="Syncfusion.Licensing" Version="29.2.9" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controllers\API\" />
+  </ItemGroup>
+
 </Project>

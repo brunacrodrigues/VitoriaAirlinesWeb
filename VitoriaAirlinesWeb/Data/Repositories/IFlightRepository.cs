@@ -133,5 +133,12 @@ namespace VitoriaAirlinesWeb.Data.Repositories
         /// <param name="airplaneId">The ID of the airplane.</param>
         /// <returns>Task: A collection of future flights by airplane.</returns>
         Task<IEnumerable<Flight>> GetFutureFlightsByAirplaneAsync(int airplaneId);
+
+
+        Task<IEnumerable<Flight>> GetScheduledFlightsByCriteriaAsync(
+       int originAirportId,
+       int destinationAirportId,
+       DateTime date,
+       int minPassengers);
     }
 }

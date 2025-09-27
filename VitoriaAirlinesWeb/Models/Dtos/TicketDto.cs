@@ -12,6 +12,12 @@
 
 
         /// <summary>
+        /// Gets or sets the unique identifier of the flight associated with the ticket.
+        /// </summary>
+        public int FlightId { get; set; }
+
+
+        /// <summary>
         /// Gets or sets the flight number associated with the ticket.
         /// </summary>
         public string FlightNumber { get; set; } = null!;
@@ -24,6 +30,12 @@
 
 
         /// <summary>
+        /// Gets or sets the arrival date and time of the flight in UTC.
+        /// </summary>
+        public DateTime ArrivalUtc { get; set; }
+
+
+        /// <summary>
         /// Gets or sets the full name of the origin airport.
         /// </summary>
         public string OriginAirport { get; set; } = null!;
@@ -33,6 +45,10 @@
         /// Gets or sets the full name of the destination airport.
         /// </summary>
         public string DestinationAirport { get; set; } = null!;
+
+
+        public string OriginCountryCode { get; set; } = string.Empty;
+        public string DestinationCountryCode { get; set; } = string.Empty;
 
 
         /// <summary>
@@ -51,5 +67,13 @@
         /// Gets or sets the date and time when the ticket was purchased in UTC.
         /// </summary>
         public DateTime PurchaseDateUtc { get; set; }
+
+
+        /// <summary>
+        /// Gets or sets the status of the flight associated with the ticket.
+        /// </summary>
+        public string Status { get; set; } = null!;
+
+
     }
 }
