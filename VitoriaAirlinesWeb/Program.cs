@@ -102,13 +102,10 @@ namespace VitoriaAirlinesWeb
                });
 
 
-            builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo(@"C:\tempkeys\keys"))
-    .SetApplicationName("VitoriaAirlines");
 
-            //        builder.Services.AddDataProtection()
-            //.PersistKeysToDbContext<DataContext>()
-            //.SetApplicationName("VitoriaAirlines");
+            builder.Services.AddDataProtection()
+    .PersistKeysToDbContext<DataContext>()
+    .SetApplicationName("VitoriaAirlines");
 
             // Swagger + JWT setup
             builder.Services.AddSwaggerGen(c =>

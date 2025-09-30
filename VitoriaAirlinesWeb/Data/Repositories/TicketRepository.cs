@@ -304,6 +304,17 @@ namespace VitoriaAirlinesWeb.Data.Repositories
         }
 
 
+        public async Task<int> CountUserUpcomingFlightsAsync(string userId)
+        {
+            return await _context.Tickets
+                .Where(t => t.UserId == userId && t.Flight.DepartureUtc > DateTime.UtcNow &&
+                            t.Flight.Status == FlightStatus.Scheduled
+                            && !t.IsCanceled)
+                .CountAsync();
+        }
+
+
+
         /// <summary>
         /// Counts the number of flights a specific user has canceled (where flight status is Canceled).
         /// </summary>
@@ -473,17 +484,44 @@ namespace VitoriaAirlinesWeb.Data.Repositories
 
             if (ticket == null) return null;
 
+            //return new FlightInfoViewModel
+            //{
+            //    FlightId = ticket.Flight.Id,
+            //    TicketId = ticket.Id,
+            //    FlightNumber = ticket.Flight.FlightNumber,
+            //    OriginAirport = ticket.Flight.OriginAirport.FullName,
+            //    OriginCountryFlagUrl = ticket.Flight.OriginAirport.Country.FlagImageUrl,
+            //    DestinationAirport = ticket.Flight.DestinationAirport.FullName,
+            //    DestinationCountryFlagUrl = ticket.Flight.DestinationAirport.Country.FlagImageUrl,
+            //    DepartureTime = TimezoneHelper.ConvertToLocal(ticket.Flight.DepartureUtc),
+            //    ArrivalTime = TimezoneHelper.ConvertToLocal(ticket.Flight.DepartureUtc + ticket.Flight.Duration),
+            //    SeatNumber = $"{ticket.Seat.Row}{ticket.Seat.Letter} {ticket.Seat.Class}"
+            //};
             return new FlightInfoViewModel
             {
                 FlightId = ticket.Flight.Id,
                 TicketId = ticket.Id,
                 FlightNumber = ticket.Flight.FlightNumber,
+
+                // Mapeamento Existente (Full Name)
                 OriginAirport = ticket.Flight.OriginAirport.FullName,
-                OriginCountryFlagUrl = ticket.Flight.OriginAirport.Country.FlagImageUrl,
                 DestinationAirport = ticket.Flight.DestinationAirport.FullName,
-                DestinationCountryFlagUrl = ticket.Flight.DestinationAirport.Country.FlagImageUrl,
+
+                // Mapeamento NOVO (IATA para o MAUI Dashboard)
+                OriginAirportIATA = ticket.Flight.OriginAirport.IATA, // <--- ADICIONADO
+                DestinationAirportIATA = ticket.Flight.DestinationAirport.IATA, // <--- ADICIONADO
+
+                // Mapeamento NOVO (Country Code para o MAUI Converter)
+                OriginCountryCode = ticket.Flight.OriginAirport.Country.CountryCode, // <--- ADICIONADO
+                DestinationCountryCode = ticket.Flight.DestinationAirport.Country.CountryCode, // <--- ADICIONADO
+
+                OriginCountryFlagUrl = ticket.Flight.OriginAirport.Country.FlagImageUrl, // Já existe
+                DestinationCountryFlagUrl = ticket.Flight.DestinationAirport.Country.FlagImageUrl, // Já existe
+
+                // Mapeamento de Tempo (Local)
                 DepartureTime = TimezoneHelper.ConvertToLocal(ticket.Flight.DepartureUtc),
                 ArrivalTime = TimezoneHelper.ConvertToLocal(ticket.Flight.DepartureUtc + ticket.Flight.Duration),
+
                 SeatNumber = $"{ticket.Seat.Row}{ticket.Seat.Letter} {ticket.Seat.Class}"
             };
         }

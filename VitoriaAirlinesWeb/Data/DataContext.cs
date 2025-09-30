@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using VitoriaAirlinesWeb.Data.Entities;
 
@@ -9,7 +10,7 @@ namespace VitoriaAirlinesWeb.Data
     /// Inherits from IdentityDbContext to manage user authentication and authorization data,
     /// and includes DbSets for all application entities.
     /// </summary>
-    public class DataContext : IdentityDbContext<User>
+    public class DataContext : IdentityDbContext<User>, IDataProtectionKeyContext
     {
         /// <summary>
         /// Gets or sets the DbSet for managing CustomerProfile entities.
@@ -52,7 +53,7 @@ namespace VitoriaAirlinesWeb.Data
         /// </summary>
         public DbSet<Ticket> Tickets { get; set; }
 
-        //public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
+        public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the DataContext class with the specified options.

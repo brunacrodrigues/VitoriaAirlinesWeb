@@ -16,11 +16,26 @@
         /// </summary>
         public string OriginAirport { get; set; } = null!;
 
+        /// <summary>
+        /// Gets or sets the IATA code of the origin airport (e.g., "LIS").
+        /// </summary>
+        public string OriginAirportIATA { get; set; } = null!; // <--- ADICIONE ESTE
+
+        /// <summary>
+        /// Gets or sets the IATA code of the destination airport (e.g., "LHR").
+        /// </summary>
+        public string DestinationAirportIATA { get; set; } = null!;
+
 
         /// <summary>
         /// Gets or sets the URL to the origin country's flag image.
         /// </summary>
         public string OriginCountryFlagUrl { get; set; } = null!;
+
+        public string OriginCountryCode { get; set; } = null!;
+
+
+        public string DestinationCountryCode { get; set; } = null!;
 
 
         /// <summary>

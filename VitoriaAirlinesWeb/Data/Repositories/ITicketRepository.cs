@@ -178,5 +178,7 @@ namespace VitoriaAirlinesWeb.Data.Repositories
 
 
         Task<IEnumerable<int>> GetFlightIdsForUserAsync(string userId);
+
+        Task<int> CountUserUpcomingFlightsAsync(string userId);
     }
 }

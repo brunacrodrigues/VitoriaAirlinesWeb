@@ -99,8 +99,8 @@ namespace VitoriaAirlinesAPI
 
 
             builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo(@"C:\tempkeys\keys"))
-    .SetApplicationName("VitoriaAirlines");
+            .PersistKeysToDbContext<DataContext>()
+            .SetApplicationName("VitoriaAirlines");
 
             builder.Services.Configure<RouteOptions>(options =>
             {
