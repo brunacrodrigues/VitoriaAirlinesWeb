@@ -13,6 +13,8 @@
 
         public string? PassportNumber { get; set; }
 
+        public string Email { get; set; } = null!;
+
 
 
     }

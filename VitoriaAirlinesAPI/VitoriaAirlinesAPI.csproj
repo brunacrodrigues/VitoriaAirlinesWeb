@@ -8,11 +8,22 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.17" />
+    <PackageReference Include="QuestPDF" Version="2025.7.2" />
+    <PackageReference Include="QuestPDF.Barcodes" Version="2024.10.3" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.4" />
+    <PackageReference Include="System.Drawing.Common" Version="9.0.9" />
+    <PackageReference Include="ZXing.Net" Version="0.16.10" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\VitoriaAirlinesWeb\VitoriaAirlinesWeb.csproj" />
   </ItemGroup>
+
+	<ItemGroup>
+        <Content Remove="appsettings.json" />
+        <Content Remove="appsettings.Development.json" />
+        <None Include="appsettings.json" ExcludeFromSingleFile="true" CopyToPublishDirectory="Never" />
+        <None Include="appsettings.Development.json" ExcludeFromSingleFile="true" CopyToPublishDirectory="Never" />
+    </ItemGroup>
 
 </Project>

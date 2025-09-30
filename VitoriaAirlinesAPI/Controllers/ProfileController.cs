@@ -64,7 +64,8 @@ namespace VitoriaAirlinesAPI.Controllers
                 LastName = user.LastName,
                 ProfileImageUrl = user.ImageFullPath,
                 CountryId = profile.CountryId,
-                PassportNumber = profile.PassportNumber
+                PassportNumber = profile.PassportNumber,
+                Email = email
             };
 
             return Ok(dto);

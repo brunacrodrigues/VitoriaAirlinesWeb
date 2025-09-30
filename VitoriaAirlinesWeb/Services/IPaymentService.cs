@@ -1,4 +1,6 @@
-﻿using VitoriaAirlinesWeb.Data.Entities;
+﻿using Stripe.Checkout;
+using VitoriaAirlinesWeb.Data;
+using VitoriaAirlinesWeb.Data.Entities;
 
 namespace VitoriaAirlinesWeb.Services
 {
@@ -74,5 +76,14 @@ namespace VitoriaAirlinesWeb.Services
             decimal returnPrice,
             string successUrl,
             string cancelUrl);
+
+
+
+        Task<Session> CreateApiCheckoutSessionAsync(
+       BookingRequestDto request,
+       Dictionary<string, string> metadata,
+       string successUrl,
+       string cancelUrl);
     }
+
 }

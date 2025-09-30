@@ -3,11 +3,15 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Stripe;
 using System.Text;
+using VitoriaAirlinesAPI.Services;
+using VitoriaAirlinesWeb.Configuration;
 using VitoriaAirlinesWeb.Data;
 using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Data.Repositories;
 using VitoriaAirlinesWeb.Helpers;
+using VitoriaAirlinesWeb.Services;
 
 namespace VitoriaAirlinesAPI
 {
@@ -17,6 +21,7 @@ namespace VitoriaAirlinesAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // TODO - comentar antes de publicar
             builder.WebHost.UseUrls("http://0.0.0.0:5283");
 
             // Add services to the container.
@@ -107,6 +112,15 @@ namespace VitoriaAirlinesAPI
             builder.Services.AddScoped<IBlobHelper, BlobHelper>();
             builder.Services.AddScoped<IAirportRepository, AirportRepository>();
             builder.Services.AddScoped<IFlightRepository, FlightRepository>();
+            builder.Services.AddScoped<IPaymentService, StripePaymentService>();
+            builder.Services.AddScoped<ITicketPdfService, TicketPdfService>();
+
+
+            // Stripe config
+            builder.Services.Configure<StripeSettings>(
+                builder.Configuration.GetSection("Stripe"));
+
+            StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
             var app = builder.Build();
 
@@ -115,10 +129,10 @@ namespace VitoriaAirlinesAPI
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-            else
-            {
-                app.UseHttpsRedirection();
-            }
+            //else
+            //{
+            //    app.UseHttpsRedirection();
+            //}
 
             app.UseAuthentication();
             app.UseAuthorization();

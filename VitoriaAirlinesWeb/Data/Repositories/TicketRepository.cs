@@ -146,6 +146,7 @@ namespace VitoriaAirlinesWeb.Data.Repositories
                 .Include(t => t.Flight).ThenInclude(f => f.OriginAirport).ThenInclude(a => a.Country)
                 .Include(t => t.Flight).ThenInclude(f => f.DestinationAirport).ThenInclude(a => a.Country)
                 .Include(t => t.Seat)
+                .Include(t => t.User)
                 .FirstOrDefaultAsync(t => t.Id == ticketId);
         }
 

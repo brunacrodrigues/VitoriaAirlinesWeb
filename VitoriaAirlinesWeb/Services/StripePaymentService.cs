@@ -1,7 +1,10 @@
 ﻿using Microsoft.Extensions.Options;
 using Stripe.Checkout;
 using VitoriaAirlinesWeb.Configuration;
+using VitoriaAirlinesWeb.Data;
 using VitoriaAirlinesWeb.Data.Entities;
+using VitoriaAirlinesWeb.Data.Enums;
+using VitoriaAirlinesWeb.Data.Repositories;
 
 namespace VitoriaAirlinesWeb.Services
 {
@@ -12,14 +15,16 @@ namespace VitoriaAirlinesWeb.Services
     public class StripePaymentService : IPaymentService
     {
         private readonly StripeSettings _stripeSettings;
+        private readonly IFlightRepository _flightRepository;
 
         /// <summary>
         /// Initializes a new instance of the StripePaymentService class.
         /// </summary>
         /// <param name="options">Options containing Stripe API settings.</param>
-        public StripePaymentService(IOptions<StripeSettings> options)
+        public StripePaymentService(IOptions<StripeSettings> options, IFlightRepository flightRepository)
         {
             _stripeSettings = options.Value;
+            _flightRepository = flightRepository;
         }
 
 
@@ -205,5 +210,57 @@ namespace VitoriaAirlinesWeb.Services
             return session.Url;
         }
 
+
+
+        /// <summary>
+        /// Asynchronously creates a Stripe Checkout Session for the MAUI API flow.
+        /// Handles both one-way and round-trip bookings by dynamically building LineItems in a single transaction.
+        /// </summary>
+        public async Task<Session> CreateApiCheckoutSessionAsync(
+            BookingRequestDto request,
+            Dictionary<string, string> metadata,
+            string successUrl,
+            string cancelUrl)
+        {
+            var lineItems = new List<SessionLineItemOptions>();
+
+            foreach (var leg in request.Legs)
+            {
+                var flight = await _flightRepository.GetByIdWithAirplaneAndSeatsAsync(leg.FlightId);
+                var seat = flight.Airplane.Seats.First(s => s.Id == leg.SeatId);
+                var price = seat.Class == SeatClass.Economy ? flight.EconomyClassPrice : flight.ExecutiveClassPrice;
+
+                lineItems.Add(new SessionLineItemOptions
+                {
+                    PriceData = new SessionLineItemPriceDataOptions
+                    {
+                        Currency = "eur",
+                        UnitAmount = (long)(price * 100),
+                        ProductData = new SessionLineItemPriceDataProductDataOptions
+                        {
+                            Name = $"Flight {flight.FlightNumber} - {seat.Class} Seat {seat.Row}{seat.Letter}",
+                            Description = $"Travel: {flight.OriginAirport.IATA} to {flight.DestinationAirport.IATA} - Departure: {flight.DepartureUtc:dd MMM yyyy 'at' HH:mm}"
+                        }
+                    },
+                    Quantity = 1
+                });
+            }
+
+            var options = new SessionCreateOptions
+            {
+                PaymentMethodTypes = new List<string> { "card" },
+                LineItems = lineItems,
+                Mode = "payment",
+                SuccessUrl = successUrl,
+                CancelUrl = cancelUrl,
+                Metadata = metadata
+            };
+
+            var service = new SessionService();
+            var session = await service.CreateAsync(options);
+            return session;
+        }
     }
+
+
 }
