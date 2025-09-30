@@ -1,0 +1,68 @@
+﻿@{
+    ViewData["Title"] = "Email Confirmation Error";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-exclamation-triangle"></i> Email Confirmation Error
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger" role="alert">
+                        <h5>The email confirmation failed</h5>
+                        @if (ViewBag.ErrorMessage != null)
+                        {
+                            <hr />
+                            <p class="mb-0"><strong>Error Details:</strong></p>
+                            <p class="text-monospace">@ViewBag.ErrorMessage</p>
+                        }
+                    </div>
+
+                    <h6 class="mt-4">Possible reasons:</h6>
+                    <ul>
+                        <li>The confirmation link has expired</li>
+                        <li>The link has already been used</li>
+                        <li>The token is invalid or corrupted</li>
+                    </ul>
+
+                    <div class="mt-4">
+                        <a asp-controller="Account" asp-action="Register" class="btn btn-primary">
+                            Register Again
+                        </a>
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">
+                            Go to Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            
+            @if (ViewBag.UserId != null || ViewBag.Token != null)
+            {
+                <div class="card mt-3 border-warning">
+                    <div class="card-header bg-warning">
+                        <h6 class="mb-0">Debug Information (Remove in Production)</h6>
+                    </div>
+                    <div class="card-body">
+                        @if (ViewBag.UserId != null)
+                        {
+                            <p><strong>User ID:</strong> <code>@ViewBag.UserId</code></p>
+                        }
+                        @if (ViewBag.Token != null)
+                        {
+                            <p><strong>Token (first 50 chars):</strong> <code>@ViewBag.Token?.ToString().Substring(0, Math.Min(50, ViewBag.Token?.ToString().Length ?? 0))...</code></p>
+                        }
+                        @if (ViewBag.DecodedToken != null)
+                        {
+                            <p><strong>Decoded Token (first 50 chars):</strong> <code>@ViewBag.DecodedToken?.ToString().Substring(0, Math.Min(50, ViewBag.DecodedToken?.ToString().Length ?? 0))...</code></p>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

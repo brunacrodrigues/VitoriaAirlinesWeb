@@ -52,7 +52,7 @@ namespace VitoriaAirlinesWeb.Data
         /// </summary>
         public DbSet<Ticket> Tickets { get; set; }
 
-
+        //public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the DataContext class with the specified options.

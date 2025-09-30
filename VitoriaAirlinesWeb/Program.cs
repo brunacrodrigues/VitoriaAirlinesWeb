@@ -1,5 +1,6 @@
 using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -100,6 +101,14 @@ namespace VitoriaAirlinesWeb
                    };
                });
 
+
+            builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(@"C:\tempkeys\keys"))
+    .SetApplicationName("VitoriaAirlines");
+
+            //        builder.Services.AddDataProtection()
+            //.PersistKeysToDbContext<DataContext>()
+            //.SetApplicationName("VitoriaAirlines");
 
             // Swagger + JWT setup
             builder.Services.AddSwaggerGen(c =>

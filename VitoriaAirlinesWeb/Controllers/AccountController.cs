@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
+using System.Text;
 using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Data.Repositories;
 using VitoriaAirlinesWeb.Helpers;
@@ -167,11 +169,16 @@ namespace VitoriaAirlinesWeb.Controllers
                 });
 
                 string myToken = await _userHelper.GenerateEmailConfirmationTokenAsync(user);
+
+
+                var tokenBytes = Encoding.UTF8.GetBytes(myToken);
+                var base64Token = WebEncoders.Base64UrlEncode(tokenBytes);
+
                 var scheme = Request?.Scheme ?? "https";
                 var tokenLink = Url.Action("ConfirmEmail", "Account", new
                 {
                     userid = user.Id,
-                    token = myToken
+                    token = base64Token
                 }, protocol: scheme);
 
                 ApiResponse response = await _mailHelper.SendEmailAsync(
@@ -194,6 +201,7 @@ namespace VitoriaAirlinesWeb.Controllers
         }
 
 
+
         /// <summary>
         /// Confirms a user's email address.
         /// </summary>
@@ -201,7 +209,7 @@ namespace VitoriaAirlinesWeb.Controllers
         /// <param name="token">Email confirmation token.</param>
         /// <returns>
         /// Task: Returns the confirmation view on success, or a 404 error view on failure.
-        /// </returns>
+        /// </returns>        
         public async Task<IActionResult> ConfirmEmail(string userId, string token)
         {
             if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
@@ -215,10 +223,30 @@ namespace VitoriaAirlinesWeb.Controllers
                 return new NotFoundViewResult("Error404");
             }
 
-            var result = await _userHelper.ConfirmEmailAsync(user, token);
+            string decodedToken;
+
+            try
+            {
+                var tokenBytes = WebEncoders.Base64UrlDecode(token);
+                decodedToken = Encoding.UTF8.GetString(tokenBytes);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = $"Token decoding failed: {ex.Message}";
+                ViewBag.UserId = userId;
+                ViewBag.Token = token;
+                return View("ConfirmEmailError");
+            }
+
+            var result = await _userHelper.ConfirmEmailAsync(user, decodedToken);
+
             if (!result.Succeeded)
             {
-                return new NotFoundViewResult("Error404");
+                ViewBag.ErrorMessage = string.Join(" | ", result.Errors.Select(e => $"{e.Code}: {e.Description}"));
+                ViewBag.UserId = userId;
+                ViewBag.Token = token;
+                ViewBag.DecodedToken = decodedToken;
+                return View("ConfirmEmailError");
             }
 
             return View();
@@ -256,7 +284,7 @@ namespace VitoriaAirlinesWeb.Controllers
         /// <param name="model">Reset password data.</param>
         /// <returns>
         /// Task: Redirects to Login on success, or returns view with errors.
-        /// </returns>
+        /// </returns>      
         [HttpPost]
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
         {
@@ -268,7 +296,10 @@ namespace VitoriaAirlinesWeb.Controllers
             var user = await _userHelper.GetUserByEmailAsync(model.Username);
             if (user != null)
             {
-                var result = await _userHelper.ResetPasswordAsync(user, model.Token, model.Password);
+                var tokenBytes = WebEncoders.Base64UrlDecode(model.Token);
+                var decodedToken = Encoding.UTF8.GetString(tokenBytes);
+
+                var result = await _userHelper.ResetPasswordAsync(user, decodedToken, model.Password);
                 if (result.Succeeded)
                 {
                     TempData["SuccessMessage"] = "Password reset successful. You can now login to your account.";
@@ -282,6 +313,7 @@ namespace VitoriaAirlinesWeb.Controllers
             TempData["NotFoundMessage"] = "User not found.";
             return View(model);
         }
+
 
 
         /// <summary>
@@ -302,7 +334,7 @@ namespace VitoriaAirlinesWeb.Controllers
         /// <param name="model">Email for password recovery.</param>
         /// <returns>
         /// Task: Sends reset email if user exists, returns view with messages.
-        /// </returns>
+        /// </returns>       
         [HttpPost]
         public async Task<IActionResult> RecoverPassword(RecoverPasswordViewModel model)
         {
@@ -317,14 +349,22 @@ namespace VitoriaAirlinesWeb.Controllers
 
                 var myToken = await _userHelper.GeneratePasswordResetTokenAsync(user);
 
+
+                var tokenBytes = Encoding.UTF8.GetBytes(myToken);
+                var base64Token = WebEncoders.Base64UrlEncode(tokenBytes);
+
                 var link = this.Url.Action(
                     "ResetPassword",
                     "Account",
-                    new { token = myToken, email = user.Email }, protocol: HttpContext.Request.Scheme);
+                    new { token = base64Token, email = user.Email },
+                    protocol: HttpContext.Request.Scheme);
 
-                ApiResponse response = await _mailHelper.SendEmailAsync(model.Email, "Password Reset", $"<h1>Password Reset</h1>" +
-                $"To reset the password click in this link:<br/><br>" +
-                $"<a href = \"{link}\">Reset Password</a>");
+                ApiResponse response = await _mailHelper.SendEmailAsync(
+                    model.Email,
+                    "Password Reset",
+                    $"<h1>Password Reset</h1>" +
+                    $"To reset the password click in this link:<br/><br>" +
+                    $"<a href = \"{link}\">Reset Password</a>");
 
                 if (response.IsSuccess)
                 {

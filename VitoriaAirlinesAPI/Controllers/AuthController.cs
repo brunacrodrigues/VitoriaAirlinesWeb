@@ -1,12 +1,17 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Encodings.Web;
 using VitoriaAirlinesAPI.Dtos;
+using VitoriaAirlinesWeb.Data.Entities;
+using VitoriaAirlinesWeb.Data.Repositories;
 using VitoriaAirlinesWeb.Helpers;
 using VitoriaAirlinesWeb.Models.ViewModels.Account;
+using VitoriaAirlinesWeb.Responses;
 
 namespace VitoriaAirlinesAPI.Controllers
 {
@@ -18,8 +23,10 @@ namespace VitoriaAirlinesAPI.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IUserHelper _userHelper;
+        private readonly ICustomerProfileRepository _customerRepository;
         private readonly IConfiguration _configuration;
         private readonly IMailHelper _mailHelper;
+        private readonly UrlEncoder _urlEncoder;
 
 
         /// <summary>
@@ -29,12 +36,16 @@ namespace VitoriaAirlinesAPI.Controllers
         /// <param name="configuration">Application configuration used to retrieve JWT settings.</param>
         public AuthController(
             IUserHelper userHelper,
+            ICustomerProfileRepository customerRepository,
             IConfiguration configuration,
-            IMailHelper mailHelper)
+            IMailHelper mailHelper,
+            UrlEncoder urlEncoder)
         {
             _userHelper = userHelper;
+            _customerRepository = customerRepository;
             _configuration = configuration;
             _mailHelper = mailHelper;
+            _urlEncoder = urlEncoder;
         }
 
 
@@ -157,6 +168,80 @@ namespace VitoriaAirlinesAPI.Controllers
                 return BadRequest("Failed to reset password.");
 
             return Ok(new { message = "Password has been reset." });
+        }
+
+
+
+        [HttpPost("Register")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Register([FromBody] RegisterRequestDto model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+
+            var existingUser = await _userHelper.GetUserByEmailAsync(model.Username);
+            if (existingUser != null)
+            {
+                return BadRequest(new { message = "Email already registered." });
+            }
+
+            var user = new User
+            {
+                FirstName = model.FirstName,
+                LastName = model.LastName,
+                Email = model.Username,
+                UserName = model.Username
+            };
+
+
+            var result = await _userHelper.AddUserAsync(user, model.Password);
+            if (!result.Succeeded)
+            {
+                return StatusCode(500, new { message = "User creation failed.", errors = result.Errors });
+            }
+
+            await _userHelper.CheckRoleAsync(UserRoles.Customer);
+            await _userHelper.AddUserToRoleAsync(user, UserRoles.Customer);
+
+            await _customerRepository.CreateAsync(new CustomerProfile
+            {
+                UserId = user.Id
+            });
+
+            string myToken = await _userHelper.GenerateEmailConfirmationTokenAsync(user);
+
+            var webAppUrl = _configuration["WebAppUrl"]?.TrimEnd('/');
+            if (string.IsNullOrWhiteSpace(webAppUrl))
+            {
+                return StatusCode(500, new { message = "Configuration Error: WebAppUrl is missing. Cannot send confirmation email." });
+            }
+
+
+            var tokenBytes = Encoding.UTF8.GetBytes(myToken);
+            var base64Token = WebEncoders.Base64UrlEncode(tokenBytes);
+            var encodedUserId = Uri.EscapeDataString(user.Id);
+
+
+            var tokenLink = $"{webAppUrl}/Account/ConfirmEmail?userid={encodedUserId}&token={base64Token}";
+
+
+            ApiResponse emailResponse = await _mailHelper.SendEmailAsync(
+                model.Username,
+                "Email confirmation",
+                $"<h1>Email Confirmation</h1>" +
+                $"Please confirm your email by clicking this link:</br></br>" +
+                $"<a href=\"{tokenLink}\">Confirm Email</a>");
+
+
+            if (emailResponse.IsSuccess)
+            {
+                return Ok(new { message = "Registration successful. Please check your email to confirm your account." });
+            }
+
+            return StatusCode(500, new { message = "Registration successful, but failed to send confirmation email. Please contact support." });
         }
 
     }

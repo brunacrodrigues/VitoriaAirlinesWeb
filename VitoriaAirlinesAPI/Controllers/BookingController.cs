@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Stripe;
 using Stripe.Checkout;
 using System.Security.Claims;
+using System.Text;
 using VitoriaAirlinesAPI.Dtos;
 using VitoriaAirlinesWeb.Data;
 using VitoriaAirlinesWeb.Data.Entities;
@@ -231,7 +232,7 @@ namespace VitoriaAirlinesAPI.Controllers
                     LastName = lastName
                 };
 
-                // TODO - se nao der meter password 12345678
+
                 var result = await _userHelper.AddUserAsync(newUser, $"Temp{Guid.NewGuid().ToString().Substring(0, 8)}!");
                 if (!result.Succeeded)
                 {
@@ -248,27 +249,13 @@ namespace VitoriaAirlinesAPI.Controllers
 
 
 
-                // TODO - FIX THIS  
 
-                // Envio do Email de Boas-Vindas com Link de Reset
                 var resetToken = await _userHelper.GeneratePasswordResetTokenAsync(newUser);
-                /*var resetLink = $"{WebAppUrl}/Account/ResetPassword?email={Uri.EscapeDataString(email)}&token={Uri.EscapeDataString(resetToken)}"*/
-                ;
-                //var resetLink = $"{WebAppUrl}/Account/ResetPassword?token={Uri.EscapeDataString(resetToken)}&email={Uri.EscapeDataString(email)}";
-                //var encodedToken = Uri.EscapeDataString(resetToken);
-                //var encodedEmail = Uri.EscapeDataString(email).Replace("%40", "@");
-                //var resetLink = $"{WebAppUrl}/Account/ResetPassword?token={encodedToken}&email={encodedEmail}";
-                //var encodedToken = System.Net.WebUtility.UrlEncode(resetToken);
-                //var encodedEmail = System.Net.WebUtility.UrlEncode(email);
 
-                //// Construção final
-                //var resetLink = $"{WebAppUrl}/Account/ResetPassword?token={encodedToken}&email={encodedEmail}";
-                var baseUrl = $"{WebAppUrl}/Account/ResetPassword";
-                var resetLink = QueryHelpers.AddQueryString(baseUrl, new Dictionary<string, string>
-{
-    { "token", resetToken },
-    { "email", email }
-});
+                var tokenBytes = Encoding.UTF8.GetBytes(resetToken);
+                var base64Token = WebEncoders.Base64UrlEncode(tokenBytes);
+
+                var resetLink = $"{WebAppUrl}/Account/ResetPassword?token={base64Token}&email={Uri.EscapeDataString(email)}";
 
 
                 var body = $"<p>Hello {newUser.FullName},</p>" +
@@ -289,7 +276,7 @@ namespace VitoriaAirlinesAPI.Controllers
                 userFullName = user.FullName;
             }
 
-            // --- BILHETES (IDA e VOLTA) ---
+
 
             var outboundFlightId = int.Parse(metadata["OutboundFlightId"]);
             var outboundSeatId = int.Parse(metadata["OutboundSeatId"]);

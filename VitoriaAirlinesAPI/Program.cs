@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -96,6 +97,10 @@ namespace VitoriaAirlinesAPI
                     };
                 });
 
+
+            builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(@"C:\tempkeys\keys"))
+    .SetApplicationName("VitoriaAirlines");
 
             builder.Services.Configure<RouteOptions>(options =>
             {
