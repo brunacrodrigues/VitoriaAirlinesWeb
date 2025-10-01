@@ -7,6 +7,7 @@ using Stripe.Checkout;
 using System.Security.Claims;
 using System.Text;
 using VitoriaAirlinesAPI.Dtos;
+using VitoriaAirlinesAPI.Services;
 using VitoriaAirlinesWeb.Data;
 using VitoriaAirlinesWeb.Data.Entities;
 using VitoriaAirlinesWeb.Data.Enums;
@@ -28,6 +29,7 @@ namespace VitoriaAirlinesAPI.Controllers
         private readonly ITicketRepository _ticketRepository;
         private readonly ICustomerProfileRepository _customerProfileRepository;
         private readonly IPaymentService _paymentService;
+        private readonly ITicketPdfService _ticketPdfService;
         private readonly IMailHelper _mailHelper;
 
         //private const string ApiBaseUrl = "http://localhost:5283";
@@ -43,6 +45,7 @@ namespace VitoriaAirlinesAPI.Controllers
             ITicketRepository ticketRepository,
             ICustomerProfileRepository customerProfileRepository,
             IPaymentService paymentService,
+            ITicketPdfService ticketPdfService,
             IMailHelper mailHelper)
         {
             _userHelper = userHelper;
@@ -50,6 +53,7 @@ namespace VitoriaAirlinesAPI.Controllers
             _ticketRepository = ticketRepository;
             _customerProfileRepository = customerProfileRepository;
             _paymentService = paymentService;
+            _ticketPdfService = ticketPdfService;
             _mailHelper = mailHelper;
         }
 
@@ -188,7 +192,6 @@ namespace VitoriaAirlinesAPI.Controllers
         }
 
 
-
         [HttpPost("complete-booking")]
         [AllowAnonymous]
         public async Task<IActionResult> CompleteBooking([FromBody] CompleteBookingRequestDto request)
@@ -299,7 +302,22 @@ namespace VitoriaAirlinesAPI.Controllers
                 PurchaseDateUtc = DateTime.UtcNow
             };
             await _ticketRepository.CreateAsync(outboundTicket);
-            await _mailHelper.SendBookingConfirmationEmailAsync(userEmail, userFullName, outboundFlight.FlightNumber, $"{outboundSeat.Row}{outboundSeat.Letter}", outboundPrice, outboundTicket.PurchaseDateUtc);
+
+
+            var outboundTicketWithDetails = await _ticketRepository.GetTicketWithDetailsAsync(outboundTicket.Id);
+            var outboundPdfBytes = await _ticketPdfService.GenerateTicketPdfAsync(outboundTicketWithDetails);
+
+
+            await _mailHelper.SendBookingConfirmationEmailWithAttachmentAsync(
+                userEmail,
+                userFullName,
+                outboundFlight.FlightNumber,
+                $"{outboundSeat.Row}{outboundSeat.Letter}",
+                outboundPrice,
+                outboundTicket.PurchaseDateUtc,
+                outboundPdfBytes,
+                $"BoardingPass_TKT{outboundTicket.Id:D8}.pdf"
+            );
 
             int? returnTicketId = null;
 
@@ -327,7 +345,22 @@ namespace VitoriaAirlinesAPI.Controllers
                     PurchaseDateUtc = DateTime.UtcNow
                 };
                 await _ticketRepository.CreateAsync(returnTicket);
-                await _mailHelper.SendBookingConfirmationEmailAsync(userEmail, userFullName, returnFlight.FlightNumber, $"{returnSeat.Row}{returnSeat.Letter}", returnPrice, returnTicket.PurchaseDateUtc);
+
+
+                var returnTicketWithDetails = await _ticketRepository.GetTicketWithDetailsAsync(returnTicket.Id);
+                var returnPdfBytes = await _ticketPdfService.GenerateTicketPdfAsync(returnTicketWithDetails);
+
+
+                await _mailHelper.SendBookingConfirmationEmailWithAttachmentAsync(
+                    userEmail,
+                    userFullName,
+                    returnFlight.FlightNumber,
+                    $"{returnSeat.Row}{returnSeat.Letter}",
+                    returnPrice,
+                    returnTicket.PurchaseDateUtc,
+                    returnPdfBytes,
+                    $"BoardingPass_TKT{returnTicket.Id:D8}.pdf"
+                );
 
                 returnTicketId = returnTicket.Id;
             }
@@ -335,5 +368,55 @@ namespace VitoriaAirlinesAPI.Controllers
 
             return Ok(new CompleteBookingResponseDto { OutboundTicketId = outboundTicket.Id, ReturnTicketId = returnTicketId });
         }
+
+
+        [HttpPost("{ticketId}/cancel")]
+        public async Task<IActionResult> CancelTicket(int ticketId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+
+            var ticket = await _ticketRepository.GetTicketWithDetailsAsync(ticketId);
+
+            if (ticket == null || ticket.UserId != userId || ticket.IsCanceled)
+            {
+                return Forbid("Ticket not found, already canceled, or does not belong to the user.");
+            }
+
+
+            const int CancellationCutoffHours = 24;
+            if (ticket.Flight.DepartureUtc.Subtract(DateTime.UtcNow).TotalHours < CancellationCutoffHours)
+            {
+                return BadRequest($"Cancellation must be done at least {CancellationCutoffHours} hours before departure.");
+            }
+
+            ticket.IsCanceled = true;
+            ticket.CanceledDateUtc = DateTime.UtcNow;
+
+            await _ticketRepository.UpdateAsync(ticket);
+
+            try
+            {
+                var user = await _userHelper.GetUserByIdAsync(userId);
+                if (user == null) throw new Exception("User data missing for email.");
+
+                var body = $@"<p>Hello {user.FullName},</p>
+                         <p>Your ticket for flight <strong>{ticket.Flight.FlightNumber}</strong> scheduled on 
+                         <strong>{ticket.Flight.DepartureUtc:dd/MM/yyyy HH:mm} (UTC)</strong>
+                         has been successfully canceled.</p>
+                         <p>A refund will be issued shortly to the payment method used.</p>
+                         <p>Thank you,<br/>Vitoria Airlines</p>";
+
+                await _mailHelper.SendEmailAsync(user.Email, "Ticket Cancellation Confirmation", body);
+            }
+            catch (Exception ex)
+            {
+                return Ok(new { message = $"Ticket {ticketId} successfully canceled. WARNING: Failed to send confirmation email." });
+            }
+
+            return Ok(new { message = "Ticket successfully canceled and refund confirmation sent." });
+        }
+
     }
 }

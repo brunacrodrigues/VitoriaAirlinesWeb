@@ -101,6 +101,35 @@ namespace VitoriaAirlinesWeb.Helpers
             var localPurchaseDate = TimezoneHelper.ConvertToLocal(purchaseDateUtc); // Convert UTC to local time for display
 
             var body = $@"
+                <p>Hello {fullName},</p>
+                <p>Thank you for your booking with Vitoria Airlines.</p>
+                <p>Your ticket has been successfully issued:</p>
+                <ul>
+                    <li><strong>Flight Number:</strong> {flightNumber}</li>
+                    <li><strong>Seat:</strong> {seatDisplay}</li>
+                    <li><strong>Price Paid:</strong> €{price:F2}</li>
+                    <li><strong>Purchase Date:</strong> {localPurchaseDate:f} (Local Time)</li>
+                </ul>
+                <p>We wish you a pleasant flight!</p>";
+
+            // Reuse the generic SendEmailAsync method to send the formatted confirmation email.
+            return await SendEmailAsync(email, "Flight Ticket Confirmation - Vitoria Airlines", body);
+        }
+
+
+
+        public async Task<ApiResponse> SendBookingConfirmationEmailWithAttachmentAsync(
+            string email,
+            string fullName,
+            string flightNumber,
+            string seatDisplay,
+            decimal price,
+            DateTime purchaseDateUtc,
+            byte[] pdfAttachment,
+            string attachmentFileName)
+        {
+            var localPurchaseDate = TimezoneHelper.ConvertToLocal(purchaseDateUtc);
+            var body = $@"
         <p>Hello {fullName},</p>
         <p>Thank you for your booking with Vitoria Airlines.</p>
         <p>Your ticket has been successfully issued:</p>
@@ -110,10 +139,99 @@ namespace VitoriaAirlinesWeb.Helpers
             <li><strong>Price Paid:</strong> €{price:F2}</li>
             <li><strong>Purchase Date:</strong> {localPurchaseDate:f} (Local Time)</li>
         </ul>
+        <p>Your boarding pass is attached to this email as a PDF file.</p>
         <p>We wish you a pleasant flight!</p>";
 
-            // Reuse the generic SendEmailAsync method to send the formatted confirmation email.
-            return await SendEmailAsync(email, "Flight Ticket Confirmation - Vitoria Airlines", body);
+            return await SendEmailWithAttachmentAsync(
+                email,
+                "Flight Ticket Confirmation - Vitoria Airlines",
+                body,
+                pdfAttachment,
+                attachmentFileName,
+                "application/pdf"
+            );
+        }
+
+
+        public async Task<ApiResponse> SendEmailWithAttachmentAsync(
+            string to,
+            string subject,
+            string body,
+            byte[] attachmentData,
+            string attachmentFileName,
+            string mimeType = "application/octet-stream")
+        {
+            try
+            {
+                var smtpServer = _configuration["Mail:SmtpServer"];
+                var portString = _configuration["Mail:Port"];
+                var fromEmail = _configuration["Mail:From"];
+                var password = _configuration["Mail:Password"];
+
+                if (string.IsNullOrWhiteSpace(smtpServer) || string.IsNullOrWhiteSpace(portString))
+                {
+                    return new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "SMTP configuration is missing or invalid."
+                    };
+                }
+
+                if (!int.TryParse(portString, out int port))
+                {
+                    return new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Invalid SMTP port configuration."
+                    };
+                }
+
+                var message = new MimeMessage();
+                message.From.Add(new MailboxAddress(_configuration["Mail:NameFrom"] ?? "Vitoria Airlines", fromEmail));
+                message.To.Add(new MailboxAddress(to, to));
+                message.Subject = subject;
+
+                var builder = new BodyBuilder
+                {
+                    HtmlBody = body
+                };
+
+
+                if (attachmentData != null && attachmentData.Length > 0)
+                {
+                    builder.Attachments.Add(attachmentFileName, attachmentData, ContentType.Parse(mimeType));
+                }
+
+                message.Body = builder.ToMessageBody();
+
+                using var client = new SmtpClient();
+
+
+                await client.ConnectAsync(smtpServer, port, MailKit.Security.SecureSocketOptions.StartTls);
+
+
+                if (!string.IsNullOrWhiteSpace(fromEmail) && !string.IsNullOrWhiteSpace(password))
+                {
+                    await client.AuthenticateAsync(fromEmail, password);
+                }
+
+                await client.SendAsync(message);
+                await client.DisconnectAsync(true);
+
+                return new ApiResponse
+                {
+                    IsSuccess = true,
+                    Message = "Email with attachment sent successfully."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = $"Failed to send email: {ex.Message}"
+                };
+            }
         }
     }
 }

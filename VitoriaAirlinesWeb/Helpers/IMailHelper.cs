@@ -35,5 +35,26 @@ namespace VitoriaAirlinesWeb.Helpers
             decimal price,
             DateTime purchaseDateUtc);
 
+
+
+        Task<ApiResponse> SendBookingConfirmationEmailWithAttachmentAsync(
+            string email,
+            string fullName,
+            string flightNumber,
+            string seatDisplay,
+            decimal price,
+            DateTime purchaseDateUtc,
+            byte[] pdfAttachment,
+            string attachmentFileName);
+
+
+        Task<ApiResponse> SendEmailWithAttachmentAsync(
+            string to,
+            string subject,
+            string body,
+            byte[] attachmentData,
+            string attachmentFileName,
+            string mimeType = "application/octet-stream");
     }
+
 }
